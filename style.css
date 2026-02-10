@@ -1,16 +1,16 @@
 /* Ocupa toda la pantalla */
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; 
+  overflow: hidden;
   font-family: sans-serif;
   background: #1a1a1a;
   color: white;
   text-align: center;
 }
-
 
 /* Barra superior */
 .top-bar {
@@ -23,9 +23,7 @@ html, body {
   align-items: center;
   gap: 10px;
   z-index: 10;
-  border
 }
-
 
 /* Título */
 .title {
@@ -44,7 +42,7 @@ html, body {
 
 /* Botones de capa */
 .layer-btn {
-    position: relative;
+  position: relative;
   z-index: 10;
   background: #222;
   color: white;
@@ -71,41 +69,29 @@ html, body {
 
 /* Contenedor principal del teclado */
 .keyboard-container {
-    position: relative;
+  position: relative;
   z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(40px, 8vw, 120px);
+  gap: clamp(160px, 16vw, 260px);
   width: 100%;
   height: 100vh;
   box-sizing: border-box;
   transform: translateY(-50px);
 }
 
-
 /* Cada mitad del teclado */
-.split {
-  display: grid;
-  grid-template-columns: repeat(6, 60px);
-  grid-gap: 8px;
-}
-
-/* Espacio para bajar las teclas de pulgar */
-.split::after {
-  content: "";
-  grid-column: span 6;
-}
-
-
 :root {
   --key-size: clamp(60px, 6vw, 100px);
+  --key-gap: clamp(6px, 1vw, 12px);
 }
 
 .split {
   display: grid;
   grid-template-columns: repeat(6, var(--key-size));
-  gap: clamp(6px, 1vw, 12px);
+  gap: var(--key-gap);
+  grid-auto-rows: minmax(var(--key-size), auto);
 }
 
 /* Teclas */
@@ -123,11 +109,10 @@ html, body {
   font-size: clamp(12px, 1.5vw, 18px);
 }
 
-
 /* Hover */
 .key:hover {
+  --scale: 1.12;
   background: #555;
-  transform: scale(1.1);
   border-color: #00d1b2;
 }
 
@@ -139,11 +124,10 @@ html, body {
   padding: 12px;
   border-radius: 10px;
   pointer-events: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   width: 220px;
   z-index: 9999;
-
-  color: #fff;        /* 🔥 ESTO FALTABA */
+  color: #fff;
   font-size: 14px;
 }
 
@@ -151,16 +135,175 @@ html, body {
   display: none;
 }
 
-
 /* Espejar el teclado derecho */
 .split.left {
   transform: scaleX(-1);
 }
 
-/* Corregir orientación de las teclas del lado derecho */
-.split.left .key {
-  transform: scaleX(-1);
+.key {
+  --tx: 0px;
+  --ty: 0px;
+  --rot: 0deg;
+  --scale: 1;
+  --mirror: 1;
+
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot))
+    scale(var(--mirror), 1) scale(var(--scale));
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s,
+    border-color 0.2s;
 }
 
+/* Corregir orientación de las teclas del lado derecho */
+.split.left .key {
+  --mirror: -1;
+}
 
+/* ESCALONADO POR COLUMNAS IZQUIERDA */
+.split:not(.left) .key:nth-child(6n + 1) {
+  --ty: -6px;
+}
+.split:not(.left) .key:nth-child(6n + 2) {
+  --ty: -14px;
+}
+.split:not(.left) .key:nth-child(6n + 3) {
+  --ty: -20px;
+}
+.split:not(.left) .key:nth-child(6n + 4) {
+  --ty: -14px;
+}
+/* ESCALONADO POR COLUMNAS DERECHA */
+.split.left .key:nth-child(6n + 1) {
+  --ty: -6px;
+}
+.split.left .key:nth-child(6n + 2) {
+  --ty: -14px;
+}
+.split.left .key:nth-child(6n + 3) {
+  --ty: -20px;
+}
+.split.left .key:nth-child(6n + 4) {
+  --ty: -14px;
+}
 
+/* Pulgares estilo Corne Izquierda */
+.split:not(.left) .key:nth-last-child(3) {
+  height: calc(var(--key-size) * 1.45);
+  --tx: calc(var(--key-size) * -0.9);
+  --ty: calc(var(--key-size) * 0.2);
+  --rot: -35deg;
+}
+
+.split:not(.left) .key:nth-last-child(2) {
+  --tx: calc(var(--key-size) * -0.65);
+  --ty: calc(var(--key-size) * -0.05);
+  --rot: -18deg;
+}
+
+.split:not(.left) .key:nth-last-child(1) {
+  --tx: calc(var(--key-size) * -0.45);
+  --ty: calc(var(--key-size) * -0.2);
+}
+
+/* Pulgares estilo Corne Derecha */
+.split.left .key:nth-last-child(3) {
+  height: calc(var(--key-size) * 1.45);
+  --tx: calc(var(--key-size) * -0.9);
+  --ty: calc(var(--key-size) * 0.2);
+  --rot: -35deg;
+}
+
+.split.left .key:nth-last-child(2) {
+  --tx: calc(var(--key-size) * -0.65);
+  --ty: calc(var(--key-size) * -0.05);
+  --rot: -18deg;
+}
+
+.split.left .key:nth-last-child(1) {
+  --tx: calc(var(--key-size) * -0.45);
+  --ty: calc(var(--key-size) * -0.2);
+}
+
+@media (max-width: 912px) {
+  .keyboard-container {
+    flex-direction: column;
+    gap: clamp(60px, 10vw, 120px);
+    transform: translateY(0);
+  }
+
+  /* Orden: derecho arriba, izquierdo abajo */
+  .split.left {
+    order: 1;
+  }
+
+  .split:not(.left) {
+    order: 2;
+  }
+}
+
+/* ===== Ajuste real de tamaño en móviles ===== */
+@media (max-width: 480px) {
+  :root {
+    --key-size: clamp(42px, 10vw, 56px);
+    --key-gap: clamp(4px, 1.2vw, 8px);
+  }
+
+  .keyboard-container {
+    padding: 0 8px;
+  }
+
+  .title {
+    font-size: clamp(16px, 5vw, 20px);
+  }
+
+  .layer-buttons {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .layer-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  .top-bar {
+    gap: 6px;
+    top: 10px;
+  }
+
+  .keyboard-container {
+    transform: translateY(-20px);
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --key-size: 38px;
+    --key-gap: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    left: 50% !important;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 360px;
+    pointer-events: auto;
+  }
+
+  /* Teclado superior → modal abajo */
+  .modal.from-top {
+    top: auto !important;
+    bottom: 16px;
+  }
+
+  /* Teclado inferior → modal arriba */
+  .modal.from-bottom {
+    bottom: auto !important;
+    top: 16px;
+  }
+}

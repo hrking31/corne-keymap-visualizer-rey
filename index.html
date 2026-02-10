@@ -1,33 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Corne Map Interactivo</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <h1>Corne ZMK Visualizer Rey</h1>
 
-      <div class="layer-buttons">
-    <button class="layer-btn active">Base</button>
-    <button class="layer-btn">Nav</button>
-    <button class="layer-btn">Sym</button>
-    <button class="layer-btn">Num</button>
-  </div>
-    
-    <div class="keyboard-container">
-        <div class="split left" id="left-side"></div>
-        <div class="split right" id="right-side"></div>
+    <div class="layer-buttons">
+      <button class="layer-btn active">Base</button>
+      <button class="layer-btn">Num</button>
+      <button class="layer-btn">Sym</button>
+      <button class="layer-btn">Nav</button>
+      <button class="layer-btn">Led</button>
+      <button class="layer-btn">Fun</button>
     </div>
 
-    <div id="info-modal" class="modal hidden">
-        <h3 id="modal-title">Tecla</h3>
-        <p id="modal-desc">Información aquí...</p>
-        <span id="modal-layer"></span>
+    <div class="keyboard-container">
+      <div class="split left" id="left-side"></div>
+      <div class="split right" id="right-side"></div>
     </div>
+
+<div id="info-modal" class="modal hidden">
+  <div id="modal-layer" style="font-size: 10px; color: #00d1b2; text-transform: uppercase; font-weight: bold;"></div>
+  <div id="modal-title" style="font-weight: bold; font-size: 18px; margin-bottom: 4px;"></div>
+  <div id="modal-desc"></div>
+</div>
 
     <script src="data.js"></script>
     <script src="app.js"></script>
-</body>
+  </body>
 </html>

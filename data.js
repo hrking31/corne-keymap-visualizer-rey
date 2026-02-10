@@ -18,4 +18,14 @@ const keymap = {
     label: `NUM${i + 1}`,
     desc: `Tecla ${i + 1} – Números`,
   })),
+
+  LED: Array.from({ length: 42 }, (_, i) => ({
+    label: `LED${i + 1}`,
+    desc: `Tecla ${i + 1} – Números`,
+  })),
+
+  FUN: Array.from({ length: 42 }, (_, i) => ({
+    label: `FUN${i + 1}`,
+    desc: `Tecla ${i + 1} – Números`,
+  })),
 };
