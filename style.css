@@ -1,0 +1,159 @@
+/* Ocupa toda la pantalla */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 🔴 evita scroll */
+  font-family: sans-serif;
+  background: #1a1a1a;
+  color: white;
+  text-align: center;
+}
+
+
+/* Barra superior */
+.top-bar {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  border
+}
+
+
+/* Título */
+.title {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 600;
+}
+
+/* Contenedor de botones */
+.layer-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botones de capa */
+.layer-btn {
+  background: #222;
+  color: white;
+  border: 1px solid #444;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+/* Hover */
+.layer-btn:hover {
+  background: #333;
+  border-color: #00d1b2;
+}
+
+/* Capa activa */
+.layer-btn.active {
+  background: #00d1b2;
+  color: #111;
+  border-color: #00d1b2;
+}
+
+/* Contenedor principal del teclado */
+.keyboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(40px, 8vw, 120px);
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  transform: translateY(-50px);
+}
+
+
+/* Cada mitad del teclado */
+.split {
+  display: grid;
+  grid-template-columns: repeat(6, 60px);
+  grid-gap: 8px;
+}
+
+/* Espacio para bajar las teclas de pulgar */
+.split::after {
+  content: "";
+  grid-column: span 6;
+}
+
+
+:root {
+  --key-size: clamp(60px, 6vw, 100px);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(6, var(--key-size));
+  gap: clamp(6px, 1vw, 12px);
+}
+
+/* Teclas */
+.key {
+  width: var(--key-size);
+  height: var(--key-size);
+  background: #333;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid #444;
+  font-size: clamp(12px, 1.5vw, 18px);
+}
+
+
+/* Hover */
+.key:hover {
+  background: #555;
+  transform: scale(1.1);
+  border-color: #00d1b2;
+}
+
+/* Modal de información */
+.modal {
+  position: fixed;
+  background: #222;
+  border: 2px solid #00d1b2;
+  padding: 15px;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  width: 200px;
+  z-index: 100;
+}
+
+/* Ocultar modal */
+.hidden {
+  display: none;
+}
+
+/* Espejar el teclado derecho */
+.left {
+  transform: scaleX(-1);
+}
+
+/* Corregir orientación de las teclas del lado derecho */
+.left .key {
+  transform: scaleX(-1);
+}
+
+
+
