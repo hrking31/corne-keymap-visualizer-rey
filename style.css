@@ -4,7 +4,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* 🔴 evita scroll */
+  overflow: hidden; 
   font-family: sans-serif;
   background: #1a1a1a;
   color: white;
@@ -44,6 +44,8 @@ html, body {
 
 /* Botones de capa */
 .layer-btn {
+    position: relative;
+  z-index: 10;
   background: #222;
   color: white;
   border: 1px solid #444;
@@ -69,6 +71,8 @@ html, body {
 
 /* Contenedor principal del teclado */
 .keyboard-container {
+    position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -132,26 +136,29 @@ html, body {
   position: fixed;
   background: #222;
   border: 2px solid #00d1b2;
-  padding: 15px;
+  padding: 12px;
   border-radius: 10px;
   pointer-events: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  width: 200px;
-  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  width: 220px;
+  z-index: 9999;
+
+  color: #fff;        /* 🔥 ESTO FALTABA */
+  font-size: 14px;
 }
 
-/* Ocultar modal */
 .hidden {
   display: none;
 }
 
+
 /* Espejar el teclado derecho */
-.left {
+.split.left {
   transform: scaleX(-1);
 }
 
 /* Corregir orientación de las teclas del lado derecho */
-.left .key {
+.split.left .key {
   transform: scaleX(-1);
 }
 

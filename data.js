@@ -1,6 +1,21 @@
 const keymap = {
-  L1: { label: "Q", desc: "Letra Q estándar", layer: "Base" },
-  L2: { label: "W", desc: "Letra W estándar", layer: "Base" },
-  L7: { label: "A", desc: "Letra A / Mod: CTRL", layer: "Home Row" },
-  // Agrega todas las 42 teclas aquí...
+  DEF: Array.from({ length: 42 }, (_, i) => ({
+    label: `K${i + 1}`,
+    desc: `Tecla ${i + 1} – Capa Base`,
+  })),
+
+  NAV: Array.from({ length: 42 }, (_, i) => ({
+    label: `NAV${i + 1}`,
+    desc: `Tecla ${i + 1} – Navegación`,
+  })),
+
+  SYM: Array.from({ length: 42 }, (_, i) => ({
+    label: `SYM${i + 1}`,
+    desc: `Tecla ${i + 1} – Símbolos`,
+  })),
+
+  NUM: Array.from({ length: 42 }, (_, i) => ({
+    label: `NUM${i + 1}`,
+    desc: `Tecla ${i + 1} – Números`,
+  })),
 };
