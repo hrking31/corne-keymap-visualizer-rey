@@ -5,8 +5,17 @@ const modal = document.getElementById("info-modal");
 const modalTitle = document.getElementById("modal-title");
 const modalDesc = document.getElementById("modal-desc");
 const modalLayer = document.getElementById("modal-layer");
+const modalExtra = document.getElementById("modal-extra");
 
-let currentLayer = "DEF";
+let currentLayer = "BASE";
+
+const layerNames = {
+  BASE: "Capa Base",
+  NUM: "Capa Números",
+  SYM: "Capa Símbolos",
+  FN: "Capa Funciones",
+  // Agrega aquí más si tienes otras capas
+};
 
 function renderKeyboard() {
   leftSide.innerHTML = "";
@@ -14,61 +23,83 @@ function renderKeyboard() {
 
   const keys = keymap[currentLayer];
 
-  keys.forEach((key, index) => {
-    const keyDiv = document.createElement("div");
-    keyDiv.className = "key";
-    keyDiv.innerText = key.label;
+  const rightHandData = keys.slice(0, 21);
+  const leftHandData = keys.slice(21, 42);
 
-    // index < 21 es la mitad superior en móvil, index >= 21 es la inferior
-    const isBottomPart = index >= 21;
+  const processHand = (container, data, isMirrored) => {
+    const rows = [
+      data.slice(0, 6),
+      data.slice(6, 12),
+      data.slice(12, 18),
+      data.slice(18, 21),
+    ];
 
-    keyDiv.addEventListener("mouseenter", () => {
-      modalTitle.innerText = key.label;
-      modalDesc.innerText = key.desc;
-      modalLayer.innerText = currentLayer;
+    rows.forEach((rowData) => {
+      if (isMirrored) rowData.reverse();
 
-      modal.classList.remove("hidden", "from-top", "from-bottom");
+      rowData.forEach((key) => {
+        const keyDiv = document.createElement("div");
+        keyDiv.className = "key";
+        keyDiv.innerText = key.label;
 
-      if (window.innerWidth <= 768) {
-        // Si toco la parte de abajo, el modal va arriba
-        modal.classList.add(isBottomPart ? "from-bottom" : "from-top");
-      }
+        keyDiv.addEventListener("mouseenter", () => {
+          modalTitle.innerText = key.label;
+          modalDesc.innerText = key.desc;
+
+          // AQUÍ USAMOS EL DICCIONARIO:
+          // Si el nombre existe en el diccionario, lo usa. Si no, usa el original.
+          modalLayer.innerText = layerNames[currentLayer] || currentLayer;
+
+          if (key.extra) {
+            modalExtra.innerText = key.extra;
+            modalExtra.style.display = "block";
+          } else {
+            modalExtra.innerText = "";
+            modalExtra.style.display = "none";
+          }
+
+          modal.classList.remove("hidden", "from-top", "from-bottom");
+
+          if (window.innerWidth <= 768) {
+            const isBottomPart = container === rightSide;
+            modal.classList.add(isBottomPart ? "from-bottom" : "from-top");
+          }
+        });
+
+        keyDiv.addEventListener("mousemove", (e) => {
+          if (window.innerWidth > 768) {
+            const halfScreen = window.innerWidth / 2;
+            const offset = 20;
+
+            if (e.clientX > halfScreen) {
+              modal.style.left = e.clientX - modal.offsetWidth - offset + "px";
+            } else {
+              modal.style.left = e.clientX + offset + "px";
+            }
+            modal.style.top = e.clientY - 100 + "px";
+          }
+        });
+
+        keyDiv.addEventListener("mouseleave", () => {
+          modal.classList.add("hidden");
+          modal.style.left = "";
+          modal.style.top = "";
+          modalExtra.innerText = "";
+        });
+
+        container.appendChild(keyDiv);
+      });
     });
+  };
 
-    keyDiv.addEventListener("mousemove", (e) => {
-      if (window.innerWidth > 768) {
-        const halfScreen = window.innerWidth / 2;
-        const offset = 20; // Espacio entre el cursor y el modal
-
-        if (e.clientX > halfScreen) {
-          // DERECHA: el modal abre a la IZQUIERDA del cursor
-          modal.style.left = e.clientX - modal.offsetWidth - offset + "px";
-        } else {
-          // IZQUIERDA: el modal abre a la DERECHA del cursor
-          modal.style.left = e.clientX + offset + "px";
-        }
-
-        // Posición vertical (siempre arriba del cursor)
-        modal.style.top = e.clientY - 100 + "px";
-      }
-    });
-
-    keyDiv.addEventListener("mouseleave", () => {
-      modal.classList.add("hidden");
-      modal.style.left = "";
-      modal.style.top = "";
-    });
-
-    if (index < 21) leftSide.appendChild(keyDiv);
-    else rightSide.appendChild(keyDiv);
-  });
+  processHand(leftSide, rightHandData, true);
+  processHand(rightSide, leftHandData, false);
 }
 
-// Eventos de botones de capa
 document.querySelectorAll(".layer-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     const layerName = btn.innerText.toUpperCase();
-    currentLayer = layerName === "BASE" ? "DEF" : layerName;
+    currentLayer = layerName === "BASE" ? "BASE" : layerName;
 
     document
       .querySelectorAll(".layer-btn")
@@ -79,5 +110,4 @@ document.querySelectorAll(".layer-btn").forEach((btn) => {
   });
 });
 
-// Inicialización
 renderKeyboard();
