@@ -154,27 +154,28 @@ body {
 }
 
 #modal-desc {
-  color: #4a453c; /* Un tono café/grisáceo oscuro */
+  color: #4a453c; /* café/grisáceo oscuro */
   margin: 4px 0;
   line-height: 1.4;
 }
 
 #modal-extra {
   background: #d97706;
-  color: #ffffff;
-  padding: 2px 6px;
+   color: #ffffff;
+  padding: 4px 15px 4px 6px;
   font-weight: bold;
-  display: inline-block; /* Para que el fondo naranja no ocupe todo el ancho */
-  width: fit-content;    /* Se ajusta solo al tamaño del texto */
   font-size: 11px;
-}
+  display: inline-block;
+  width: fit-content;
+  }
+
 
 #modal-layer {
 color: #8c8573;
   font-weight: bold;
   text-transform: uppercase;
   font-size: 10px;
-  margin-top: 5px;       /* Un poco más de aire arriba */
+  margin-top: 5px
   letter-spacing: 1px;
 }
 
@@ -182,11 +183,14 @@ color: #8c8573;
   display: none;
 }
 
+
 /* Espejar el teclado derecho */
 .split.left {
   transform: scaleX(-1);
 }
 
+
+/* Variables para cambio de posición de los pulgares */
 .key {
   --tx: 0px;
   --ty: 0px;
@@ -203,10 +207,12 @@ color: #8c8573;
     border-color 0.2s;
 }
 
+
 /* Corregir orientación de las teclas del lado derecho */
 .split.left .key {
   --mirror: -1;
 }
+
 
 /* ESCALONADO POR COLUMNAS IZQUIERDA */
 .split:not(.left) .key:nth-child(6n + 1) {
@@ -254,6 +260,7 @@ color: #8c8573;
   --ty: calc(var(--key-size) * -0.2);
 }
 
+
 /* Pulgares estilo Corne Derecha */
 .split.left .key:nth-last-child(3) {
   height: calc(var(--key-size) * 1.45);
@@ -273,6 +280,8 @@ color: #8c8573;
   --ty: calc(var(--key-size) * -0.2);
 }
 
+
+/* ===== Orden del teclado en móviles ===== */
 @media (max-width: 912px) {
   .keyboard-container {
     flex-direction: column;
@@ -280,25 +289,27 @@ color: #8c8573;
     transform: translateY(0);
   }
 
-  /* Orden: derecho arriba, izquierdo abajo */
+  /* derecho arriba*/
   .split.left {
     order: 1;
   }
 
+   /* izquierdo abajo */
   .split:not(.left) {
     order: 2;
   }
 }
 
-/* ===== Ajuste real de tamaño en móviles ===== */
+
+/* ===== Ajuste de tamaño en móviles ===== */
 @media (max-width: 480px) {
   :root {
     --key-size: clamp(42px, 10vw, 56px);
-    --key-gap: clamp(4px, 1.2vw, 8px);
+    --key-gap: clamp(7px, 1.2vw, 8px);
   }
 
   .keyboard-container {
-    padding: 0 8px;
+    padding: 8px;
   }
 
   .title {
@@ -321,18 +332,22 @@ color: #8c8573;
     top: 10px;
   }
 
-  .keyboard-container {
-    transform: translateY(-20px);
+.keyboard-container {
+    padding-top: 100px;
+    gap: 25px;
+    height: auto;
   }
 }
 
 @media (max-width: 360px) {
   :root {
     --key-size: 38px;
-    --key-gap: 4px;
+    --key-gap: 6px;
   }
 }
 
+
+/* Ubicación del modal */
 @media (max-width: 768px) {
   .modal {
     left: 50% !important;
