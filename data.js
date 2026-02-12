@@ -311,8 +311,12 @@ const keymap = {
 
     // --- BLOQUE DERECHO ---
     // Fila 1
-    { label: "", desc: "Key 6" },
-    { label: "", desc: "Key 7" },
+    {
+      label: "M-SL",
+      desc: "Key 6",
+      extra: "Realiza multiples selecciones en VSC",
+    },
+    { label: "TABS", desc: "Key 7", extra:"Cambia entre pestañas abiertas en VSC" },
     {
       label: "SL-P",
       desc: "Key 8",
@@ -326,7 +330,11 @@ const keymap = {
     { label: "", desc: "Key 10" },
     { label: "BSPC", desc: "Key 11" },
     // Fila 2
-    { label: "", desc: "Key 18" },
+    {
+      label: "OPEN",
+      desc: "Key 18",
+      extra: "Abre una carpeta en VSC (abre un proyecto)",
+    },
     { label: "", desc: "Key 19" },
     {
       label: "SL-L",
@@ -341,7 +349,11 @@ const keymap = {
     { label: "", desc: "Key 22" },
     { label: "DEL", desc: "Key 23" },
     // Fila 3
-    { label: "", desc: "Key 30" },
+    {
+      label: "CLS",
+      desc: "Key 30",
+      extra: "Cierra la carpeta actual en VSC (cierra un proyecto)",
+    },
     { label: "", desc: "Key 31" },
     {
       label: "C-RG",
@@ -464,22 +476,52 @@ const keymap = {
   FUN: [
     // --- BLOQUE IZQUIERDO  ---
     // Fila 1
-    { label: "", desc: "Key 0" },
-    { label: "", desc: "Key 1" },
-    { label: "", desc: "Key 2" },
-    { label: "", desc: "Key 3" },
-    { label: "", desc: "Key 4" },
-    { label: "", desc: "Key 5" },
+    { label: "F1", desc: "Key 0" },
+    { label: "F2", desc: "Key 1" },
+    { label: "F3", desc: "Key 2" },
+    { label: "F4", desc: "Key 3" },
+    { label: "F5", desc: "Key 4" },
+    { label: "F6", desc: "Key 5" },
     // Fila 2
     { label: "", desc: "Key 12" },
-    { label: "", desc: "Key 13" },
-    { label: "", desc: "Key 14" },
-    { label: "", desc: "Key 15" },
-    { label: "", desc: "Key 16" },
-    { label: "", desc: "Key 17" },
+    {
+      label: "BT1",
+      desc: "Key 13",
+      extra:
+        "Perfil bluetooth 1 (selecciona el 1 dispositivo host vinculado para recibir la entrada del teclado)",
+    },
+    {
+      label: "BT2",
+      desc: "Key 14",
+      extra:
+        "Perfil bluetooth 2 (selecciona el 2 dispositivo host vinculado para recibir la entrada del teclado)",
+    },
+    {
+      label: "BT3",
+      desc: "Key 15",
+      extra:
+        "Perfil bluetooth 3 (selecciona el 3 dispositivo host vinculado para recibir la entrada del teclado)",
+    },
+    {
+      label: "BT4",
+      desc: "Key 16",
+      extra:
+        "Perfil bluetooth 4 (selecciona el 4 dispositivo host vinculado para recibir la entrada del teclado)",
+    },
+    {
+      label: "BT5",
+      desc: "Key 17",
+      extra:
+        "Perfil bluetooth 5 (selecciona el 5 dispositivo host vinculado para recibir la entrada del teclado)",
+    },
     // Fila 3.
     { label: "", desc: "Key 24" },
-    { label: "", desc: "Key 25" },
+    {
+      label: "BTCLR",
+      desc: "Key 25",
+      extra:
+        "Borrar la información del vínculo entre el teclado y el host para el perfil seleccionado",
+    },
     { label: "", desc: "Key 26" },
     { label: "", desc: "Key 27" },
     { label: "", desc: "Key 28" },
@@ -491,19 +533,35 @@ const keymap = {
 
     // --- BLOQUE DERECHO ---
     // Fila 1
-    { label: "", desc: "Key 6" },
-    { label: "", desc: "Key 7" },
-    { label: "", desc: "Key 8" },
-    { label: "", desc: "Key 9" },
-    { label: "", desc: "Key 10" },
-    { label: "", desc: "Key 11" },
+    { label: "F7", desc: "Key 6" },
+    { label: "F8", desc: "Key 7" },
+    { label: "F9", desc: "Key 8" },
+    { label: "F10", desc: "Key 9" },
+    { label: "F11", desc: "Key 10" },
+    { label: "F12", desc: "Key 11" },
     // Fila 2
-    { label: "", desc: "Key 18" },
-    { label: "", desc: "Key 19" },
-    { label: "", desc: "Key 20" },
-    { label: "", desc: "Key 21" },
-    { label: "", desc: "Key 22" },
-    { label: "", desc: "Key 23" },
+    { label: "PRV", desc: "Key 18", extra: "Reproduce la pista anterior" },
+    {
+      label: "P/P",
+      desc: "Key 19",
+      extra: "Reproducir o pausar la pista actual",
+    },
+    {
+      label: "VOL+",
+      desc: "Key 20",
+      extra: "Aumenta el volumen de reproducción",
+    },
+    {
+      label: "VOL-",
+      desc: "Key 21",
+      extra: "Disminuye el volumen de reproducción",
+    },
+    { label: "NXT", desc: "Key 22", extra: "Reproduce la siguiente pista" },
+    {
+      label: "MUTE",
+      desc: "Key 23",
+      extra: "Silencia o activa el sonido de reproducción",
+    },
     // Fila 3
     { label: "", desc: "Key 30" },
     { label: "", desc: "Key 31" },
