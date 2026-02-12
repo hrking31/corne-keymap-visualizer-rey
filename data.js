@@ -53,7 +53,7 @@ const keymap = {
     // Pulgares
     { label: "ENT", desc: "Key 39" },
     { label: "SIN", desc: "Key 40", extra: "Cambia a la capa SYM (símbolos)" },
-    { label: "WIN", desc: "Key 41" },
+    { label: "WIN", desc: "Key 41", extra: "Tecla windows" },
   ],
 
   // ---------------- CAPA NÚMEROS -----------------
@@ -68,8 +68,16 @@ const keymap = {
     { label: "5", desc: "Key 5" },
     // Fila 2
     { label: "ALT", desc: "Key 12" },
-    { label: "FOCO", desc: "Key 13", extra: "Foco en archivo de VSC" },
-    { label: "FLDR", desc: "Key 14", extra: "Abrir nueva carpeta en VSC" },
+    {
+      label: "EXPL",
+      desc: "Key 13",
+      extra: "Abre el explorador de archivos de VSC",
+    },
+    {
+      label: "FLDR",
+      desc: "Key 14",
+      extra: "Crea nueva carpeta en el explorador de archivos de VSC",
+    },
     {
       label: "INI",
       desc: "Key 15",
@@ -87,8 +95,16 @@ const keymap = {
     },
     // Fila 3
     { label: "CTRL", desc: "Key 24" },
-    { label: "", desc: "Key 25" },
-    { label: "FILE", desc: "Key 26", extra: "Abre nuevo archivo en VSC" },
+    {
+      label: "FOCO",
+      desc: "Key 25",
+      extra: "Foco en explorador de archivo de VSC",
+    },
+    {
+      label: "FILE",
+      desc: "Key 26",
+      extra: "Crea nuevo archivo en el explorador de archivos de VSC",
+    },
     {
       label: "END",
       desc: "Key 27",
@@ -110,31 +126,51 @@ const keymap = {
       label: "NUM",
       desc: "Key 37",
       extra:
-        "Al presionar y mantener junto con NAV cambia a la capa NAV (navegación)",
+        "Al presionar y mantener junto con la tecla NAV cambia a la capa NAV (navegación)",
     },
     { label: "SPC", desc: "Key 38" },
 
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
-    { label: "Key6", desc: "Key 6" },
-    { label: "Key7", desc: "Key 7" },
-    { label: "Key8", desc: "Key 8" },
-    { label: "Key9", desc: "Key 9" },
-    { label: "Key10", desc: "Key 10" },
+    { label: "6", desc: "Key 6" },
+    { label: "7", desc: "Key 7" },
+    { label: "8", desc: "Key 8" },
+    { label: "9", desc: "Key 9" },
+    { label: "0", desc: "Key 10" },
     { label: "BSPC", desc: "Key 11" },
     // Fila 2
-    { label: "Key18", desc: "Key 18" },
-    { label: "Key19", desc: "Key 19" },
-    { label: "Key20", desc: "Key 20" },
-    { label: "Key21", desc: "Key 21" },
-    { label: "Key22", desc: "Key 22" },
+    { label: "UP", desc: "Key 18", extra: "Tecla de navegación arriba" },
+    { label: "COPY", desc: "Key 19" },
+    { label: "PASTE", desc: "Key 20" },
+    { label: "CUP", desc: "Key 21" },
+    { label: "CMT", desc: "Key 22", extra: "Comenta la linea actual en VSC" },
     { label: "DEL", desc: "Key 23" },
     // Fila 3
-    { label: "Key30", desc: "Key 30" },
-    { label: "Key31", desc: "Key 31" },
-    { label: "Key32", desc: "Key 32" },
-    { label: "Key33", desc: "Key 33" },
-    { label: "Key34", desc: "Key 34" },
+    {
+      label: "DWN",
+      desc: "Key 30",
+      extra: "Tecla de navegación abajo",
+    },
+    {
+      label: "CONS",
+      desc: "Key 31",
+      extra: "Abre la consola (terminal) de VSC",
+    },
+    {
+      label: "FILE",
+      desc: "Key 32",
+      extra: "Mueve el foco a los archivos de VSC",
+    },
+    {
+      label: "GIT",
+      desc: "Key 33",
+      extra: "Mueve el foco a control de código fuente (git) de VSC",
+    },
+    {
+      label: "EXT",
+      desc: "Key 34",
+      extra: "Mueve el foco a las extensiones de VSC",
+    },
     { label: "TAB", desc: "Key 35" },
     // Pulgares
     { label: "ENT", desc: "Key 39" },
@@ -157,55 +193,327 @@ const keymap = {
     // --- BLOQUE DERECHO ---
     // Fila 1
     { label: "ESC", desc: "Key 0" },
-    { label: "P", desc: "Key 1" },
-    { label: "Ñ", desc: "Key 2" },
-    { label: ",", desc: "Key 3" },
-    { label: ".", desc: "Key 4" },
-    { label: "ESC", desc: "Key 5" },
+    { label: "¡", desc: "Key 1" },
+    { label: '"', desc: "Key 2" },
+    { label: "#", desc: "Key 3" },
+    { label: "$", desc: "Key 4" },
+    { label: "%", desc: "Key 5" },
     // Fila 2
     { label: "ALT", desc: "Key 12" },
-    { label: "Key16", desc: "Key 13" },
-    { label: "Key15", desc: "Key 14" },
-    { label: "Key14", desc: "Key 15" },
-    { label: "Key13", desc: "Key 16" },
-    { label: "Key12", desc: "Key 17" },
+    { label: "[", desc: "Key 13" },
+    { label: "{", desc: "Key 14" },
+    { label: "(", desc: "Key 15" },
+    { label: "|", desc: "Key 16" },
+    { label: "¿", desc: "Key 17" },
     // Fila 3
     { label: "CTRL", desc: "Key 24" },
-    { label: "Key28", desc: "Key 25" },
-    { label: "Key27", desc: "Key 26" },
-    { label: "Key26", desc: "Key 27" },
-    { label: "Key25", desc: "Key 28" },
-    { label: "Key24", desc: "Key 29" },
+    { label: "+", desc: "Key 25" },
+    { label: "-", desc: "Key 26" },
+    { label: "*", desc: "Key 27" },
+    { label: "/", desc: "Key 28" },
+    { label: "=", desc: "Key 29" },
     // Pulgares
     { label: "SHIFT", desc: "Key 36" },
-    { label: "LED", desc: "Key 37" },
+    {
+      label: "LED",
+      desc: "Key 37",
+      extra:
+        "Cambia a la capa LED (luces RGB), debe de estar en capa SYM para funcionar",
+    },
     { label: "SPC", desc: "Key 38" },
 
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
-    { label: "Key6", desc: "Key 6" },
-    { label: "Key7", desc: "Key 7" },
-    { label: "Key8", desc: "Key 8" },
-    { label: "Key9", desc: "Key 9" },
-    { label: "Key10", desc: "Key 10" },
+    { label: "PRTSC", desc: "Key 6", extra: "Imprime pantalla" },
+    { label: "@", desc: "Key 7" },
+    { label: "'", desc: "Key 8" },
+    { label: "´", desc: "Key 9" },
+    { label: "!", desc: "Key 10" },
     { label: "BSPC", desc: "Key 11" },
     // Fila 2
-    { label: "Key18", desc: "Key 18" },
-    { label: "Key19", desc: "Key 19" },
-    { label: "Key20", desc: "Key 20" },
-    { label: "Key21", desc: "Key 21" },
-    { label: "Key22", desc: "Key 22" },
+    { label: "?", desc: "Key 18" },
+    { label: "&", desc: "Key 19" },
+    { label: ")", desc: "Key 20" },
+    { label: "}", desc: "Key 21" },
+    { label: "]", desc: "Key 22" },
     { label: "DEL", desc: "Key 23" },
     // Fila 3
-    { label: "Key30", desc: "Key 30" },
-    { label: "Key31", desc: "Key 31" },
-    { label: "Key32", desc: "Key 32" },
-    { label: "Key33", desc: "Key 33" },
-    { label: "Key34", desc: "Key 34" },
+    { label: "<", desc: "Key 30" },
+    { label: ">", desc: "Key 31" },
+    { label: `\\`, desc: "Key 32" },
+    { label: "_", desc: "Key 33" },
+    { label: "°", desc: "Key 34" },
     { label: "TAB", desc: "Key 35" },
     // Pulgares
     { label: "ENT", desc: "Key 39" },
-    { label: "SYM", desc: "Key 40" },
-    { label: "WIN", desc: "Key 41" },
+    {
+      label: "SYM",
+      desc: "Key 40",
+      extra:
+        "Al presionar y mantener junto con la tecla LED cambia a la capa LED (luces RGB)",
+    },
+    { label: "", desc: "Key 41" },
+  ],
+
+  // ---------------- CAPA Navegación -----------------
+  NAV: [
+    // --- BLOQUE IZQUIERDO ---
+    // Fila 1
+    { label: "ESC", desc: "Key 0" },
+    { label: "", desc: "Key 1" },
+    {
+      label: "PGUP",
+      desc: "Key 2",
+      extra: "Desplaza hacia arriba del documento",
+    },
+    {
+      label: "SL-P",
+      desc: "Key 3",
+      extra: "Selecciona por palabras hacia la izquierda en VSC",
+    },
+    { label: "", desc: "Key 4" },
+    { label: "", desc: "Key 5" },
+    // Fila 2
+    { label: "ALT", desc: "Key 12" },
+    { label: "", desc: "Key 13" },
+    {
+      label: "PGDN",
+      desc: "Key 14",
+      extra: "Desplaza hacia abajo del documento",
+    },
+    {
+      label: "SL-L",
+      desc: "Key 15",
+      extra: "Selecciona por letras hacia la izquierda en VSC",
+    },
+    { label: "", desc: "Key 16" },
+    { label: "", desc: "Key 17" },
+    // Fila 3
+    { label: "CTRL", desc: "Key 24" },
+    { label: "", desc: "Key 25" },
+    {
+      label: "<--",
+      desc: "Key 26",
+      extra: "Tecla de navegación izquierda",
+    },
+    {
+      label: "C-LF",
+      desc: "Key 27",
+      extra:
+        "Mueve la pestaña hacia la izquierda en VSC (dividiendo en dos pestañas la pantalla o en una sola)",
+    },
+    { label: "", desc: "Key 28" },
+    { label: "", desc: "Key 29" },
+    // Pulgares
+    { label: "SHIFT", desc: "Key 36" },
+    { label: "", desc: "Key 37" },
+    { label: "SPC", desc: "Key 38" },
+
+    // --- BLOQUE DERECHO ---
+    // Fila 1
+    { label: "", desc: "Key 6" },
+    { label: "", desc: "Key 7" },
+    {
+      label: "SL-P",
+      desc: "Key 8",
+      extra: "Selecciona por palabras hacia la derecha en VSC",
+    },
+    {
+      label: "SL-UP",
+      desc: "Key 9",
+      extra: "Selecciona por lineas hacia arriba en VSC",
+    },
+    { label: "", desc: "Key 10" },
+    { label: "BSPC", desc: "Key 11" },
+    // Fila 2
+    { label: "", desc: "Key 18" },
+    { label: "", desc: "Key 19" },
+    {
+      label: "SL-L",
+      desc: "Key 20",
+      extra: "Selecciona por letras hacia la derecha en VSC",
+    },
+    {
+      label: "SL-DN",
+      desc: "Key 21",
+      extra: "Selecciona por lineas hacia abajo en VSC",
+    },
+    { label: "", desc: "Key 22" },
+    { label: "DEL", desc: "Key 23" },
+    // Fila 3
+    { label: "", desc: "Key 30" },
+    { label: "", desc: "Key 31" },
+    {
+      label: "C-RG",
+      desc: "Key 32",
+      extra:
+        "Mueve la pestaña hacia la derecha en VSC (dividiendo en dos pestañas la pantalla o en una sola)",
+    },
+    { label: "-->", desc: "Key 33", extra: "Tecla de navegación derecha" },
+    { label: "", desc: "Key 34" },
+    { label: "TAB", desc: "Key 35" },
+    // Pulgares
+    { label: "ENT", desc: "Key 39" },
+    { label: "", desc: "Key 40" },
+    { label: "", desc: "Key 41" },
+  ],
+
+  // ---------------- CAPA LED -----------------
+  LED: [
+    // --- BLOQUE IZQUIERDO  ---
+    // Fila 1
+    { label: "", desc: "Key 0" },
+    { label: "", desc: "Key 1" },
+    {
+      label: "SP-D",
+      desc: "Key 2",
+      extra: "Disminuye la velocidad de la animación del efecto de los LED RGB",
+    },
+    {
+      label: "EF-D",
+      desc: "Key 3",
+      extra: "Invierte el efecto de los LED RGB",
+    },
+    { label: "", desc: "Key 4" },
+    { label: "", desc: "Key 5" },
+    // Fila 2
+    { label: "", desc: "Key 12" },
+    { label: "", desc: "Key 13" },
+    {
+      label: "SA-D",
+      desc: "Key 14",
+      extra: "Disminuye la saturación de los LED RGB",
+    },
+    {
+      label: "BR-D",
+      desc: "Key 15",
+      extra: "Disminuye el brillo de los LED RGB",
+    },
+    { label: "", desc: "Key 16" },
+    { label: "", desc: "Key 17" },
+    // Fila 3.
+    { label: "", desc: "Key 24" },
+    { label: "", desc: "Key 25" },
+    {
+      label: "RGB",
+      desc: "Key 26",
+      extra: "Activa o desactiva los LED RGB (ON, OFF)",
+    },
+    {
+      label: "TN-D",
+      desc: "Key 27",
+      extra: "Disminuye el tono de los LED RGB",
+    },
+    { label: "", desc: "Key 28" },
+    { label: "", desc: "Key 29" },
+    // Pulgares
+    { label: "", desc: "Key 36" },
+    { label: "", desc: "Key 37" },
+    { label: "", desc: "Key 38" },
+
+    // --- BLOQUE DERECHO ---
+    // Fila 1
+    { label: "", desc: "Key 6" },
+    { label: "", desc: "Key 7" },
+    { label: "EF-I", desc: "Key 8", extra: "Avanza el efecto de los LED RGB" },
+    {
+      label: "SP-I",
+      desc: "Key 9",
+      extra: "Aumenta la velocidad de la animación del efecto de los LED RGB",
+    },
+    { label: "", desc: "Key 10" },
+    { label: "", desc: "Key 11" },
+    // Fila 2
+    { label: "", desc: "Key 18" },
+    { label: "", desc: "Key 19" },
+    {
+      label: "BR-I",
+      desc: "Key 20",
+      extra: "Aumenta el brillo de los LED RGB",
+    },
+    {
+      label: "SA-I",
+      desc: "Key 21",
+      extra: "Aumenta la saturación de los LED RGB",
+    },
+    { label: "", desc: "Key 22" },
+    { label: "", desc: "Key 23" },
+    // Fila 3
+    { label: "", desc: "Key 30" },
+    { label: "", desc: "Key 31" },
+    {
+      label: "TN-I",
+      desc: "Key 32",
+      extra: "Aumenta el tono de los LED RGB",
+    },
+    {
+      label: "PWR",
+      desc: "Key 33",
+      extra:
+        "Alternar la alimentación externa del CORNE (habilita o deshabilita la alimentación de PANTALLAS y LED RGB) ",
+    },
+    { label: "", desc: "Key 34" },
+    { label: "", desc: "Key 35" },
+    // Pulgares
+    { label: "", desc: "Key 39" },
+    { label: "", desc: "Key 40" },
+    { label: "", desc: "Key 41" },
+  ],
+
+  // ---------------- CAPA FUNCIONES -----------------
+  FUN: [
+    // --- BLOQUE IZQUIERDO  ---
+    // Fila 1
+    { label: "", desc: "Key 0" },
+    { label: "", desc: "Key 1" },
+    { label: "", desc: "Key 2" },
+    { label: "", desc: "Key 3" },
+    { label: "", desc: "Key 4" },
+    { label: "", desc: "Key 5" },
+    // Fila 2
+    { label: "", desc: "Key 12" },
+    { label: "", desc: "Key 13" },
+    { label: "", desc: "Key 14" },
+    { label: "", desc: "Key 15" },
+    { label: "", desc: "Key 16" },
+    { label: "", desc: "Key 17" },
+    // Fila 3.
+    { label: "", desc: "Key 24" },
+    { label: "", desc: "Key 25" },
+    { label: "", desc: "Key 26" },
+    { label: "", desc: "Key 27" },
+    { label: "", desc: "Key 28" },
+    { label: "", desc: "Key 29" },
+    // Pulgares
+    { label: "", desc: "Key 36" },
+    { label: "", desc: "Key 37" },
+    { label: "", desc: "Key 38" },
+
+    // --- BLOQUE DERECHO ---
+    // Fila 1
+    { label: "", desc: "Key 6" },
+    { label: "", desc: "Key 7" },
+    { label: "", desc: "Key 8" },
+    { label: "", desc: "Key 9" },
+    { label: "", desc: "Key 10" },
+    { label: "", desc: "Key 11" },
+    // Fila 2
+    { label: "", desc: "Key 18" },
+    { label: "", desc: "Key 19" },
+    { label: "", desc: "Key 20" },
+    { label: "", desc: "Key 21" },
+    { label: "", desc: "Key 22" },
+    { label: "", desc: "Key 23" },
+    // Fila 3
+    { label: "", desc: "Key 30" },
+    { label: "", desc: "Key 31" },
+    { label: "", desc: "Key 32" },
+    { label: "", desc: "Key 33" },
+    { label: "", desc: "Key 34" },
+    { label: "", desc: "Key 35" },
+    // Pulgares
+    { label: "", desc: "Key 39" },
+    { label: "", desc: "Key 40" },
+    { label: "", desc: "Key 41" },
   ],
 };
