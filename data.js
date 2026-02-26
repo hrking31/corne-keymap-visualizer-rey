@@ -260,7 +260,11 @@ const keymap = {
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
     { label: "ESC", desc: "Key 0" },
-    { label: "", desc: "Key 1" },
+    {
+      label: "TABS",
+      desc: "Key 1",
+      extra: "Cambia entre pestañas abiertas en VSC",
+    },
     {
       label: "PGUP",
       desc: "Key 2",
@@ -271,11 +275,25 @@ const keymap = {
       desc: "Key 3",
       extra: "Selecciona por palabras hacia la izquierda en VSC",
     },
-    { label: "", desc: "Key 4" },
-    { label: "", desc: "Key 5" },
+    {
+      label: "QUIT",
+      desc: "Key 4",
+      extra: "Cierra la ventana activa en KOMOREBI",
+    },
+    {
+      label: "MON P",
+      desc: "Key 5",
+      extra:
+        "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la izquierda del monitor actual, cambia el foco al siguiente monitor en sentido antihorario)",
+    },
     // Fila 2
     { label: "ALT", desc: "Key 12" },
-    { label: "", desc: "Key 13" },
+    {
+      label: "CROM",
+      desc: "Key 13",
+      extra:
+        "1. abre nueva ventana del navegador 2. abre la primera ventana del navegador al iniciar (tecla hold-tap, presiona rápido para abrir nueva ventana, mantén presionado para abrir la primera ventana del navegador KOMOREBI)",
+    },
     {
       label: "PGDN",
       desc: "Key 14",
@@ -286,11 +304,26 @@ const keymap = {
       desc: "Key 15",
       extra: "Selecciona por letras hacia la izquierda en VSC",
     },
-    { label: "", desc: "Key 16" },
-    { label: "", desc: "Key 17" },
+    {
+      label: "UNSTK",
+      desc: "Key 16",
+      extra:
+        "Des apila las ventanas en KOMOREBI (si hay ventanas apiladas, las separa en ventanas individuales)",
+    },
+    {
+      label: "STK P",
+      desc: "Key 17",
+      extra:
+        "Cambia entre ventanas apiladas en KOMOREBI (si hay ventanas apiladas, cambia el foco entre las ventanas apiladas)",
+    },
     // Fila 3
     { label: "CTRL", desc: "Key 24" },
-    { label: "", desc: "Key 25" },
+    {
+      label: "CORR",
+      desc: "Key 25",
+      extra:
+        "Corrector ortográfico para VSC (Alterna entre la palabra correcta y las sugerencias de corrección)",
+    },
     {
       label: "<--",
       desc: "Key 26",
@@ -302,8 +335,18 @@ const keymap = {
       extra:
         "Mueve la pestaña hacia la izquierda en VSC (dividiendo en dos pestañas la pantalla o en una sola)",
     },
-    { label: "", desc: "Key 28" },
-    { label: "", desc: "Key 29" },
+    {
+      label: "STK l",
+      desc: "Key 28",
+      extra:
+        "Apila las ventanas en KOMOREBI (si hay ventanas sin apilar las agrupa en una sola ventana hacia la izquierda)",
+    },
+    {
+      label: "WIN P",
+      desc: "Key 29",
+      extra:
+        "Cambia el foco entre ventanas de KOMOREBI (mueve entre ventanas en sentido antihorario)",
+    },
     // Pulgares
     { label: "SHIFT", desc: "Key 36" },
     { label: "", desc: "Key 37" },
@@ -312,11 +355,16 @@ const keymap = {
     // --- BLOQUE DERECHO ---
     // Fila 1
     {
-      label: "M-SL",
+      label: "MON N",
       desc: "Key 6",
-      extra: "Realiza multiples selecciones en VSC",
+      extra:
+        "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la derechadel monitor actual, cambia el foco al siguiente monitor en sentido horario)",
     },
-    { label: "TABS", desc: "Key 7", extra:"Cambia entre pestañas abiertas en VSC" },
+    {
+      label: "WIN +",
+      desc: "Key 7",
+      extra: "Aumenta el tamaño de la ventana activa en KOMOREBI",
+    },
     {
       label: "SL-P",
       desc: "Key 8",
@@ -327,13 +375,18 @@ const keymap = {
       desc: "Key 9",
       extra: "Selecciona por lineas hacia arriba en VSC",
     },
-    { label: "", desc: "Key 10" },
+    {
+      label: "M-SL",
+      desc: "Key 10",
+      extra: "Realiza multiples selecciones en VSC",
+    },
     { label: "BSPC", desc: "Key 11" },
     // Fila 2
     {
-      label: "OPEN",
+      label: "MAX",
       desc: "Key 18",
-      extra: "Abre una carpeta en VSC (abre un proyecto)",
+      extra:
+        "Maximiza la ventana enfocada en KOMOREBI (si la ventana enfocada no esta maximizada, la maximiza, si ya esta maximizada, la restaura a su tamaño original)",
     },
     { label: "", desc: "Key 19" },
     {
@@ -346,15 +399,25 @@ const keymap = {
       desc: "Key 21",
       extra: "Selecciona por lineas hacia abajo en VSC",
     },
-    { label: "", desc: "Key 22" },
+    {
+      label: "OPEN",
+      desc: "Key 22",
+      extra: "Abre una carpeta en VSC (abre un proyecto)",
+    },
     { label: "DEL", desc: "Key 23" },
     // Fila 3
     {
-      label: "CLS",
+      label: "WIN N",
       desc: "Key 30",
-      extra: "Cierra la carpeta actual en VSC (cierra un proyecto)",
+      extra:
+        "Cambia el foco entre ventanas de KOMOREBI (mueve entre ventanas en sentido horario)",
     },
-    { label: "", desc: "Key 31" },
+    {
+      label: "STK R",
+      desc: "Key 31",
+      extra:
+        "Apila las ventanas en KOMOREBI (si hay ventanas sin apilar las agrupa en una sola ventana hacia la derecha)",
+    },
     {
       label: "C-RG",
       desc: "Key 32",
@@ -362,7 +425,11 @@ const keymap = {
         "Mueve la pestaña hacia la derecha en VSC (dividiendo en dos pestañas la pantalla o en una sola)",
     },
     { label: "-->", desc: "Key 33", extra: "Tecla de navegación derecha" },
-    { label: "", desc: "Key 34" },
+    {
+      label: "CLS",
+      desc: "Key 34",
+      extra: "Cierra la carpeta actual en VSC (cierra un proyecto)",
+    },
     { label: "TAB", desc: "Key 35" },
     // Pulgares
     { label: "ENT", desc: "Key 39" },
