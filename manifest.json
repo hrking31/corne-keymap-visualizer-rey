@@ -1,10 +1,10 @@
 {
   "name": "Corne Rey ZMK",
   "short_name": "CorneRey",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#3A3F44",
+  "theme_color": "#3A3F44",
   "orientation": "portrait",
   "icons": [
     {
