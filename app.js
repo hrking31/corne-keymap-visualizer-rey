@@ -13,8 +13,9 @@ const layerNames = {
   BASE: "Capa Base",
   NUM: "Capa Números",
   SYM: "Capa Símbolos",
-  FN: "Capa Funciones",
-  // Agrega aquí más si tienes otras capas
+  NAV: "Capa Navegación",
+  LED: "Capa Led RGB",
+  FUN: "Capa Funciones",
 };
 
 function renderKeyboard() {
@@ -42,12 +43,14 @@ function renderKeyboard() {
         keyDiv.className = "key";
         keyDiv.innerText = key.label;
 
+        if (key.clase) {
+          keyDiv.classList.add(key.clase);
+        }
+
         keyDiv.addEventListener("mouseenter", () => {
           modalTitle.innerText = key.label;
           modalDesc.innerText = key.desc;
 
-          // AQUÍ USAMOS EL DICCIONARIO:
-          // Si el nombre existe en el diccionario, lo usa. Si no, usa el original.
           modalLayer.innerText = layerNames[currentLayer] || currentLayer;
 
           if (key.extra) {

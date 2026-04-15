@@ -124,6 +124,7 @@ const keymap = {
     { label: "SHIFT", desc: "Key 36" },
     {
       label: "NUM",
+      clase: "key-naranja",
       desc: "Key 37",
       extra:
         "Al presionar y mantener junto con la tecla NAV cambia a la capa NAV (navegación)",
@@ -248,11 +249,12 @@ const keymap = {
     { label: "ENT", desc: "Key 39" },
     {
       label: "SYM",
+      clase: "key-naranja",
       desc: "Key 40",
       extra:
         "Al presionar y mantener junto con la tecla LED cambia a la capa LED (luces RGB)",
     },
-    { label: "", desc: "Key 41" },
+    { label: "WIN", desc: "Key 41" },
   ],
 
   // ---------------- CAPA Navegación -----------------
@@ -349,7 +351,7 @@ const keymap = {
     },
     // Pulgares
     { label: "SHIFT", desc: "Key 36" },
-    { label: "", desc: "Key 37" },
+    { label: "NUM", desc: "Key 37", clase: "key-naranja" },
     { label: "SPC", desc: "Key 38" },
 
     // --- BLOQUE DERECHO ---
@@ -433,8 +435,8 @@ const keymap = {
     { label: "TAB", desc: "Key 35" },
     // Pulgares
     { label: "ENT", desc: "Key 39" },
-    { label: "", desc: "Key 40" },
-    { label: "", desc: "Key 41" },
+    { label: "NAV", desc: "Key 40", clase: "key-naranja" },
+    { label: "WIN", desc: "Key 41" },
   ],
 
   // ---------------- CAPA LED -----------------
@@ -487,7 +489,7 @@ const keymap = {
     { label: "", desc: "Key 29" },
     // Pulgares
     { label: "", desc: "Key 36" },
-    { label: "", desc: "Key 37" },
+    { label: "LED", desc: "Key 37", clase: "key-naranja" },
     { label: "", desc: "Key 38" },
 
     // --- BLOQUE DERECHO ---
@@ -535,7 +537,7 @@ const keymap = {
     { label: "", desc: "Key 35" },
     // Pulgares
     { label: "", desc: "Key 39" },
-    { label: "", desc: "Key 40" },
+    { label: "SYM", desc: "Key 40", clase: "key-naranja" },
     { label: "", desc: "Key 41" },
   ],
 
@@ -595,7 +597,7 @@ const keymap = {
     { label: "", desc: "Key 29" },
     // Pulgares
     { label: "", desc: "Key 36" },
-    { label: "", desc: "Key 37" },
+    { label: "NUM", desc: "Key 37", clase: "key-naranja" },
     { label: "", desc: "Key 38" },
 
     // --- BLOQUE DERECHO ---
@@ -639,6 +641,6 @@ const keymap = {
     // Pulgares
     { label: "", desc: "Key 39" },
     { label: "", desc: "Key 40" },
-    { label: "", desc: "Key 41" },
+    { label: "FUN", desc: "Key 41", clase: "key-naranja" },
   ],
 };

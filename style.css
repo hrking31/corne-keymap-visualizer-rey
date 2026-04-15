@@ -60,6 +60,11 @@ body {
   font-size: 14px;
 }
 
+.layer-btn, .key {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
 /* Hover */
 .layer-btn:hover {
   background: #333;
@@ -112,7 +117,7 @@ body {
   cursor: pointer;
   transition: 0.2s;
   border: 1px solid #3d3a33;
-  border-bottom: 4px solid #1a1915; /* Efecto de grosor */
+  border-bottom: 4px solid #1a1915; 
   font-size: clamp(12px, 1.5vw, 18px);
   font-weight: bold;
   color: #d1ccbc;
@@ -124,6 +129,12 @@ body {
   background: #3d3a33;
   border-color: #d97706;
   color: #fff;
+}
+
+/* Color naranja para teclas de capas */
+.key-naranja {
+  border-color: #d97706 !important;
+  color: #ff9d2e !important;
 }
 
 /* Modal de información */
