@@ -5,7 +5,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: auto;
   font-family: sans-serif;
   background: #1c1b17; /* Fondo cálido oscuro */
   color: #d1ccbc; /* Texto arena suave */
@@ -150,7 +150,6 @@ body {
   font-weight: 900;
   text-transform: uppercase;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  
 }
 
 #modal-desc {
@@ -161,21 +160,20 @@ body {
 
 #modal-extra {
   background: #d97706;
-   color: #ffffff;
+  color: #ffffff;
   padding: 4px 15px 4px 6px;
   font-weight: bold;
   font-size: 11px;
   display: inline-block;
   width: fit-content;
-  }
-
+}
 
 #modal-layer {
-color: #8c8573;
+  color: #8c8573;
   font-weight: bold;
   text-transform: uppercase;
   font-size: 10px;
-  margin-top: 5px
+  margin-top: 5px;
   letter-spacing: 1px;
 }
 
@@ -183,12 +181,10 @@ color: #8c8573;
   display: none;
 }
 
-
 /* Espejar el teclado derecho */
 .split.left {
   transform: scaleX(-1);
 }
-
 
 /* Variables para cambio de posición de los pulgares */
 .key {
@@ -207,12 +203,10 @@ color: #8c8573;
     border-color 0.2s;
 }
 
-
 /* Corregir orientación de las teclas del lado derecho */
 .split.left .key {
   --mirror: -1;
 }
-
 
 /* ESCALONADO POR COLUMNAS IZQUIERDA */
 .split:not(.left) .key:nth-child(6n + 1) {
@@ -260,7 +254,6 @@ color: #8c8573;
   --ty: calc(var(--key-size) * -0.2);
 }
 
-
 /* Pulgares estilo Corne Derecha */
 .split.left .key:nth-last-child(3) {
   height: calc(var(--key-size) * 1.45);
@@ -280,9 +273,8 @@ color: #8c8573;
   --ty: calc(var(--key-size) * -0.2);
 }
 
-
 /* ===== Orden del teclado en móviles ===== */
-@media (max-width: 912px) {
+@media (max-width: 912px) and (orientation: portrait) {
   .keyboard-container {
     flex-direction: column;
     gap: clamp(60px, 10vw, 120px);
@@ -294,12 +286,11 @@ color: #8c8573;
     order: 1;
   }
 
-   /* izquierdo abajo */
+  /* izquierdo abajo */
   .split:not(.left) {
     order: 2;
   }
 }
-
 
 /* ===== Ajuste de tamaño en móviles ===== */
 @media (max-width: 480px) {
@@ -332,7 +323,7 @@ color: #8c8573;
     top: 10px;
   }
 
-.keyboard-container {
+  .keyboard-container {
     padding-top: 100px;
     gap: 25px;
     height: auto;
@@ -345,7 +336,6 @@ color: #8c8573;
     --key-gap: 6px;
   }
 }
-
 
 /* Ubicación del modal */
 @media (max-width: 768px) {
@@ -367,5 +357,53 @@ color: #8c8573;
   .modal.from-bottom {
     bottom: auto !important;
     top: 16px;
+  }
+}
+
+/* Ajuste para móviles en horizontal */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+
+  .top-bar {
+    position: relative; 
+    top: 0;
+    margin-top: 2px;
+    flex-direction: row; 
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .title {
+    font-size: 12px; 
+    margin: 0;
+  }
+
+  .layer-buttons {
+    gap: 10px;
+  }
+
+  .layer-btn {
+    padding: 2px 8px; 
+    font-size: 10px;
+  }
+
+  :root {
+    --key-size: clamp(30px, 12vh, 42px);
+    --key-gap: 5px;
+  }
+
+  .keyboard-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    height: auto;
+    min-height: auto;
+    gap: auto;
+    padding-top: 30px;
+    transform: translateY(0);
+  }
+
+  .key {
+    font-size: 11px;
   }
 }
