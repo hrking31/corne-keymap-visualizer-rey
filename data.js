@@ -25,8 +25,8 @@ const keymap = {
     { label: "X", desc: "Key 29" },
     // Pulgares
     { label: "SHIFT", desc: "Key 36" },
-    { label: "NUM", desc: "Key 37", extra: "Cambia a la capa NUM (números)" },
-    { label: "SPC", desc: "Key 38" },
+    { label: "NUM", desc: "Key 37", extra: "Cambia a la capa NUM (NÚMEROS)" },
+    { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
 
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
@@ -35,7 +35,12 @@ const keymap = {
     { label: "C", desc: "Key 8" },
     { label: "H", desc: "Key 9" },
     { label: "L", desc: "Key 10" },
-    { label: "BSPC", desc: "Key 11" },
+    {
+      label: "BSPC",
+      desc: "Key 11",
+      extra:
+        "Elimina el carácter situado a la izquierda del cursor o la selección actual en un texto",
+    },
     // Fila 2
     { label: "D", desc: "Key 18" },
     { label: "R", desc: "Key 19" },
@@ -52,7 +57,7 @@ const keymap = {
     { label: "TAB", desc: "Key 35" },
     // Pulgares
     { label: "ENT", desc: "Key 39" },
-    { label: "SIN", desc: "Key 40", extra: "Cambia a la capa SYM (símbolos)" },
+    { label: "SIN", desc: "Key 40", extra: "Cambia a la capa SYM (SÍMBOLOS)" },
     { label: "WIN", desc: "Key 41", extra: "Tecla windows" },
   ],
 
@@ -67,7 +72,7 @@ const keymap = {
     { label: "4", desc: "Key 4" },
     { label: "5", desc: "Key 5" },
     // Fila 2
-    { label: "ALT", desc: "Key 12" },
+    { label: "LEFT", desc: "Key 12", extra: "Tecla de navegación izquierda" },
     {
       label: "EXPL",
       desc: "Key 13",
@@ -79,7 +84,7 @@ const keymap = {
       extra: "Crea nueva carpeta en el explorador de archivos de VSC",
     },
     {
-      label: "INI",
+      label: "INIT",
       desc: "Key 15",
       extra: "Me lleva al inicio de la linea en VSC",
     },
@@ -94,7 +99,7 @@ const keymap = {
       extra: "Deshace la última acción en VSC",
     },
     // Fila 3
-    { label: "CTRL", desc: "Key 24" },
+    { label: "RIGHT", desc: "Key 24", extra: "Tecla de navegación derecha" },
     {
       label: "FOCO",
       desc: "Key 25",
@@ -121,15 +126,20 @@ const keymap = {
       extra: "Rehace la última acción en VSC",
     },
     // Pulgares
-    { label: "SHIFT", desc: "Key 36" },
+    {
+      label: "WIN-NAV",
+      desc: "Key 36",
+      extra:
+        "Tecla hold-tap, presiona rápido para abrir nueva ventana, mantén presionado para abrir la primera ventana del navegador, KOMOREBI",
+    },
     {
       label: "NUM",
       clase: "key-naranja",
       desc: "Key 37",
       extra:
-        "Al presionar y mantener junto con la tecla NAV cambia a la capa NAV (navegación)",
+        "Al presionar y mantener junto con la tecla NAV cambia a la capa NAV, NAVEGACIÓN",
     },
-    { label: "SPC", desc: "Key 38" },
+    { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
 
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
@@ -138,15 +148,24 @@ const keymap = {
     { label: "8", desc: "Key 8" },
     { label: "9", desc: "Key 9" },
     { label: "0", desc: "Key 10" },
-    { label: "BSPC", desc: "Key 11" },
+    {
+      label: "BSPC",
+      desc: "Key 11",
+      extra:
+        "Elimina el carácter situado a la izquierda del cursor o la selección actual en un texto",
+    },
     // Fila 2
     { label: "UP", desc: "Key 18", extra: "Tecla de navegación arriba" },
     { label: "COPY", desc: "Key 19" },
     { label: "PASTE", desc: "Key 20" },
     { label: "CUP", desc: "Key 21" },
     { label: "CMT", desc: "Key 22", extra: "Comenta la linea actual en VSC" },
-    { label: "DEL", desc: "Key 23" },
-    // Fila 3
+    {
+      label: "DEL",
+      desc: "Key 23",
+      extra:
+        "Elimina el carácter situado delante del cursor o la selección actual en un texto",
+    }, // Fila 3
     {
       label: "DWN",
       desc: "Key 30",
@@ -172,20 +191,30 @@ const keymap = {
       desc: "Key 34",
       extra: "Mueve el foco a las extensiones de VSC",
     },
-    { label: "TAB", desc: "Key 35" },
+    {
+      label: "QUIT-VSC",
+      desc: "Key 35",
+      extra:
+        "Tecla hold-tap, presiona rápido para cerrar una ventana, mantén presionado para abrir VSC.exe, KOMOREBI",
+    },
     // Pulgares
-    { label: "ENT", desc: "Key 39" },
+    {
+      label: "ENT",
+      desc: "Key 39",
+      extra:
+        "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
+    },
     {
       label: "NAV",
       desc: "Key 40",
       extra:
-        "Cambia a la capa NAV (navegación), debe de estar en capa NUM para funcionar",
+        "Cambia a la capa NAV (NAVEGACIÓN), debe de estar en capa NUM para funcionar y mantener presionada la tecla NUM",
     },
     {
       label: "FUN",
       desc: "Key 41",
       extra:
-        "Cambia a la capa FUN (funciones), debe de estar en capa NUM para funcionar",
+        "Cambia a la capa FUN (FUNCIONES), debe de estar en capa NUM para funcionar y mantener presionada la tecla NUM",
     },
   ],
 
@@ -261,98 +290,121 @@ const keymap = {
   NAV: [
     // --- BLOQUE IZQUIERDO ---
     // Fila 1
-    { label: "ESC", desc: "Key 0" },
     {
-      label: "TABS",
+      label: "FLO WIN",
+      desc: "Key 0",
+      extra:
+        "Manipulación de estado de ventana (convierte en flotante) KOMOREBI",
+    },
+    {
+      label: "WIN DIV",
       desc: "Key 1",
-      extra: "Cambia entre pestañas abiertas en VSC",
+      extra:
+        "Mueve la ventana enfocada a la izquierda dividiendo en dos el area de trabajo en VSC(si la ventana del código esta en la parte derecha, la mueve a la parte izquierda, si esta en la parte izquierda, la mueve a la parte derecha)",
     },
     {
-      label: "PGUP",
+      label: "SEL PAL",
       desc: "Key 2",
-      extra: "Desplaza hacia arriba del documento",
-    },
-    {
-      label: "SL-P",
-      desc: "Key 3",
       extra: "Selecciona por palabras hacia la izquierda en VSC",
     },
     {
-      label: "QUIT",
-      desc: "Key 4",
-      extra: "Cierra la ventana activa en KOMOREBI",
+      label: "DES WIN",
+      desc: "Key 3",
+      extra:
+        "Des apila ventanas en KOMOREBI (si hay ventanas apiladas, las separa en ventanas individuales)",
     },
     {
-      label: "MON P",
-      desc: "Key 5",
+      label: "FOC MON L",
+      desc: "Key 4",
       extra:
         "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la izquierda del monitor actual, cambia el foco al siguiente monitor en sentido antihorario)",
     },
-    // Fila 2
-    { label: "ALT", desc: "Key 12" },
     {
-      label: "CROM",
+      label: "FOC MON R",
+      desc: "Key 5",
+      extra:
+        "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la derecha del monitor actual, cambia el foco al siguiente monitor en sentido horario)",
+    },
+    // Fila 2
+    {
+      label: "PG UP",
+      desc: "Key 12",
+      extra: "Desplaza hacia arriba del documento",
+    },
+    {
+      label: "WIN TAB",
       desc: "Key 13",
       extra:
-        "1. abre nueva ventana del navegador 2. abre la primera ventana del navegador al iniciar (tecla hold-tap, presiona rápido para abrir nueva ventana, mantén presionado para abrir la primera ventana del navegador KOMOREBI)",
+        "Cambia entre pestañas abiertas en VSC (Desplazamiento Secuencial)",
     },
     {
-      label: "PGDN",
+      label: "SEL LET",
       desc: "Key 14",
-      extra: "Desplaza hacia abajo del documento",
-    },
-    {
-      label: "SL-L",
-      desc: "Key 15",
       extra: "Selecciona por letras hacia la izquierda en VSC",
     },
     {
-      label: "UNSTK",
+      label: "MAX WIN",
+      desc: "Key 15",
+      extra:
+        "Maximiza ventanas en pila en KOMOREBI (si la ventana enfocada no esta maximizada, la maximiza, si ya esta maximizada, la restaura a su tamaño original)",
+    },
+    {
+      label: "CMB WIN L",
       desc: "Key 16",
       extra:
-        "Des apila las ventanas en KOMOREBI (si hay ventanas apiladas, las separa en ventanas individuales)",
+        "Cambia entre ventanas apiladas a la izquierda en KOMOREBI (si hay ventanas apiladas, cambia el foco entre las ventanas apiladas)",
     },
     {
-      label: "STK P",
+      label: "CMB WIN R",
       desc: "Key 17",
       extra:
-        "Cambia entre ventanas apiladas en KOMOREBI (si hay ventanas apiladas, cambia el foco entre las ventanas apiladas)",
+        "Cambia entre ventanas apiladas a la derecha en KOMOREBI (si hay ventanas apiladas, cambia el foco entre las ventanas apiladas)",
     },
     // Fila 3
-    { label: "CTRL", desc: "Key 24" },
     {
-      label: "CORR",
+      label: "PG DN",
+      desc: "Key 24",
+      extra: "Desplaza hacia abajo del documento",
+    },
+    {
+      label: "CORRE",
       desc: "Key 25",
       extra:
         "Corrector ortográfico para VSC (Alterna entre la palabra correcta y las sugerencias de corrección)",
     },
     {
-      label: "<--",
+      label: "EJE X/Y",
       desc: "Key 26",
-      extra: "Tecla de navegación izquierda",
+      extra:
+        "Tecla hold-tap, presiona rápido invierte el orden de las ventana en el eje X, mantén presionado invierte el orden de las ventana en el eje Y, KOMOREBI",
     },
     {
-      label: "C-LF",
+      label: "[ MAX ]",
       desc: "Key 27",
       extra:
-        "Mueve la pestaña hacia la izquierda en VSC (dividiendo en dos pestañas la pantalla o en una sola)",
+        "Maximiza la ventanas enfocada en KOMOREBI (Pantalla Completa), (no usar con ventanas en pila)",
     },
     {
-      label: "STK l",
+      label: "STK L",
       desc: "Key 28",
       extra:
-        "Apila las ventanas en KOMOREBI (si hay ventanas sin apilar las agrupa en una sola ventana hacia la izquierda)",
+        "Apila ventanas hacia la izquierda en KOMOREBI (si hay ventanas sin apilar las agrupa en una sola ventana hacia la izquierda)",
     },
     {
-      label: "WIN P",
+      label: "STK R",
       desc: "Key 29",
       extra:
-        "Cambia el foco entre ventanas de KOMOREBI (mueve entre ventanas en sentido antihorario)",
+        "Apila ventanas hacia la derecha en KOMOREBI (si hay ventanas sin apilar las agrupa en una sola ventana hacia la derecha)",
     },
     // Pulgares
-    { label: "SHIFT", desc: "Key 36" },
+    {
+      label: "MON WIN",
+      desc: "Key 36",
+      extra:
+        "Mueve la ventana activa al siguiente monitor hacia la izquierda en KOMOREBI (si hay mas de un monitor a la izquierda del monitor actual, la mueve al siguiente monitor en sentido antihorario)",
+    },
     { label: "NUM", desc: "Key 37", clase: "key-naranja" },
-    { label: "SPC", desc: "Key 38" },
+    { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
 
     // --- BLOQUE DERECHO ---
     // Fila 1
