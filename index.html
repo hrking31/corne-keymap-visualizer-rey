@@ -36,9 +36,26 @@
     <script src="data.js"></script>
     <script src="app.js"></script>
 
-    <script>
+<script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js");
+        // Solo registramos el SW si NO estamos en entorno de desarrollo local
+        if (
+          window.location.hostname !== "localhost" && 
+          window.location.hostname !== "127.0.0.1"
+        ) {
+          navigator.serviceWorker.register("sw.js")
+            .then(() => console.log("Service Worker: Activado para producción"))
+            .catch(err => console.log("Service Worker: Error", err));
+        } else {
+          // Esto limpia cualquier rastro del SW en tu navegador local 
+          // para que el Live Preview no se bloquee
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+              registration.unregister();
+              console.log("Modo Desarrollo: Service Worker desactivado para Live Preview");
+            }
+          });
+        }
       }
     </script>
   </body>

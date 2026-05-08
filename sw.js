@@ -1,6 +1,8 @@
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
-    caches.open("app-cache").then((cache) => {
+    caches.open("app-cache-v1").then((cache) => {
       return cache.addAll([
         "./",
         "./index.html",
@@ -13,10 +15,16 @@ self.addEventListener("install", (event) => {
   );
 });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    // Busca cambios de GitLab
+    fetch(event.request).catch(() => {
+      // Si no hay internet, caché
+      return caches.match(event.request);
     }),
   );
 });
