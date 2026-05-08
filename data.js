@@ -279,7 +279,7 @@ const keymap = {
       label: "LED",
       desc: "Key 37",
       extra:
-        "Cambia a la capa LED (luces RGB), debe de estar en capa SYM para funcionar",
+        "Cambia a la capa LED (luces RGB), debe de estar en capa SYM para funcionar y mantener precionada la tecla SYM",
     },
     { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
 
@@ -571,8 +571,18 @@ const keymap = {
       desc: "Key 3",
       extra: "Invierte el efecto de los LED RGB",
     },
-    { label: "", desc: "Key 4" },
-    { label: "", desc: "Key 5" },
+    {
+      label: "ESCR 1",
+      desc: "Key 4",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 1 en KOMOREBI",
+    },
+    {
+      label: "ESCR 2",
+      desc: "Key 5",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 2 en KOMOREBI",
+    },
     // Fila 2
     { label: "", desc: "Key 12" },
     { label: "", desc: "Key 13" },
@@ -587,7 +597,12 @@ const keymap = {
       extra: "Disminuye el brillo de los LED RGB",
     },
     { label: "", desc: "Key 16" },
-    { label: "", desc: "Key 17" },
+    {
+      label: "ESCR 3",
+      desc: "Key 17",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 3 en KOMOREBI",
+    },
     // Fila 3.
     { label: "", desc: "Key 24" },
     { label: "", desc: "Key 25" },
@@ -602,7 +617,12 @@ const keymap = {
       extra: "Disminuye el tono de los LED RGB",
     },
     { label: "", desc: "Key 28" },
-    { label: "", desc: "Key 29" },
+    {
+      label: "ESCR 4",
+      desc: "Key 29",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 4 en KOMOREBI",
+    },
     // Pulgares
     { label: "", desc: "Key 36" },
     { label: "LED", desc: "Key 37", clase: "key-naranja" },
@@ -610,8 +630,18 @@ const keymap = {
 
     // --- BLOQUE DERECHO ---
     // Fila 1
-    { label: "", desc: "Key 6" },
-    { label: "", desc: "Key 7" },
+    {
+      label: "ESCR 5",
+      desc: "Key 6",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 5 en KOMOREBI",
+    },
+    {
+      label: "ESCR 8",
+      desc: "Key 7",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 8 en KOMOREBI",
+    },
     { label: "EF-I", desc: "Key 8", extra: "Avanza el efecto de los LED RGB" },
     {
       label: "SP-I",
@@ -621,7 +651,12 @@ const keymap = {
     { label: "", desc: "Key 10" },
     { label: "", desc: "Key 11" },
     // Fila 2
-    { label: "", desc: "Key 18" },
+    {
+      label: "ESCR 6",
+      desc: "Key 18",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 6 en KOMOREBI",
+    },
     { label: "", desc: "Key 19" },
     {
       label: "BR-I",
@@ -636,7 +671,12 @@ const keymap = {
     { label: "", desc: "Key 22" },
     { label: "", desc: "Key 23" },
     // Fila 3
-    { label: "", desc: "Key 30" },
+    {
+      label: "ESCR 7",
+      desc: "Key 30",
+      extra:
+        "Cambia el foco al monitor donde se encuentre el escritorio 7 en KOMOREBI",
+    },
     { label: "", desc: "Key 31" },
     {
       label: "TN-I",
@@ -668,7 +708,12 @@ const keymap = {
     { label: "F5", desc: "Key 4" },
     { label: "F6", desc: "Key 5" },
     // Fila 2
-    { label: "", desc: "Key 12" },
+    {
+      label: "BT CLR",
+      desc: "Key 12",
+      extra:
+        "Borrar la información del vínculo entre el teclado y el host para el perfil seleccionado",
+    },
     {
       label: "BT1",
       desc: "Key 13",
@@ -700,14 +745,22 @@ const keymap = {
         "Perfil bluetooth 5 (selecciona el 5 dispositivo host vinculado para recibir la entrada del teclado)",
     },
     // Fila 3.
-    { label: "", desc: "Key 24" },
     {
-      label: "BTCLR",
-      desc: "Key 25",
-      extra:
-        "Borrar la información del vínculo entre el teclado y el host para el perfil seleccionado",
+      label: "REST KOM",
+      desc: "Key 24",
+      extra: "Recarga la configuración propia de KOMOREBI",
     },
-    { label: "", desc: "Key 26" },
+    {
+      label: "REST",
+      desc: "Key 25",
+      extra: "Reset a la configuración visual de KOMOREBI",
+    },
+    {
+      label: "WIN KOM",
+      desc: "Key 26",
+      extra:
+        "Muestra ventana con información de los comandos de KOMOREBI",
+    },
     { label: "", desc: "Key 27" },
     { label: "", desc: "Key 28" },
     { label: "", desc: "Key 29" },
