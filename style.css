@@ -6,7 +6,6 @@ body {
   margin: 0;
   padding: 0;
   overflow: auto;
-  font-family: sans-serif;
   background: #1c1b17; /* Fondo cálido oscuro */
   color: #d1ccbc; /* Texto arena suave */
   font-family: "Courier New", Courier, monospace;
@@ -105,8 +104,16 @@ body {
   grid-auto-rows: minmax(var(--key-size), auto);
 }
 
-/* Teclas */
+/* Teclas.
+   Las variables --tx --ty --rot --scale --mirror las ajusta el escalonado
+   por columnas y el abanico de los pulgares, más abajo. */
 .key {
+  --tx: 0px;
+  --ty: 0px;
+  --rot: 0deg;
+  --scale: 1;
+  --mirror: 1;
+
   width: var(--key-size);
   height: var(--key-size);
   background: #2d2b26;
@@ -115,12 +122,19 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: 0.2s;
   border: 1px solid #3d3a33;
-  border-bottom: 4px solid #1a1915; 
+  border-bottom: 4px solid #1a1915;
   font-size: clamp(12px, 1.5vw, 18px);
   font-weight: bold;
   color: #d1ccbc;
+
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot))
+    scale(var(--mirror), 1) scale(var(--scale));
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s,
+    border-color 0.2s;
 }
 
 /* Hover */
@@ -197,89 +211,42 @@ body {
   transform: scaleX(-1);
 }
 
-/* Variables para cambio de posición de los pulgares */
-.key {
-  --tx: 0px;
-  --ty: 0px;
-  --rot: 0deg;
-  --scale: 1;
-  --mirror: 1;
-
-  transform: translate(var(--tx), var(--ty)) rotate(var(--rot))
-    scale(var(--mirror), 1) scale(var(--scale));
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s,
-    border-color 0.2s;
-}
-
 /* Corregir orientación de las teclas del lado derecho */
 .split.left .key {
   --mirror: -1;
 }
 
-/* ESCALONADO POR COLUMNAS IZQUIERDA */
-.split:not(.left) .key:nth-child(6n + 1) {
+/* ESCALONADO POR COLUMNAS
+   Es simétrico en ambas mitades, así que una sola regla sirve para las dos. */
+.split .key:nth-child(6n + 1) {
   --ty: -6px;
 }
-.split:not(.left) .key:nth-child(6n + 2) {
+.split .key:nth-child(6n + 2) {
   --ty: -14px;
 }
-.split:not(.left) .key:nth-child(6n + 3) {
+.split .key:nth-child(6n + 3) {
   --ty: -20px;
 }
-.split:not(.left) .key:nth-child(6n + 4) {
-  --ty: -14px;
-}
-/* ESCALONADO POR COLUMNAS DERECHA */
-.split.left .key:nth-child(6n + 1) {
-  --ty: -6px;
-}
-.split.left .key:nth-child(6n + 2) {
-  --ty: -14px;
-}
-.split.left .key:nth-child(6n + 3) {
-  --ty: -20px;
-}
-.split.left .key:nth-child(6n + 4) {
+.split .key:nth-child(6n + 4) {
   --ty: -14px;
 }
 
-/* Pulgares estilo Corne Izquierda */
-.split:not(.left) .key:nth-last-child(3) {
+/* Pulgares estilo Corne (las tres últimas teclas de cada mitad).
+   Va después del escalonado para poder sobrescribir su --ty. */
+.split .key:nth-last-child(3) {
   height: calc(var(--key-size) * 1.45);
   --tx: calc(var(--key-size) * -0.9);
   --ty: calc(var(--key-size) * 0.2);
   --rot: -35deg;
 }
 
-.split:not(.left) .key:nth-last-child(2) {
+.split .key:nth-last-child(2) {
   --tx: calc(var(--key-size) * -0.65);
   --ty: calc(var(--key-size) * -0.05);
   --rot: -18deg;
 }
 
-.split:not(.left) .key:nth-last-child(1) {
-  --tx: calc(var(--key-size) * -0.45);
-  --ty: calc(var(--key-size) * -0.2);
-}
-
-/* Pulgares estilo Corne Derecha */
-.split.left .key:nth-last-child(3) {
-  height: calc(var(--key-size) * 1.45);
-  --tx: calc(var(--key-size) * -0.9);
-  --ty: calc(var(--key-size) * 0.2);
-  --rot: -35deg;
-}
-
-.split.left .key:nth-last-child(2) {
-  --tx: calc(var(--key-size) * -0.65);
-  --ty: calc(var(--key-size) * -0.05);
-  --rot: -18deg;
-}
-
-.split.left .key:nth-last-child(1) {
+.split .key:nth-last-child(1) {
   --tx: calc(var(--key-size) * -0.45);
   --ty: calc(var(--key-size) * -0.2);
 }
@@ -310,10 +277,6 @@ body {
     --key-gap: clamp(7px, 1.2vw, 8px);
   }
 
-  .keyboard-container {
-    padding: 8px;
-  }
-
   .title {
     font-size: clamp(16px, 5vw, 20px);
   }
@@ -335,6 +298,7 @@ body {
   }
 
   .keyboard-container {
+    padding: 8px;
     padding-top: 100px;
     gap: 25px;
     height: auto;
@@ -409,7 +373,6 @@ body {
     align-items: flex-start;
     height: auto;
     min-height: auto;
-    gap: auto;
     padding-top: 30px;
     transform: translateY(0);
   }
