@@ -3,114 +3,161 @@
 Visualizador interactivo del **layout** que uso en mi **Corne (crkbd)** con firmware **ZMK**.
 
 <img src="./assets/CorneRey.png" alt="Preview del visualizador" width="800">
-<img src="./assets/CornePWA.jpeg" alt="Preview del visualizador" width="400">
-<img src="./assets/CorneMovil.jpeg" alt="Preview del visualizador" width="400">
+<img src="./assets/CornePWA.jpeg" alt="Vista instalada como PWA" width="400">
+<img src="./assets/CorneMovil.jpeg" alt="Vista en móvil" width="400">
 
+## 🔗 Demo
 
-## Demo
- 👉 https://hrking31.github.io/corne-keymap-visualizer-rey/
----
+👉 **[hrking31.github.io/corne-keymap-visualizer-rey](https://hrking31.github.io/corne-keymap-visualizer-rey/)**
 
-## 🚀 Descripción
-
-Corne ZMK Visualizer Rey es un visualizador interactivo y minimalista de mi layout personalizado para teclado **Corne de 42 teclas**.
-
-Muestra de forma clara y amigable las **6 capas principales** que uso diariamente, con descripciones detalladas por tecla y organización pensada para productividad extrema en desarrollo de software.
-
-Funciona 100% offline como **PWA**, es responsive y permite explorar cada tecla con modal informativo al pasar el mouse o tocar en móvil.
+> ⌨️ El teclado, su configuración y las decisiones de diseño del layout están en el
+> repositorio **[CorneRey-zmk](https://github.com/hrking31/CorneRey-zmk)**.
 
 ---
 
-## ✨ Características principales
+## 🚀 Por qué existe
 
-- ✅ Visualización clara de las **6 capas**
-- ✅ Interfaz limpia y responsive
-- ✅ Modal descriptivo por tecla
-- ✅ Soporte completo para **español** (Ñ, ¡¿, °, \|, etc.)
-- ✅ Atajos altamente optimizados para **Visual Studio Code**
-- ✅ Integración pensada para **Komorebi** (tiling window manager para Windows)
-- ✅ Control completo de **RGB**
-- ✅ Perfiles Bluetooth + controles multimedia
-- ✅ Funciona sin conexión (PWA)
+Mi Corne tiene **42 teclas** y un teclado normal tiene 104. La diferencia no desaparece: se
+esconde en **capas**. Igual que `Shift` convierte `a` en `A`, una tecla de capa convierte el
+teclado entero en otro teclado. Seis capas, seis teclados.
 
----
+Y ahí está el problema: **estoy aprendiendo un layout nuevo y no me lo sé todavía.**
 
-## 🧠 Capas disponibles
+Sabía que la llave `{` estaba en algún lugar de la capa de símbolos. Pero *«en algún lugar»*
+no sirve cuando estás en medio de una función. La única fuente de verdad era mi archivo
+`.keymap`: cientos de líneas de devicetree, perfecto para la máquina e inservible para
+consultarlo a mitad de un pensamiento.
 
-| Botón | Capa interna | Contenido principal | Uso típico |
-|-------|-------------|--------------------|------------|
-| Base | BASE | Dvorak adaptado + teclas de pulgar ergonómicas | Escritura diaria |
-| Num | NUM | Números + atajos potentes de VSCode | Programación |
-| Sym | SYM | Símbolos programación + escritura ES | Código y markdown |
-| Nav | NAV | Navegación avanzada + Komorebi + VSCode | Productividad sin mouse |
-| Led | LED | Control RGB completo | Personalización |
-| Fun | FUN | F1–F12 + multimedia + BT1–BT5 | Funciones y perfiles |
+Necesitaba una **chuleta consultable**: ver el teclado dibujado, pasar el mouse sobre una
+tecla y que me diga qué hace, sin salir de lo que estoy haciendo. Que funcione sin conexión y
+que pueda abrirla en el celular mientras escribo en el PC.
+
+Eso es esta app.
 
 ---
 
-## 🔎 Detalle de capas
+## ✨ Características
 
-### 🟢 BASE
-- Dvorak adaptado
-- Ñ cerca del índice
-- Punto y coma en fila superior
-- Teclas de pulgar optimizadas para fluidez
-
----
-
-### 🔵 NUM
-- Números en disposición cómoda
-- Atajos avanzados de Visual Studio Code:
-  - Mover líneas
-  - Crear archivos/carpetas
-  - Foco en Explorer
-  - Git
-  - Terminal
-  - Undo / Redo
-  - Toggle comment
-  - Multi-cursor
+- ✅ Visualización de las **6 capas** completas, con la geometría real del Corne
+- ✅ Modal descriptivo al pasar sobre cada tecla
+- ✅ Interfaz limpia y responsive (escritorio, móvil vertical y horizontal)
+- ✅ Funciona **sin conexión** (PWA instalable en el celular)
+- ✅ Sin dependencias ni build: se sirve tal cual
 
 ---
 
-### 🟣 SYM
-- Símbolos de programación bien distribuidos
-- Signos de escritura en español:
-  - ¡ ¿ ° \| etc.
-- Pensado para código frecuente y markdown
+## 🧠 Las capas que muestra
+
+| Botón | Capa | Contenido |
+|-------|------|-----------|
+| **Base** | BASE | Letras y teclas de pulgar |
+| **Num** | NUM | Números y atajos de VS Code |
+| **Sym** | SYM | Símbolos de programación y escritura en español |
+| **Nav** | NAV | Navegación y control de ventanas |
+| **Led** | LED | Control del RGB |
+| **Fun** | FUN | F1–F12, multimedia y perfiles Bluetooth |
+
+> El detalle de qué hace cada tecla y por qué está donde está se documenta en el
+> [repositorio del firmware](https://github.com/hrking31/CorneRey-zmk).
 
 ---
 
-### 🟡 NAV
-- Navegación avanzada
-- Integración profunda con Komorebi
-- Selecciones múltiples en VSCode
-- Movimiento entre pestañas
-- Productividad 100% keyboard-driven
+## 🛠️ Cómo usarlo
 
----
+**La forma fácil:** abre la
+[demo](https://hrking31.github.io/corne-keymap-visualizer-rey/). En el celular, usa «Añadir a
+pantalla de inicio» y queda instalado como una app que funciona sin conexión.
 
-### 🔴 LED
-- Brillo
-- Saturación
-- Tono
-- Velocidad
-- Efecto
-- Toggle on/off
-- Power externo
-
----
-
-### ⚪ FUN
-- F1 – F12
-- Multimedia
-- BT1 – BT5
-- Clear Bluetooth
-
----
-
-## 🛠️ ¿Cómo usar el visualizador?
-
-1. Clona el repositorio:
+**En local:**
 
 ```bash
-git clone https://github.com/hrking31/corne-zmk-visualizer-rey.git
+git clone https://github.com/hrking31/corne-keymap-visualizer-rey.git
+```
+
+Luego abre `index.html` con cualquier servidor estático. Con la extensión *Live Server* de
+VS Code basta.
+
+> ⚠️ No lo abras con doble clic (`file://`): el service worker no se registra y algunos
+> navegadores bloquean la carga de los scripts.
+
+---
+
+## 🔧 Cómo está hecho
+
+```
+index.html      # Una sola pantalla
+app.js          # Render del teclado, modal y cambio de capa
+data.js         # 6 capas × 42 teclas  ← el contenido
+style.css       # Diseño y geometría del teclado
+sw.js           # Service worker
+manifest.json   # PWA
+```
+
+**Sin frameworks.** HTML, CSS y JavaScript puro. No porque los frameworks estén mal, sino
+porque el problema no los pedía: es una pantalla que pinta 42 elementos y cambia de capa.
+Meter React habría significado más build, más dependencias y más superficie de mantenimiento
+para dibujar un teclado. Un buen desarrollador elige la herramienta según el problema; no al
+revés.
+
+**El teclado es CSS puro.** Esta fue la parte divertida. Un Corne no es una cuadrícula: las
+columnas están escalonadas según el largo de cada dedo y las tres teclas de cada pulgar están
+giradas en abanico. Está resuelto con **CSS Grid** más **variables por tecla** (`--tx`,
+`--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una sola `transform`. El escalonado usa
+selectores `nth-child(6n + k)` y el abanico `nth-last-child`. Una mitad se dibuja y la otra se
+espeja con `scaleX(-1)`, contra-espejando el texto de cada tecla para que siga siendo legible.
+Cero imágenes, cero SVG: geometría declarativa.
+
+**PWA sin internet.** Manifest y service worker con estrategia *network-first*: intenta traer
+la versión fresca y, si no hay red, sirve la copia en caché. Una chuleta que necesita conexión
+para consultarse no sirve de nada.
+
+**Responsive de verdad.** En escritorio las dos mitades se muestran una al lado de otra, como
+están sobre la mesa. En móvil vertical se apilan, y el panel de información aparece del lado
+contrario a la mitad que estás tocando, para no tapar con el dedo lo que quieres leer. Hay un
+breakpoint extra para móvil en horizontal, donde lo escaso no es el ancho sino el alto.
+
+**Datos separados de la vista.** Todo el contenido vive en `data.js` como un objeto de seis
+capas por 42 teclas. `app.js` no sabe nada de teclas concretas: solo recorre datos y pinta.
+Añadir una capa no toca una línea de lógica.
+
+---
+
+## 🗺️ Próximos pasos
+
+**Generar `data.js` desde el `.keymap`.** Hoy el firmware y el visualizador son dos fuentes de
+verdad que hay que mantener a mano, y tarde o temprano se desincronizan. La evolución natural
+es un generador que lea el `.keymap` de ZMK y produzca los datos del visualizador, corriendo
+en GitHub Actions cada vez que cambie la configuración. El teclado y su chuleta dejarían de
+poder contradecirse porque serían la misma fuente.
+
+Después de eso:
+
+- Buscador de teclas: *¿dónde está la llave?* → te dice la capa
+- Navegación por teclado y etiquetas ARIA (un visualizador de teclado debería poder usarse con el teclado)
+- Soporte táctil explícito, en lugar de depender de la emulación del navegador
+- Exportar a PNG
+- Modo de práctica que dicte combinaciones para memorizar la distribución
+
+---
+
+## 🧰 Stack
+
+HTML5 · CSS3 (Grid, variables personalizadas, transforms) · JavaScript ES6 sin dependencias ·
+PWA (Web App Manifest + Service Worker) · GitHub Pages
+
+---
+
+## 📚 Enlaces
+
+- 🎹 [El teclado y su configuración (CorneRey-zmk)](https://github.com/hrking31/CorneRey-zmk)
+- 📘 [ZMK Firmware](https://zmk.dev)
+- ⌨️ [Corne (crkbd)](https://github.com/foostan/crkbd)
+
+---
+
+## 👤 Autor
+
+Proyecto creado por **Hernando Rey**
+🔗 [GitHub](https://github.com/hrking31)
+
+⭐ Si te resulta útil, deja una estrella en el repo.
