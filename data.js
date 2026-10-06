@@ -58,7 +58,7 @@ const keymap = {
       label: "BSPC",
       desc: "Key 11",
       extra:
-        "Elimina el carácter situado a la dercha del cursor o la selección actual en un texto",
+        "Elimina el carácter situado a la izquierda del cursor o la selección actual en un texto",
     },
     // Fila 2
     { label: "D", desc: "Key 18" },
@@ -81,7 +81,7 @@ const keymap = {
       extra:
         "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
     },
-    { label: "SIN", desc: "Key 40", extra: "Cambia a la capa SYM (SÍMBOLOS)" },
+    { label: "SYM", desc: "Key 40", extra: "Cambia a la capa SYM (SÍMBOLOS)" },
     { label: "WIN", desc: "Key 41", extra: "Tecla windows" },
   ],
 
@@ -114,16 +114,16 @@ const keymap = {
     {
       label: "INIT",
       desc: "Key 15",
-      extra: "Me lleva al inicio de la linea en VSC",
+      extra: "Me lleva al inicio de la línea en VSC",
     },
     {
       label: "CODE UP",
       desc: "Key 16",
-      extra: "Mueve la linea actual hacia arriba en VSC",
+      extra: "Mueve la línea actual hacia arriba en VSC",
     },
     {
       label: "UNDO",
-      desc: "Key 16",
+      desc: "Key 17",
       extra: "Deshace la última acción en VSC",
     },
     // Fila 3
@@ -141,12 +141,12 @@ const keymap = {
     {
       label: "END",
       desc: "Key 27",
-      extra: "Me lleva al final de la linea en VSC",
+      extra: "Me lleva al final de la línea en VSC",
     },
     {
       label: "CODE DN",
       desc: "Key 28",
-      extra: "Mueve la linea actual hacia abajo en VSC",
+      extra: "Mueve la línea actual hacia abajo en VSC",
     },
     {
       label: "REDO",
@@ -187,7 +187,7 @@ const keymap = {
     { label: "COPY", desc: "Key 19" },
     { label: "PASTE", desc: "Key 20" },
     { label: "CUP", desc: "Key 21" },
-    { label: "CMT", desc: "Key 22", extra: "Comenta la linea actual en VSC" },
+    { label: "CMT", desc: "Key 22", extra: "Comenta la línea actual en VSC" },
     {
       label: "DEL",
       desc: "Key 23",
@@ -353,13 +353,13 @@ const keymap = {
       label: "FOC MON L",
       desc: "Key 4",
       extra:
-        "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la izquierda del monitor actual, cambia el foco al siguiente monitor en sentido antihorario)",
+        "Cambia el foco al siguiente monitor en KOMOREBI (si hay más de un monitor a la izquierda del monitor actual, cambia el foco al siguiente monitor en sentido antihorario)",
     },
     {
       label: "FOC MON R",
       desc: "Key 5",
       extra:
-        "Cambia el foco al siguiente monitor en KOMOREBI (si hay mas de un monitor a la derecha del monitor actual, cambia el foco al siguiente monitor en sentido horario)",
+        "Cambia el foco al siguiente monitor en KOMOREBI (si hay más de un monitor a la derecha del monitor actual, cambia el foco al siguiente monitor en sentido horario)",
     },
     // Fila 2
     {
@@ -437,7 +437,7 @@ const keymap = {
       label: "MON WIN",
       desc: "Key 36",
       extra:
-        "Mueve la ventana activa al siguiente monitor hacia la izquierda en KOMOREBI (si hay mas de un monitor a la izquierda del monitor actual, la mueve al siguiente monitor en sentido antihorario)",
+        "Mueve la ventana activa al siguiente monitor hacia la izquierda en KOMOREBI (si hay más de un monitor a la izquierda del monitor actual, la mueve al siguiente monitor en sentido antihorario)",
     },
     { label: "NUM", desc: "Key 37", clase: "key-naranja" },
     { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
@@ -501,7 +501,7 @@ const keymap = {
     {
       label: "LINE UP",
       desc: "Key 22",
-      extra: "Selecciona por linea hacia arriba en VSC",
+      extra: "Selecciona por línea hacia arriba en VSC",
     },
     {
       label: "OPEN FOL",
@@ -532,7 +532,7 @@ const keymap = {
     {
       label: "LINE DOW",
       desc: "Key 34",
-      extra: "Selecciona por linea hacia abajo en VSC",
+      extra: "Selecciona por línea hacia abajo en VSC",
     },
     {
       label: "CLOSE FOL",
@@ -549,9 +549,9 @@ const keymap = {
     { label: "NAV", desc: "Key 40", clase: "key-naranja" },
     {
       label: "MON WIN",
-      desc: "Key 36",
+      desc: "Key 41",
       extra:
-        "Mueve la ventana activa al siguiente monitor hacia la derecha en KOMOREBI (si hay mas de un monitor a la derecha del monitor actual, la mueve al siguiente monitor en sentido horario)",
+        "Mueve la ventana activa al siguiente monitor hacia la derecha en KOMOREBI (si hay más de un monitor a la derecha del monitor actual, la mueve al siguiente monitor en sentido horario)",
     },
   ],
 
@@ -683,12 +683,7 @@ const keymap = {
       desc: "Key 32",
       extra: "Aumenta el tono de los LED RGB",
     },
-    {
-      label: "PWR",
-      desc: "Key 33",
-      extra:
-        "Alternar la alimentación externa del CORNE (habilita o deshabilita la alimentación de PANTALLAS y LED RGB) ",
-    },
+    { label: "", desc: "Key 33" },
     { label: "", desc: "Key 34" },
     { label: "", desc: "Key 35" },
     // Pulgares
@@ -806,7 +801,11 @@ const keymap = {
     { label: "", desc: "Key 32" },
     { label: "", desc: "Key 33" },
     { label: "", desc: "Key 34" },
-    { label: "", desc: "Key 35" },
+    {
+      label: "USB/BT",
+      desc: "Key 35",
+      extra: "Alterna la salida entre USB y Bluetooth",
+    },
     // Pulgares
     { label: "", desc: "Key 39" },
     { label: "", desc: "Key 40" },
