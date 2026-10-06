@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { keymap } from "../data.js";
+import { keymap } from "../src/data.js";
 
 const CAPAS = ["BASE", "NUM", "SYM", "NAV", "LED", "FUN"];
 
@@ -21,7 +21,7 @@ const ORDEN_ESPERADO = [
   ...rango(39, 41),
 ];
 
-const css = readFileSync(new URL("../style.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
 
 describe("keymap", () => {
   it("tiene exactamente las 6 capas", () => {

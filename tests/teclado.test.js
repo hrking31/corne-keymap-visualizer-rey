@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dividirBloques, dividirFilas, tieneAccion } from "../teclado.js";
+import { dividirBloques, dividirFilas, tieneAccion } from "../src/teclado.js";
 
 // 42 teclas falsas numeradas 0..41 en el orden en que las guarda data.js
 const teclas = Array.from({ length: 42 }, (_, i) => ({ label: String(i) }));
