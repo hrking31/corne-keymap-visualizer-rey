@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { keymap } from "./data";
 import { dividirBloques } from "./teclado";
 import type { Capa, Tecla } from "./tipos";
-import Bloque from "./components/Bloque";
+import Bloque, { type Punto } from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 
 const CAPAS: { id: Capa; texto: string }[] = [
@@ -62,8 +62,8 @@ export default function App() {
     if (modal.visible) colocarModal();
   }, [modal]);
 
-  const mostrar = (tecla: Tecla, lado: "izquierdo" | "derecho", e: MouseEvent) => {
-    cursor.current = { x: e.clientX, y: e.clientY };
+  const mostrar = (tecla: Tecla, lado: "izquierdo" | "derecho", punto: Punto) => {
+    cursor.current = punto;
     const movil = window.innerWidth <= ANCHO_MOVIL;
 
     setModal({
@@ -83,12 +83,32 @@ export default function App() {
   };
 
   const ocultar = () => {
-    setModal((anterior) => ({ ...anterior, visible: false, extra: "" }));
+    setModal((anterior) =>
+      anterior.visible ? { ...anterior, visible: false, extra: "" } : anterior,
+    );
     if (modalRef.current) {
       modalRef.current.style.left = "";
       modalRef.current.style.top = "";
     }
   };
+
+  // En el móvil no hay "salir con el ratón": el modal se cierra al tocar fuera de
+  // una tecla. Con teclado, Escape lo cierra sin perder el foco.
+  useEffect(() => {
+    const alTocar = (e: PointerEvent) => {
+      if (!(e.target instanceof Element && e.target.closest(".key"))) ocultar();
+    };
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") ocultar();
+    };
+
+    document.addEventListener("pointerdown", alTocar);
+    document.addEventListener("keydown", alPulsar);
+    return () => {
+      document.removeEventListener("pointerdown", alTocar);
+      document.removeEventListener("keydown", alPulsar);
+    };
+  }, []);
 
   return (
     <>
@@ -100,6 +120,7 @@ export default function App() {
             key={id}
             className={id === capa ? "layer-btn active" : "layer-btn"}
             data-layer={id}
+            aria-pressed={id === capa}
             onClick={() => setCapa(id)}
           >
             {texto}
@@ -112,21 +133,23 @@ export default function App() {
           id="left-side"
           lado="left"
           capa={capa}
+          nombreCapa={NOMBRES_CAPA[capa]}
           teclas={izquierdo}
           espejo
-          onEntrar={(tecla, e) => mostrar(tecla, "izquierdo", e)}
+          onMostrar={(tecla, punto) => mostrar(tecla, "izquierdo", punto)}
           onMover={mover}
-          onSalir={ocultar}
+          onOcultar={ocultar}
         />
         <Bloque
           id="right-side"
           lado="right"
           capa={capa}
+          nombreCapa={NOMBRES_CAPA[capa]}
           teclas={derecho}
           espejo={false}
-          onEntrar={(tecla, e) => mostrar(tecla, "derecho", e)}
+          onMostrar={(tecla, punto) => mostrar(tecla, "derecho", punto)}
           onMover={mover}
-          onSalir={ocultar}
+          onOcultar={ocultar}
         />
       </div>
 

@@ -64,8 +64,9 @@ body {
   outline: none;
 }
 
-/* Hover */
-.layer-btn:hover {
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+.layer-btn:hover,
+.layer-btn:focus-visible {
   background: #333;
   border-color: #d97706;
 }
@@ -137,8 +138,27 @@ body {
     border-color 0.2s;
 }
 
-/* Hover */
-.key:hover {
+/* Las teclas con acción son <button> para poder usarlas con el teclado.
+   Esto anula los estilos que el navegador da a los botones, para que se vean
+   igual que las teclas vacías, que siguen siendo <div>. */
+button.key {
+  box-sizing: content-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  text-align: inherit;
+  text-indent: inherit;
+  text-shadow: inherit;
+  text-transform: inherit;
+  appearance: none;
+}
+
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+.key:hover,
+.key:focus-visible {
   --scale: 1.12;
   background: #3d3a33;
   border-color: #d97706;
@@ -200,6 +220,11 @@ body {
   font-size: 10px;
   margin-top: 5px;
   letter-spacing: 1px;
+}
+
+/* Elemento vacío al pie del modal: con el gap de la columna flex da 11px de aire */
+.modal-espaciador {
+  margin-top: 5px;
 }
 
 .hidden {

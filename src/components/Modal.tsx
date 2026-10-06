@@ -25,7 +25,7 @@ export default function Modal({ estado, ref }: Props) {
     .join(" ");
 
   return (
-    <div id="info-modal" className={clases} ref={ref}>
+    <div id="info-modal" className={clases} ref={ref} role="tooltip">
       <div id="modal-layer">{estado.capa}</div>
       <div id="modal-title">{estado.titulo}</div>
       <div id="modal-desc">{estado.desc}</div>
@@ -37,8 +37,8 @@ export default function Modal({ estado, ref }: Props) {
       </p>
       {/* Vacío a propósito: es un elemento más de la columna flex del modal y
           le da 11px de aire al pie (gap 6px + margin-top 5px). Quitarlo cambia
-          el diseño. El id duplicado se resuelve en el paso 1.4. */}
-      <small id="modal-layer"></small>
+          el diseño. Antes repetía el id "modal-layer"; ahora usa una clase. */}
+      <small className="modal-espaciador" aria-hidden="true"></small>
     </div>
   );
 }

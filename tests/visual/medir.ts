@@ -5,7 +5,7 @@
 export type Medicion = {
   // Cajas del título, los botones de capa y las dos mitades del teclado
   elementos: Record<string, string>;
-  // Por capa: caja de cada tecla, sus clases y texto, y cuántas se crearon nuevas
+  // Por capa: caja de cada tecla, sus clases, texto y fuente, y cuántas se crearon nuevas
   capas: Record<string, { cajas: string[]; contenido: string[]; teclasNuevas: number }>;
   // Por tecla con acción: tamaño del modal y lo que muestra cada una de sus partes
   modales: Record<string, string>;
@@ -85,7 +85,12 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
       const teclas = [...doc.querySelectorAll<HTMLElement>(".key")];
       medicion.capas[capa] = {
         cajas: teclas.map(caja),
-        contenido: teclas.map((t) => `${t.className}|${t.textContent}`),
+        // La fuente también: las teclas tienen tamaño fijo, así que un cambio de
+        // tipografía (p. ej. un <button> que no hereda Courier) no movería ninguna caja
+        contenido: teclas.map((t) => {
+          const e = win.getComputedStyle(t);
+          return `${t.className}|${t.textContent}|${e.fontFamily} ${e.fontSize} ${e.fontWeight} ${e.lineHeight} ${e.letterSpacing}`;
+        }),
         teclasNuevas: teclas.filter((t) => !anteriores.has(t)).length,
       };
       anotarColores(win, doc.querySelectorAll("*"), colores);
