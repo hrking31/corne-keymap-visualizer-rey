@@ -42,6 +42,9 @@ export default defineConfig({
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+          // Para Android: la foto al 90% sobre su propio fondo desenfocado, para que
+          // el teclado no se recorte cuando el sistema le da forma de círculo o de gota
+          { src: "icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
       workbox: {
