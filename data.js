@@ -1,4 +1,4 @@
-const keymap = {
+export const keymap = {
   // ---------------- CAPA BASE -----------------
   BASE: [
     // --- BLOQUE IZQUIERDO ---

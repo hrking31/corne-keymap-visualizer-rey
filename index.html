@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Corne Map Interactivo</title>
+    <meta
+      name="description"
+      content="Visualizador interactivo del layout de un teclado Corne con firmware ZMK: qué hace cada tecla en cada una de sus 6 capas."
+    />
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#000000" />
@@ -12,12 +16,12 @@
     <h1>Corne ZMK Visualizer Rey</h1>
 
     <div class="layer-buttons">
-      <button class="layer-btn active">Base</button>
-      <button class="layer-btn">Num</button>
-      <button class="layer-btn">Sym</button>
-      <button class="layer-btn">Nav</button>
-      <button class="layer-btn">Led</button>
-      <button class="layer-btn">Fun</button>
+      <button class="layer-btn active" data-layer="BASE">Base</button>
+      <button class="layer-btn" data-layer="NUM">Num</button>
+      <button class="layer-btn" data-layer="SYM">Sym</button>
+      <button class="layer-btn" data-layer="NAV">Nav</button>
+      <button class="layer-btn" data-layer="LED">Led</button>
+      <button class="layer-btn" data-layer="FUN">Fun</button>
     </div>
 
     <div class="keyboard-container">
@@ -30,11 +34,12 @@
       <div id="modal-title"></div>
       <div id="modal-desc"></div>
       <p id="modal-extra"></p>
+      <!-- Vacío a propósito: es un elemento más de la columna flex del modal y
+           le da 11px de aire al pie (gap 6px + margin-top 5px). Quitarlo cambia el diseño. -->
       <small id="modal-layer"></small>
     </div>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 
 <script>
       if ("serviceWorker" in navigator) {

@@ -1,0 +1,14 @@
+{
+  "name": "corne-keymap-visualizer-rey",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Visualizador interactivo del layout de un teclado Corne con firmware ZMK",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}

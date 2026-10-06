@@ -1,3 +1,6 @@
+import { keymap } from "./data.js";
+import { dividirBloques, dividirFilas, tieneAccion } from "./teclado.js";
+
 const leftSide = document.getElementById("left-side");
 const rightSide = document.getElementById("right-side");
 const modal = document.getElementById("info-modal");
@@ -22,22 +25,10 @@ function renderKeyboard() {
   leftSide.innerHTML = "";
   rightSide.innerHTML = "";
 
-  const keys = keymap[currentLayer];
-
-  const rightHandData = keys.slice(0, 21);
-  const leftHandData = keys.slice(21, 42);
+  const { izquierdo, derecho } = dividirBloques(keymap[currentLayer]);
 
   const processHand = (container, data, isMirrored) => {
-    const rows = [
-      data.slice(0, 6),
-      data.slice(6, 12),
-      data.slice(12, 18),
-      data.slice(18, 21),
-    ];
-
-    rows.forEach((rowData) => {
-      if (isMirrored) rowData.reverse();
-
+    dividirFilas(data, isMirrored).forEach((rowData) => {
       rowData.forEach((key) => {
         const keyDiv = document.createElement("div");
         keyDiv.className = "key";
@@ -46,6 +37,10 @@ function renderKeyboard() {
         if (key.clase) {
           keyDiv.classList.add(key.clase);
         }
+
+        container.appendChild(keyDiv);
+
+        if (!tieneAccion(key)) return;
 
         keyDiv.addEventListener("mouseenter", () => {
           modalTitle.innerText = key.label;
@@ -89,20 +84,17 @@ function renderKeyboard() {
           modal.style.top = "";
           modalExtra.innerText = "";
         });
-
-        container.appendChild(keyDiv);
       });
     });
   };
 
-  processHand(leftSide, rightHandData, true);
-  processHand(rightSide, leftHandData, false);
+  processHand(leftSide, izquierdo, true);
+  processHand(rightSide, derecho, false);
 }
 
 document.querySelectorAll(".layer-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    const layerName = btn.innerText.toUpperCase();
-    currentLayer = layerName === "BASE" ? "BASE" : layerName;
+    currentLayer = btn.dataset.layer;
 
     document
       .querySelectorAll(".layer-btn")

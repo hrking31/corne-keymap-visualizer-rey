@@ -77,8 +77,15 @@ git clone https://github.com/hrking31/corne-keymap-visualizer-rey.git
 Luego abre `index.html` con cualquier servidor estático. Con la extensión *Live Server* de
 VS Code basta.
 
-> ⚠️ No lo abras con doble clic (`file://`): el service worker no se registra y algunos
-> navegadores bloquean la carga de los scripts.
+> ⚠️ No lo abras con doble clic (`file://`): el service worker no se registra y los
+> navegadores bloquean la carga de los módulos.
+
+**Pruebas** (necesitan Node.js):
+
+```bash
+npm install
+npm test
+```
 
 ---
 
@@ -87,7 +94,9 @@ VS Code basta.
 ```
 index.html      # Una sola pantalla
 app.js          # Render del teclado, modal y cambio de capa
+teclado.js      # Lógica pura (bloques y filas), sin DOM
 data.js         # 6 capas × 42 teclas  ← el contenido
+tests/          # Pruebas con Vitest
 style.css       # Diseño y geometría del teclado
 sw.js           # Service worker
 manifest.json   # PWA
