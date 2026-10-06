@@ -259,14 +259,20 @@ body {
     transform: translateY(0);
   }
 
+  /* CAMBIO DE DISEÑO APROBADO (2026-10-06), copiado de src/style.css:
+     cada mitad se desplaza 0,6 teclas hacia fuera para que los pulgares
+     (SPC, ENT) no se corten en móvil. */
+
   /* derecho arriba*/
   .split.left {
     order: 1;
+    transform: translateX(calc(var(--key-size) * -0.6)) scaleX(-1);
   }
 
   /* izquierdo abajo */
   .split:not(.left) {
     order: 2;
+    transform: translateX(calc(var(--key-size) * 0.6));
   }
 }
 

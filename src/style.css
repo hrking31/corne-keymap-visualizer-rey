@@ -288,14 +288,21 @@ button.key {
     transform: translateY(0);
   }
 
+  /* Los pulgares en abanico sobresalen ~1,2 teclas hacia el centro de cada mitad
+     (SPC a la derecha arriba, ENT a la izquierda abajo). Cada mitad se desplaza
+     0,6 teclas hacia fuera para que el conjunto quede centrado y no se corten.
+     Aprobado por el autor (2026-10-06). */
+
   /* mitad izquierda arriba */
   .split.left {
     order: 1;
+    transform: translateX(calc(var(--key-size) * -0.6)) scaleX(-1);
   }
 
   /* mitad derecha abajo */
   .split:not(.left) {
     order: 2;
+    transform: translateX(calc(var(--key-size) * 0.6));
   }
 }
 

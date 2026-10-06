@@ -9,3 +9,9 @@ que se ven idénticas. Medir las dos a la vez evita depender de las fuentes de c
 
 Si algún día se **aprueba** un cambio de diseño, esta copia deja de servir como referencia:
 habrá que actualizarla a propósito, nunca para que la prueba pase.
+
+## Cambios aprobados aplicados a esta copia
+
+| Fecha | Cambio | Archivo |
+|---|---|---|
+| 2026-10-06 | En vista vertical (≤912px), cada mitad se desplaza 0,6 teclas hacia fuera para que los pulgares SPC y ENT no se corten | `style.css` |
