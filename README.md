@@ -112,9 +112,37 @@ revés.
 columnas están escalonadas según el largo de cada dedo y las tres teclas de cada pulgar están
 giradas en abanico. Está resuelto con **CSS Grid** más **variables por tecla** (`--tx`,
 `--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una sola `transform`. El escalonado usa
-selectores `nth-child(6n + k)` y el abanico `nth-last-child`. Una mitad se dibuja y la otra se
-espeja con `scaleX(-1)`, contra-espejando el texto de cada tecla para que siga siendo legible.
-Cero imágenes, cero SVG: geometría declarativa.
+selectores `nth-child(6n + k)` y el abanico `nth-last-child`. Cero imágenes, cero SVG:
+geometría declarativa.
+
+### ⭐ El truco del espejo: una sola regla para las dos manos
+
+Las dos mitades de un Corne son simétricas: la columna del dedo medio es la más alta en las
+dos, y los pulgares se abren en abanico hacia el centro. Escribir el escalonado dos veces,
+una por mano y con los valores al revés, era lo obvio. En lugar de eso, **la mitad izquierda
+se dibuja como una copia de la derecha y luego se refleja**, como en un espejo:
+
+```
+Lo que ves:   ESC  .   ,   Ñ   P   Y            F   G   C   H   L  BSPC
+                       ▲   ▲▲  ▲                    ▲   ▲▲  ▲
+                       dedo medio (más alta)        dedo medio (más alta)
+
+1. data.ts guarda la mitad izquierda:   ESC  .   ,   Ñ   P   Y
+2. El código invierte cada fila:        Y    P   Ñ   ,   .   ESC
+   → ahora está en el mismo orden que la derecha: F G C H L BSPC
+3. El CSS sube cada tecla según su posición, contando desde dentro:
+      1.ª 6 px · 2.ª 14 px · 3.ª 20 px · 4.ª 14 px · 5.ª y 6.ª 0 px
+   → la misma regla sirve para las dos mitades
+4. scaleX(-1) refleja la mitad entera:  ESC  .   ,   Ñ   P   Y   ✓
+5. --mirror: -1 vuelve a voltear cada tecla, para que la «Ñ» no se lea al revés
+```
+
+Resultado: **cuatro reglas de escalonado y tres de pulgares dibujan las 42 teclas**. Cambiar
+la altura de una columna se hace en un solo sitio y las dos manos quedan siempre simétricas.
+
+El precio, aceptado a conciencia: el navegador recorre las teclas en el orden del paso 2,
+así que con la tecla Tab la mitad izquierda se recorre de dentro hacia fuera (Y, P, Ñ… ESC).
+Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplica.
 
 **PWA sin internet.** Manifest y service worker con estrategia *network-first*: intenta traer
 la versión fresca y, si no hay red, sirve la copia en caché. Una chuleta que necesita conexión

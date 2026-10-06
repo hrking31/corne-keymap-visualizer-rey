@@ -231,18 +231,22 @@ button.key {
   display: none;
 }
 
-/* Espejar el teclado derecho */
+/* EL TRUCO DEL ESPEJO
+   La mitad izquierda se dibuja como una copia de la derecha (el JS invierte cada
+   fila: Y P Ñ , . ESC, igual que F G C H L BSPC) y aquí se refleja entera.
+   Así las reglas de escalonado y de pulgares de abajo sirven para las dos mitades. */
 .split.left {
   transform: scaleX(-1);
 }
 
-/* Corregir orientación de las teclas del lado derecho */
+/* ...y cada tecla se vuelve a voltear para que su texto no se lea al revés */
 .split.left .key {
   --mirror: -1;
 }
 
 /* ESCALONADO POR COLUMNAS
-   Es simétrico en ambas mitades, así que una sola regla sirve para las dos. */
+   Cuenta desde la columna interior (F a la derecha, Y a la izquierda antes del
+   espejo): la 3.ª, la del dedo medio, es la más alta. Una sola regla para las dos. */
 .split .key:nth-child(6n + 1) {
   --ty: -6px;
 }
@@ -284,12 +288,12 @@ button.key {
     transform: translateY(0);
   }
 
-  /* derecho arriba*/
+  /* mitad izquierda arriba */
   .split.left {
     order: 1;
   }
 
-  /* izquierdo abajo */
+  /* mitad derecha abajo */
   .split:not(.left) {
     order: 2;
   }
