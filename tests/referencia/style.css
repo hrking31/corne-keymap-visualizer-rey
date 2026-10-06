@@ -1,0 +1,383 @@
+/* Ocupa toda la pantalla */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: #1c1b17; /* Fondo cálido oscuro */
+  color: #d1ccbc; /* Texto arena suave */
+  font-family: "Courier New", Courier, monospace;
+  text-align: center;
+}
+
+/* Barra superior */
+.top-bar {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* Título */
+.title {
+  margin: 0;
+  color: #e6e2d3; /* color hueso */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 600;
+}
+
+/* Contenedor de botones */
+.layer-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botones de capa */
+.layer-btn {
+  position: relative;
+  z-index: 10;
+  background: #2a2824;
+  color: #8c8573;
+  border: 1px solid #3d3a33;
+  border-radius: 4px;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.layer-btn, .key {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Hover */
+.layer-btn:hover {
+  background: #333;
+  border-color: #d97706;
+}
+
+/* Capa activa */
+.layer-btn.active {
+  background: #d97706; /* Naranja industrial */
+  color: #1a1a1a;
+  border-color: #d97706;
+}
+
+/* Contenedor principal del teclado */
+.keyboard-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(160px, 16vw, 260px);
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  transform: translateY(-50px);
+}
+
+/* Cada mitad del teclado */
+:root {
+  --key-size: clamp(60px, 6vw, 100px);
+  --key-gap: clamp(6px, 1vw, 12px);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(6, var(--key-size));
+  gap: var(--key-gap);
+  grid-auto-rows: minmax(var(--key-size), auto);
+}
+
+/* Teclas.
+   Las variables --tx --ty --rot --scale --mirror las ajusta el escalonado
+   por columnas y el abanico de los pulgares, más abajo. */
+.key {
+  --tx: 0px;
+  --ty: 0px;
+  --rot: 0deg;
+  --scale: 1;
+  --mirror: 1;
+
+  width: var(--key-size);
+  height: var(--key-size);
+  background: #2d2b26;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #3d3a33;
+  border-bottom: 4px solid #1a1915;
+  font-size: clamp(12px, 1.5vw, 18px);
+  font-weight: bold;
+  color: #d1ccbc;
+
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot))
+    scale(var(--mirror), 1) scale(var(--scale));
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s,
+    border-color 0.2s;
+}
+
+/* Hover */
+.key:hover {
+  --scale: 1.12;
+  background: #3d3a33;
+  border-color: #d97706;
+  color: #fff;
+}
+
+/* Color naranja para teclas de capas */
+.key-naranja {
+  border-color: #d97706 !important;
+  color: #ff9d2e !important;
+}
+
+/* Modal de información */
+.modal {
+  position: fixed;
+  background: #e6e2d3; /* Arena industrial */
+  border-left: 8px solid #d97706;
+  padding: 18px;
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
+  width: 240px;
+  z-index: 9999;
+  color: #1a1915;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+#modal-title {
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+#modal-desc {
+  color: #4a453c; /* café/grisáceo oscuro */
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+#modal-extra {
+  background: #d97706;
+  color: #ffffff;
+  padding: 4px 15px 4px 6px;
+  font-weight: bold;
+  font-size: 11px;
+  display: inline-block;
+  width: fit-content;
+}
+
+#modal-layer {
+  color: #8c8573;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-top: 5px;
+  letter-spacing: 1px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Espejar el teclado derecho */
+.split.left {
+  transform: scaleX(-1);
+}
+
+/* Corregir orientación de las teclas del lado derecho */
+.split.left .key {
+  --mirror: -1;
+}
+
+/* ESCALONADO POR COLUMNAS
+   Es simétrico en ambas mitades, así que una sola regla sirve para las dos. */
+.split .key:nth-child(6n + 1) {
+  --ty: -6px;
+}
+.split .key:nth-child(6n + 2) {
+  --ty: -14px;
+}
+.split .key:nth-child(6n + 3) {
+  --ty: -20px;
+}
+.split .key:nth-child(6n + 4) {
+  --ty: -14px;
+}
+
+/* Pulgares estilo Corne (las tres últimas teclas de cada mitad).
+   Va después del escalonado para poder sobrescribir su --ty. */
+.split .key:nth-last-child(3) {
+  height: calc(var(--key-size) * 1.45);
+  --tx: calc(var(--key-size) * -0.9);
+  --ty: calc(var(--key-size) * 0.2);
+  --rot: -35deg;
+}
+
+.split .key:nth-last-child(2) {
+  --tx: calc(var(--key-size) * -0.65);
+  --ty: calc(var(--key-size) * -0.05);
+  --rot: -18deg;
+}
+
+.split .key:nth-last-child(1) {
+  --tx: calc(var(--key-size) * -0.45);
+  --ty: calc(var(--key-size) * -0.2);
+}
+
+/* ===== Orden del teclado en móviles ===== */
+@media (max-width: 912px) and (orientation: portrait) {
+  .keyboard-container {
+    flex-direction: column;
+    gap: clamp(60px, 10vw, 120px);
+    transform: translateY(0);
+  }
+
+  /* derecho arriba*/
+  .split.left {
+    order: 1;
+  }
+
+  /* izquierdo abajo */
+  .split:not(.left) {
+    order: 2;
+  }
+}
+
+/* ===== Ajuste de tamaño en móviles ===== */
+@media (max-width: 480px) {
+  :root {
+    --key-size: clamp(42px, 10vw, 56px);
+    --key-gap: clamp(7px, 1.2vw, 8px);
+  }
+
+  .title {
+    font-size: clamp(16px, 5vw, 20px);
+  }
+
+  .layer-buttons {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .layer-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  .top-bar {
+    gap: 6px;
+    top: 10px;
+  }
+
+  .keyboard-container {
+    padding: 8px;
+    padding-top: 100px;
+    gap: 25px;
+    height: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --key-size: 38px;
+    --key-gap: 6px;
+  }
+}
+
+/* Ubicación del modal */
+@media (max-width: 768px) {
+  .modal {
+    left: 50% !important;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 360px;
+    pointer-events: auto;
+  }
+
+  /* Teclado superior → modal abajo */
+  .modal.from-top {
+    top: auto !important;
+    bottom: 16px;
+  }
+
+  /* Teclado inferior → modal arriba */
+  .modal.from-bottom {
+    bottom: auto !important;
+    top: 16px;
+  }
+}
+
+/* Ajuste para móviles en horizontal */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+
+  .top-bar {
+    position: relative; 
+    top: 0;
+    margin-top: 2px;
+    flex-direction: row; 
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .title {
+    font-size: 12px; 
+    margin: 0;
+  }
+
+  .layer-buttons {
+    gap: 10px;
+  }
+
+  .layer-btn {
+    padding: 2px 8px; 
+    font-size: 10px;
+  }
+
+  :root {
+    --key-size: clamp(30px, 12vh, 42px);
+    --key-gap: 5px;
+  }
+
+  .keyboard-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    height: auto;
+    min-height: auto;
+    padding-top: 30px;
+    transform: translateY(0);
+  }
+
+  .key {
+    font-size: 11px;
+  }
+}
