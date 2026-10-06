@@ -1,13 +1,14 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { keymap } from "../src/data.js";
+import css from "../src/style.css?raw";
+import { keymap } from "../src/data";
+import type { Capa } from "../src/tipos";
 
-const CAPAS = ["BASE", "NUM", "SYM", "NAV", "LED", "FUN"];
+const CAPAS: Capa[] = ["BASE", "NUM", "SYM", "NAV", "LED", "FUN"];
 
-// Índices de posición de ZMK en el orden en que data.js guarda las teclas:
+// Índices de posición de ZMK en el orden en que data.ts guarda las teclas:
 // primero el bloque izquierdo (filas 0–5, 12–17, 24–29 y pulgares 36–38)
 // y luego el derecho (6–11, 18–23, 30–35 y 39–41).
-const rango = (desde, hasta) =>
+const rango = (desde: number, hasta: number) =>
   Array.from({ length: hasta - desde + 1 }, (_, i) => desde + i);
 
 const ORDEN_ESPERADO = [
@@ -20,8 +21,6 @@ const ORDEN_ESPERADO = [
   ...rango(30, 35),
   ...rango(39, 41),
 ];
-
-const css = readFileSync(new URL("../src/style.css", import.meta.url), "utf8");
 
 describe("keymap", () => {
   it("tiene exactamente las 6 capas", () => {

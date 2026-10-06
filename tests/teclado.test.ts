@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { dividirBloques, dividirFilas, tieneAccion } from "../src/teclado.js";
+import { dividirBloques, dividirFilas, tieneAccion } from "../src/teclado";
 
-// 42 teclas falsas numeradas 0..41 en el orden en que las guarda data.js
+// 42 teclas falsas numeradas 0..41 en el orden en que las guarda data.ts
 const teclas = Array.from({ length: 42 }, (_, i) => ({ label: String(i) }));
 
 describe("dividirBloques", () => {

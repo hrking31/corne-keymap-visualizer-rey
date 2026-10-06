@@ -1,7 +1,8 @@
 // Lógica pura del teclado: no toca el DOM, así se puede probar con Vitest.
+import type { Tecla } from "./tipos";
 
-// data.js guarda primero las 21 teclas del bloque izquierdo y luego las 21 del derecho.
-export function dividirBloques(teclas) {
+// data.ts guarda primero las 21 teclas del bloque izquierdo y luego las 21 del derecho.
+export function dividirBloques<T>(teclas: readonly T[]): { izquierdo: T[]; derecho: T[] } {
   return {
     izquierdo: teclas.slice(0, 21),
     derecho: teclas.slice(21, 42),
@@ -10,7 +11,7 @@ export function dividirBloques(teclas) {
 
 // Cada bloque tiene tres filas de 6 teclas y una fila de 3 pulgares.
 // Con espejo se invierte cada fila (el CSS vuelve a voltear el bloque con scaleX(-1)).
-export function dividirFilas(bloque, espejo = false) {
+export function dividirFilas<T>(bloque: readonly T[], espejo = false): T[][] {
   const filas = [
     bloque.slice(0, 6),
     bloque.slice(6, 12),
@@ -21,6 +22,6 @@ export function dividirFilas(bloque, espejo = false) {
 }
 
 // Una tecla sin etiqueta no hace nada en esa capa: no abre el modal.
-export function tieneAccion(tecla) {
+export function tieneAccion(tecla: Pick<Tecla, "label">): boolean {
   return tecla.label.trim() !== "";
 }

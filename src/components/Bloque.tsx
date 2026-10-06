@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { dividirFilas, tieneAccion } from "../teclado.js";
+import { dividirFilas, tieneAccion } from "../teclado";
 import type { Capa, Tecla } from "../tipos";
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque({ id, lado, capa, teclas, espejo, onEntrar, onMover, onSalir }: Props) {
-  const filas: Tecla[][] = dividirFilas(teclas, espejo);
+  const filas = dividirFilas(teclas, espejo);
 
   return (
     <div className={`split ${lado}`} id={id}>

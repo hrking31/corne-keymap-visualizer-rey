@@ -1,4 +1,6 @@
-export const keymap = {
+import type { Keymap } from "./tipos";
+
+export const keymap: Keymap = {
   // ---------------- CAPA BASE -----------------
   BASE: [
     // --- BLOQUE IZQUIERDO ---

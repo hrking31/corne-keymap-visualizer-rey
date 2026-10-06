@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
-import { keymap } from "./data.js";
-import { dividirBloques } from "./teclado.js";
+import { keymap } from "./data";
+import { dividirBloques } from "./teclado";
 import type { Capa, Tecla } from "./tipos";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";

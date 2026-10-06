@@ -15,10 +15,7 @@
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true,
-
-    // data.js y teclado.js siguen en JS hasta el paso 1.2
-    "allowJs": true
+    "skipLibCheck": true
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "tests", "vite.config.ts"]
 }
