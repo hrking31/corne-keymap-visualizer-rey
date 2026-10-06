@@ -2,9 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "r
 import { keymap } from "./data";
 import { dividirBloques } from "./teclado";
 import type { Capa, Tecla } from "./tipos";
+import { extraDe, t } from "./i18n";
 import Bloque, { type Punto } from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
+import SelectorIdioma from "./components/SelectorIdioma";
+import AvisoIdioma from "./components/AvisoIdioma";
 
+// Los rótulos de los botones son los nombres de las capas del firmware: no se traducen
 const CAPAS: { id: Capa; texto: string }[] = [
   { id: "BASE", texto: "Base" },
   { id: "NUM", texto: "Num" },
@@ -13,15 +17,6 @@ const CAPAS: { id: Capa; texto: string }[] = [
   { id: "LED", texto: "Led" },
   { id: "FUN", texto: "Fun" },
 ];
-
-const NOMBRES_CAPA: Record<Capa, string> = {
-  BASE: "Capa Base",
-  NUM: "Capa Números",
-  SYM: "Capa Símbolos",
-  NAV: "Capa Navegación",
-  LED: "Capa Led RGB",
-  FUN: "Capa Funciones",
-};
 
 // Por debajo de este ancho el modal no sigue al ratón: sale arriba o abajo
 const ANCHO_MOVIL = 768;
@@ -69,10 +64,10 @@ export default function App() {
     setModal({
       visible: true,
       borde: movil ? (lado === "derecho" ? "from-bottom" : "from-top") : "",
-      capa: NOMBRES_CAPA[capa],
+      capa: t.capas[capa],
       titulo: tecla.label,
       desc: tecla.desc,
-      extra: tecla.extra ?? "",
+      extra: extraDe(capa, tecla),
       extraDisplay: tecla.extra ? "block" : "none",
     });
   };
@@ -112,6 +107,9 @@ export default function App() {
 
   return (
     <>
+      {/* Primero en el HTML para que Tab lo alcance antes que las capas; va fijo en la esquina */}
+      <SelectorIdioma />
+
       <h1>Corne ZMK Visualizer Rey</h1>
 
       <div className="layer-buttons">
@@ -133,7 +131,7 @@ export default function App() {
           id="left-side"
           lado="left"
           capa={capa}
-          nombreCapa={NOMBRES_CAPA[capa]}
+          nombreCapa={t.capas[capa]}
           teclas={izquierdo}
           espejo
           onMostrar={(tecla, punto) => mostrar(tecla, "izquierdo", punto)}
@@ -144,7 +142,7 @@ export default function App() {
           id="right-side"
           lado="right"
           capa={capa}
-          nombreCapa={NOMBRES_CAPA[capa]}
+          nombreCapa={t.capas[capa]}
           teclas={derecho}
           espejo={false}
           onMostrar={(tecla, punto) => mostrar(tecla, "derecho", punto)}
@@ -154,6 +152,7 @@ export default function App() {
       </div>
 
       <Modal estado={modal} ref={modalRef} />
+      <AvisoIdioma />
     </>
   );
 }
