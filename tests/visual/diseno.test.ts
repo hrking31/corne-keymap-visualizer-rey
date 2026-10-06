@@ -1,9 +1,5 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { medir } from "./medir";
-
-// El Chromium de las pruebas está en inglés: sin esto mostraría el aviso de idioma,
-// que es un elemento nuevo (aprobado) y no forma parte del diseño que se compara.
-beforeAll(() => localStorage.setItem("idioma", "es"));
 
 // La regla del proyecto: el diseño no cambia sin autorización.
 // Se compara la app actual con la copia congelada de v1.1-vanilla, medidas las dos en el
