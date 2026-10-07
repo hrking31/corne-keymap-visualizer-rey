@@ -42,6 +42,7 @@ export default function Bienvenida() {
     >
       <img className="bienvenida-horizontal" src={horizontal} alt="" />
       <img className="bienvenida-vertical" src={vertical} alt="" />
+      <p className="bienvenida-titulo">Corne ZMK</p>
     </div>
   );
 }

@@ -731,9 +731,13 @@ h1,
   position: fixed;
   inset: 0;
   z-index: 10000;
-  display: grid;
-  place-items: center;
-  background: #1c1b17;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vmin, 32px);
+  /* El naranja del ícono, con el mismo degradado */
+  background: radial-gradient(circle at 50% 45%, #f59e0b, #b45309 75%);
   transition: opacity 0.4s ease;
 }
 
@@ -747,14 +751,23 @@ h1,
   height: auto;
 }
 
-/* 575 × 441: el SVG acostado, con aire para el resplandor */
+/* 575 × 441: el SVG acostado, con aire alrededor. Deja sitio para el título */
 .bienvenida-horizontal {
-  width: min(80vw, 760px, calc(70vh * 1.3));
+  width: min(80vw, 760px, calc(62vh * 1.3));
 }
 
 .bienvenida .bienvenida-vertical {
   display: none;
-  width: min(80vw, calc(70vh / 1.3));
+  width: min(80vw, calc(62vh / 1.3));
+}
+
+/* Oscuro sobre el naranja, como el teclado del ícono */
+.bienvenida-titulo {
+  margin: 0;
+  color: #1a1915;
+  font-weight: bold;
+  font-size: clamp(28px, 7vmin, 64px);
+  letter-spacing: 0.08em;
 }
 
 @media (max-aspect-ratio: 6/5) {
