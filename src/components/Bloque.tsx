@@ -1,8 +1,5 @@
-import type { MouseEvent } from "react";
 import { dividirFilas, tieneAccion } from "../teclado";
 import type { Capa, Tecla } from "../tipos";
-
-export type Punto = { x: number; y: number };
 
 type Props = {
   id: "left-side" | "right-side";
@@ -11,21 +8,14 @@ type Props = {
   nombreCapa: string;
   teclas: Tecla[];
   espejo: boolean;
-  onMostrar: (tecla: Tecla, punto: Punto) => void;
-  onMover: (e: MouseEvent) => void;
+  onMostrar: (tecla: Tecla) => void;
   onOcultar: () => void;
-};
-
-// Con teclado no hay cursor: el modal se coloca junto al centro de la tecla
-const centro = (el: HTMLElement): Punto => {
-  const r = el.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 };
 
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onMover, onOcultar } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar } = props;
   const filas = dividirFilas(teclas, espejo);
 
   return (
@@ -53,18 +43,15 @@ export default function Bloque(props: Props) {
             className={clases}
             aria-label={`${tecla.label.trim()}, ${nombreCapa}`}
             aria-describedby="info-modal"
-            onMouseEnter={(e) => onMostrar(tecla, { x: e.clientX, y: e.clientY })}
-            onMouseMove={onMover}
+            onMouseEnter={() => onMostrar(tecla)}
             onMouseLeave={onOcultar}
             // Solo con Tab: un clic de ratón también enfoca, pero ahí ya manda el hover
             onFocus={(e) => {
-              if (e.currentTarget.matches(":focus-visible")) onMostrar(tecla, centro(e.currentTarget));
+              if (e.currentTarget.matches(":focus-visible")) onMostrar(tecla);
             }}
             onBlur={onOcultar}
-            // Toque en el móvil, o Enter/Espacio con teclado (detail 0: sin puntero)
-            onClick={(e) =>
-              onMostrar(tecla, e.detail === 0 ? centro(e.currentTarget) : { x: e.clientX, y: e.clientY })
-            }
+            // Toque en el móvil, o Enter/Espacio con teclado
+            onClick={() => onMostrar(tecla)}
           >
             {tecla.label}
           </button>

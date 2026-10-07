@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { keymap } from "./data";
 import { dividirBloques } from "./teclado";
 import type { Capa, Tecla } from "./tipos";
-import Bloque, { type Punto } from "./components/Bloque";
+import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 
 const CAPAS: { id: Capa; texto: string }[] = [
@@ -23,8 +23,10 @@ const NOMBRES_CAPA: Record<Capa, string> = {
   FUN: "Capa Funciones",
 };
 
-// Por debajo de este ancho el modal no sigue al ratón: sale arriba o abajo
+// Por debajo de este ancho (móvil vertical) el modal sale arriba o abajo, por CSS
 const ANCHO_MOVIL = 768;
+
+type Lado = "izquierdo" | "derecho";
 
 const MODAL_INICIAL: EstadoModal = {
   visible: false,
@@ -39,31 +41,39 @@ export default function App() {
   const [capa, setCapa] = useState<Capa>("BASE");
   const [modal, setModal] = useState<EstadoModal>(MODAL_INICIAL);
   const modalRef = useRef<HTMLDivElement>(null);
-  const cursor = useRef({ x: 0, y: 0 });
+  const ladoActual = useRef<Lado>("izquierdo");
 
   const { izquierdo, derecho } = dividirBloques(keymap[capa]);
 
-  // El modal se pega al cursor: a la derecha en la mitad izquierda de la
-  // pantalla y a la izquierda en la mitad derecha.
+  // Fuera del móvil vertical, el modal se queda quieto sobre la mitad contraria a la
+  // tecla (centrado en ella a lo ancho y a media altura de la pantalla): nunca tapa
+  // la tecla que se toca y no persigue al dedo ni al ratón.
   const colocarModal = () => {
     const el = modalRef.current;
     if (!el || window.innerWidth <= ANCHO_MOVIL) return;
 
-    const { x, y } = cursor.current;
-    const separacion = 20;
+    const contraria = document.getElementById(
+      ladoActual.current === "izquierdo" ? "right-side" : "left-side",
+    );
+    if (!contraria) return;
+
+    const mitad = contraria.getBoundingClientRect();
+    const margen = 8;
+    const dentro = (valor: number, maximo: number) => Math.min(Math.max(valor, margen), maximo - margen);
 
     el.style.left =
-      (x > window.innerWidth / 2 ? x - el.offsetWidth - separacion : x + separacion) + "px";
-    el.style.top = y - 100 + "px";
+      dentro(mitad.left + (mitad.width - el.offsetWidth) / 2, window.innerWidth - el.offsetWidth) + "px";
+    el.style.top =
+      dentro((window.innerHeight - el.offsetHeight) / 2, window.innerHeight - el.offsetHeight) + "px";
   };
 
-  // Al aparecer, el modal ya mide su ancho real y se puede colocar junto al cursor
+  // Al aparecer, el modal ya mide su tamaño real y se puede centrar
   useLayoutEffect(() => {
     if (modal.visible) colocarModal();
   }, [modal]);
 
-  const mostrar = (tecla: Tecla, lado: "izquierdo" | "derecho", punto: Punto) => {
-    cursor.current = punto;
+  const mostrar = (tecla: Tecla, lado: Lado) => {
+    ladoActual.current = lado;
     const movil = window.innerWidth <= ANCHO_MOVIL;
 
     setModal({
@@ -75,11 +85,6 @@ export default function App() {
       extra: tecla.extra ?? "",
       extraDisplay: tecla.extra ? "block" : "none",
     });
-  };
-
-  const mover = (e: MouseEvent) => {
-    cursor.current = { x: e.clientX, y: e.clientY };
-    colocarModal();
   };
 
   const ocultar = () => {
@@ -136,8 +141,7 @@ export default function App() {
           nombreCapa={NOMBRES_CAPA[capa]}
           teclas={izquierdo}
           espejo
-          onMostrar={(tecla, punto) => mostrar(tecla, "izquierdo", punto)}
-          onMover={mover}
+          onMostrar={(tecla) => mostrar(tecla, "izquierdo")}
           onOcultar={ocultar}
         />
         <Bloque
@@ -147,8 +151,7 @@ export default function App() {
           nombreCapa={NOMBRES_CAPA[capa]}
           teclas={derecho}
           espejo={false}
-          onMostrar={(tecla, punto) => mostrar(tecla, "derecho", punto)}
-          onMover={mover}
+          onMostrar={(tecla) => mostrar(tecla, "derecho")}
           onOcultar={ocultar}
         />
       </div>
