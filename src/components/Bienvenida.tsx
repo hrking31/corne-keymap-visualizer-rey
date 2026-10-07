@@ -44,7 +44,7 @@ export default function Bienvenida() {
       <img className="bienvenida-vertical" src={vertical} alt="" />
       <p className="bienvenida-titulo">Corne ZMK</p>
       <footer className="bienvenida-pie">
-        <p>© 2026 CORNEREY — Hecho con amor y café</p>
+        <p>© 2026 CorneRey — Hecho con amor y café</p>
         <p>Desarrollado por Hernando Rey</p>
       </footer>
     </div>
