@@ -738,6 +738,9 @@ h1,
   gap: clamp(12px, 3vmin, 32px);
   /* El naranja del ícono, con el mismo degradado */
   background: radial-gradient(circle at 50% 45%, #f59e0b, #b45309 75%);
+  /* Reserva abajo el alto de la firma: el teclado y el título se centran en el resto */
+  box-sizing: border-box;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
   transition: opacity 0.4s ease;
 }
 
@@ -768,6 +771,22 @@ h1,
   font-weight: bold;
   font-size: clamp(28px, 7vmin, 64px);
   letter-spacing: 0.08em;
+}
+
+/* Firma pegada al borde de abajo (respeta la barra del sistema en el móvil) */
+.bienvenida-pie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  color: #1a1915;
+  opacity: 0.75;
+  font-size: clamp(11px, 1.6vmin, 14px);
+  line-height: 1.4;
+}
+
+.bienvenida-pie p {
+  margin: 0;
 }
 
 @media (max-aspect-ratio: 6/5) {
