@@ -15,3 +15,9 @@ habrá que actualizarla a propósito, nunca para que la prueba pase.
 | Fecha | Cambio | Archivo |
 |---|---|---|
 | 2026-10-06 | En vista vertical (≤912px), cada mitad se desplaza 0,6 teclas hacia fuera para que los pulgares SPC y ENT no se corten | `style.css` |
+| 2026-10-07 | En móvil vertical, el ancho del panel incluye relleno y borde (`box-sizing: border-box`, máximo 404px): ya no se corta 6px por lado por debajo de 436px | `style.css` |
+
+Cambios de comportamiento que la prueba no mide y por eso no se copiaron: la posición del
+panel (fijo sobre la mitad contraria fuera del móvil vertical, debajo de los botones de capa)
+y el corte del modo móvil del panel en 912px en vez de 768px (los anchos probados quedan
+igual con ambos).

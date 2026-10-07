@@ -25,7 +25,7 @@ const NOMBRES_CAPA: Record<Capa, string> = {
 
 // Móvil vertical: el modal sale arriba o abajo, por CSS. Misma condición que la
 // media query de .modal en style.css; en horizontal se comporta como en el PC.
-const MOVIL_VERTICAL = "(max-width: 768px) and (orientation: portrait)";
+const MOVIL_VERTICAL = "(max-width: 912px) and (orientation: portrait)";
 const esMovilVertical = () => window.matchMedia(MOVIL_VERTICAL).matches;
 
 type Lado = "izquierdo" | "derecho";

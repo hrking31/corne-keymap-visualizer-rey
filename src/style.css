@@ -349,14 +349,18 @@ button.key {
 }
 
 /* Ubicación del modal en móvil vertical (en horizontal se comporta como en el PC:
-   App.tsx lo deja quieto sobre la mitad contraria). Misma condición que
-   MOVIL_VERTICAL en App.tsx. */
-@media (max-width: 768px) and (orientation: portrait) {
+   App.tsx lo deja quieto sobre la mitad contraria). Mismo corte que apila las
+   mitades (912px) y misma condición que MOVIL_VERTICAL en App.tsx. */
+@media (max-width: 912px) and (orientation: portrait) {
   .modal {
     left: 50% !important;
     transform: translateX(-50%);
+    /* El ancho incluye relleno y borde, así nunca se sale de la pantalla (antes,
+       por debajo de 436px se cortaba 6px por cada lado). 404px = 360 + relleno 36
+       + borde 8: el mismo tamaño máximo que antes. */
+    box-sizing: border-box;
     width: calc(100% - 32px);
-    max-width: 360px;
+    max-width: 404px;
     pointer-events: auto;
   }
 

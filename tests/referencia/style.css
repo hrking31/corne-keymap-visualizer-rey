@@ -323,8 +323,12 @@ body {
   .modal {
     left: 50% !important;
     transform: translateX(-50%);
+    /* CAMBIO DE DISEÑO APROBADO (2026-10-07), copiado de src/style.css:
+       el ancho incluye relleno y borde para que el panel no se corte en
+       pantallas de menos de 436px. Mismo tamaño máximo (404px). */
+    box-sizing: border-box;
     width: calc(100% - 32px);
-    max-width: 360px;
+    max-width: 404px;
     pointer-events: auto;
   }
 
