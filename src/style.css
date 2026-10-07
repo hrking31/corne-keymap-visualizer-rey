@@ -348,8 +348,10 @@ button.key {
   }
 }
 
-/* Ubicación del modal */
-@media (max-width: 768px) {
+/* Ubicación del modal en móvil vertical (en horizontal se comporta como en el PC:
+   App.tsx lo deja quieto sobre la mitad contraria). Misma condición que
+   MOVIL_VERTICAL en App.tsx. */
+@media (max-width: 768px) and (orientation: portrait) {
   .modal {
     left: 50% !important;
     transform: translateX(-50%);

@@ -23,8 +23,10 @@ const NOMBRES_CAPA: Record<Capa, string> = {
   FUN: "Capa Funciones",
 };
 
-// Por debajo de este ancho (móvil vertical) el modal sale arriba o abajo, por CSS
-const ANCHO_MOVIL = 768;
+// Móvil vertical: el modal sale arriba o abajo, por CSS. Misma condición que la
+// media query de .modal en style.css; en horizontal se comporta como en el PC.
+const MOVIL_VERTICAL = "(max-width: 768px) and (orientation: portrait)";
+const esMovilVertical = () => window.matchMedia(MOVIL_VERTICAL).matches;
 
 type Lado = "izquierdo" | "derecho";
 
@@ -45,12 +47,25 @@ export default function App() {
 
   const { izquierdo, derecho } = dividirBloques(keymap[capa]);
 
-  // Fuera del móvil vertical, el modal se queda quieto sobre la mitad contraria a la
-  // tecla (centrado en ella a lo ancho y a media altura de la pantalla): nunca tapa
-  // la tecla que se toca y no persigue al dedo ni al ratón.
+  // El modal nunca tapa los botones de capa: empieza, como muy arriba, justo debajo
+  // de ellos (se mide en cada momento, porque el título cambia de alto según la pantalla).
+  // - Móvil vertical: el CSS lo pone arriba o abajo; arriba se baja hasta los botones.
+  // - Móvil horizontal y PC: quieto sobre la mitad contraria a la tecla, centrado en
+  //   ella a lo ancho y a media altura de la pantalla. Nunca tapa la tecla que se toca
+  //   y no persigue al dedo ni al ratón.
   const colocarModal = () => {
     const el = modalRef.current;
-    if (!el || window.innerWidth <= ANCHO_MOVIL) return;
+    if (!el) return;
+
+    const margen = 8;
+    const botones = document.querySelector(".layer-buttons")?.getBoundingClientRect();
+    const debajoDeLosBotones = Math.max((botones?.bottom ?? 0) + margen, margen);
+
+    if (esMovilVertical()) {
+      // Tocar la mitad de abajo (derecha) lo saca arriba: from-bottom en el CSS
+      el.style.top = ladoActual.current === "derecho" ? debajoDeLosBotones + "px" : "";
+      return;
+    }
 
     const contraria = document.getElementById(
       ladoActual.current === "izquierdo" ? "right-side" : "left-side",
@@ -58,13 +73,14 @@ export default function App() {
     if (!contraria) return;
 
     const mitad = contraria.getBoundingClientRect();
-    const margen = 8;
-    const dentro = (valor: number, maximo: number) => Math.min(Math.max(valor, margen), maximo - margen);
+    const anchoMaximo = window.innerWidth - el.offsetWidth - margen;
+    const centrado = (window.innerHeight - el.offsetHeight) / 2;
+    const tope = window.innerHeight - el.offsetHeight - margen;
 
     el.style.left =
-      dentro(mitad.left + (mitad.width - el.offsetWidth) / 2, window.innerWidth - el.offsetWidth) + "px";
-    el.style.top =
-      dentro((window.innerHeight - el.offsetHeight) / 2, window.innerHeight - el.offsetHeight) + "px";
+      Math.min(Math.max(mitad.left + (mitad.width - el.offsetWidth) / 2, margen), anchoMaximo) + "px";
+    // Los botones mandan: si no cabe centrado, antes se sale un poco por abajo que taparlos
+    el.style.top = Math.max(Math.min(centrado, tope), debajoDeLosBotones) + "px";
   };
 
   // Al aparecer, el modal ya mide su tamaño real y se puede centrar
@@ -74,7 +90,7 @@ export default function App() {
 
   const mostrar = (tecla: Tecla, lado: Lado) => {
     ladoActual.current = lado;
-    const movil = window.innerWidth <= ANCHO_MOVIL;
+    const movil = esMovilVertical();
 
     setModal({
       visible: true,
