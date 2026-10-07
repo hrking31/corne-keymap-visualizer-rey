@@ -209,7 +209,10 @@ button.key {
   background: #d97706;
   /* Letra oscura: el blanco sobre naranja daba 3,2:1 y costaba leerlo (opción D, 5,5:1) */
   color: #1a1915;
-  padding: calc(4em / 11) calc(15em / 11) calc(4em / 11) calc(6em / 11);
+  /* Interlineado como la descripción (1,4) y algo más de aire: con el del navegador
+     las líneas se veían aplastadas */
+  padding: calc(6em / 11) calc(15em / 11) calc(6em / 11) calc(8em / 11);
+  line-height: 1.4;
   font-weight: bold;
   font-size: calc(11em / 14);
   display: inline-block;
