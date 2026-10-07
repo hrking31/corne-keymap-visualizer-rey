@@ -716,7 +716,8 @@ h1,
 /* ===== BIENVENIDA (2026-10-07, pedida por el autor) =====
    Al abrir la app: el teclado con los LED en efecto Swirl (la animación va dentro del
    SVG), acostado en todas las pantallas.
-   Se desvanece en 0,4s (SALIDA_MS en Bienvenida.tsx). */
+   Está en index.html (se ve mientras carga la app) y Bienvenida.tsx la quita tras
+   1,8 s como mínimo; se desvanece en 0,4s (SALIDA_MS). */
 .bienvenida {
   position: fixed;
   inset: 0;
@@ -737,6 +738,13 @@ h1,
 .bienvenida.saliendo {
   opacity: 0;
   pointer-events: none;
+}
+
+/* Sin animaciones si el sistema lo pide: la bienvenida ni se muestra */
+@media (prefers-reduced-motion: reduce) {
+  .bienvenida {
+    display: none;
+  }
 }
 
 .bienvenida img {
@@ -794,5 +802,19 @@ h1,
 
   .layer-btn {
     padding-inline: clamp(6px, 2.2vw, 12px);
+  }
+}
+
+/* ===== MÓVIL EN HORIZONTAL (2026-10-07, pedido por el autor) =====
+   La placa sobresale ~25px por encima de las teclas y quedaba a 4-5px de los botones de
+   capa. Los botones suben (el título pierde margen: 21 → 8px) y el teclado baja (el
+   relleno de arriba pasa de 30 a 38px, contando lo que sobresale la placa). */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+  h1 {
+    margin-block: 8px;
+  }
+
+  .keyboard-container {
+    padding-top: 38px;
   }
 }
