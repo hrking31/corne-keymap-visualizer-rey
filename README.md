@@ -163,10 +163,12 @@ Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplic
 
 ### Responsive de verdad
 
-En escritorio las dos mitades se muestran una al lado de otra, como están sobre la mesa. En
-móvil vertical se apilan, cada una desplazada 0,6 teclas hacia fuera para que los pulgares en
-abanico no se corten, y el panel de información aparece del lado contrario a la mitad que
-estás tocando, para no tapar con el dedo lo que quieres leer.
+En escritorio las dos mitades se muestran una al lado de otra, como están sobre la mesa, y el
+panel de información aparece **quieto sobre la mitad contraria** a la tecla, a media altura de
+la pantalla: nunca tapa la tecla que tocas ni persigue al ratón o al dedo. En móvil vertical
+las mitades se apilan, cada una desplazada 0,6 teclas hacia fuera para que los pulgares en
+abanico no se corten, y el panel aparece arriba o abajo, del lado contrario a la mitad que
+estás tocando.
 
 ### Calidad y seguridad
 
