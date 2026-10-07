@@ -175,40 +175,42 @@ button.key {
 .modal {
   position: fixed;
   background: #e6e2d3; /* Arena industrial */
-  border-left: 8px solid #d97706;
-  padding: 18px;
-  border-radius: 2px;
+  /* Todas las medidas son relativas a su letra (14px): a ese tamaño se ve igual que
+     con píxeles fijos, y si la letra crece (tablets), el panel entero crece con ella */
+  border-left: calc(8em / 14) solid #d97706;
+  padding: calc(18em / 14);
+  border-radius: calc(2em / 14);
   pointer-events: none;
-  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
-  width: 240px;
+  box-shadow: calc(8em / 14) calc(8em / 14) 0px rgba(0, 0, 0, 0.3);
+  width: calc(320em / 14); /* 320px con la letra base de 14px (antes 240) */
   z-index: 9999;
   color: #1a1915;
   font-size: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: calc(6em / 14);
   text-align: left;
 }
 
 #modal-title {
-  font-size: 22px;
+  font-size: calc(22em / 14);
   font-weight: 900;
   text-transform: uppercase;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  border-bottom: calc(2em / 22) solid rgba(0, 0, 0, 0.1);
 }
 
 #modal-desc {
   color: #4a453c; /* café/grisáceo oscuro */
-  margin: 4px 0;
+  margin: calc(4em / 14) 0;
   line-height: 1.4;
 }
 
 #modal-extra {
   background: #d97706;
   color: #ffffff;
-  padding: 4px 15px 4px 6px;
+  padding: calc(4em / 11) calc(15em / 11) calc(4em / 11) calc(6em / 11);
   font-weight: bold;
-  font-size: 11px;
+  font-size: calc(11em / 14);
   display: inline-block;
   width: fit-content;
 }
@@ -217,14 +219,15 @@ button.key {
   color: #8c8573;
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 10px;
-  margin-top: 5px;
-  letter-spacing: 1px;
+  font-size: calc(10em / 14);
+  margin-top: calc(5em / 10);
+  letter-spacing: calc(1em / 10);
 }
 
 /* Elemento vacío al pie del modal: con el gap de la columna flex da 11px de aire */
 .modal-espaciador {
-  margin-top: 5px;
+  font-size: 1em;
+  margin-top: calc(5em / 14);
 }
 
 .hidden {
@@ -351,7 +354,7 @@ button.key {
 /* Ubicación del modal en móvil vertical (en horizontal se comporta como en el PC:
    App.tsx lo deja quieto sobre la mitad contraria). Mismo corte que apila las
    mitades (912px) y misma condición que MOVIL_VERTICAL en App.tsx. */
-@media (max-width: 912px) and (orientation: portrait) {
+@media (max-aspect-ratio: 6/5) {
   .modal {
     left: 50% !important;
     transform: translateX(-50%);
@@ -360,8 +363,11 @@ button.key {
        + borde 8: el mismo tamaño máximo que antes. */
     box-sizing: border-box;
     width: calc(100% - 32px);
-    max-width: 404px;
+    max-width: calc(404em / 14);
     pointer-events: auto;
+    /* En pantallas grandes (tablets) la letra crece, y con ella todo el panel:
+       14px en móvil, hasta 21px en un iPad Pro */
+    font-size: clamp(14px, 2.2vmin, 21px);
   }
 
   /* Teclado superior → modal abajo */
@@ -421,5 +427,99 @@ button.key {
 
   .key {
     font-size: 11px;
+  }
+}
+
+/* ===== PROPUESTA (2026-10-07): el teclado se ajusta a la pantalla, sin scroll =====
+   Título y botones arriba; el contenedor ocupa exactamente el resto de la pantalla
+   y es un "container" CSS: el tamaño de tecla sale del espacio que tiene (cqw/cqh). */
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* React dibuja la app dentro de #root: él también reparte el alto */
+#root {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+.layer-buttons {
+  flex: none;
+}
+
+.keyboard-container {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  container-type: size;
+  /* Ya se centra en el espacio libre bajo los botones: no hace falta subirlo */
+  transform: none;
+}
+
+/* Lado a lado: el ancho manda como siempre (6vw, entre 60 y 100px), pero nunca
+   más de lo que cabe: a lo alto el teclado mide unas 5,4 teclas, y a lo ancho
+   12 teclas más el hueco central (el mismo gap del contenedor) y los márgenes. */
+.split {
+  --key-size: min(
+    clamp(60px, 6vw, 100px),
+    calc((100cqh - 24px) / 5.4),
+    calc((100cqw - clamp(160px, 16vw, 260px) - 140px) / 12)
+  );
+}
+
+/* Si la pantalla no es claramente ancha (menos de 1,2 veces más ancha que alta:
+   móvil o tablet en vertical, o una ventana de PC casi cuadrada) las mitades se
+   apilan, que ahí deja las teclas más grandes, y crecen hasta llenar el espacio: cada mitad ocupa ~7,6 teclas de ancho (con el desplazamiento de los
+   pulgares) y las dos juntas ~11,2 de alto, con la separación. Máximo 120px. */
+@media (max-aspect-ratio: 6/5) {
+  .keyboard-container {
+    flex-direction: column;
+    gap: 0;
+    padding: 8px;
+    transform: none;
+  }
+
+  .split {
+    --key-size: min(calc((100cqw - 16px) / 7.6), calc((100cqh - 48px) / 11.2), 120px);
+  }
+
+  .split.left {
+    order: 1;
+    transform: translateX(calc(var(--key-size) * -0.6)) scaleX(-1);
+    /* Separación proporcional a la tecla: el abanico de los pulgares (SPC) crece
+       con ella y, con un hueco fijo, en las tablets tocaba la otra mitad */
+    margin-bottom: calc(var(--key-size) * 0.6);
+  }
+
+  .split:not(.left) {
+    order: 2;
+    transform: translateX(calc(var(--key-size) * 0.6));
+  }
+}
+
+/* La letra de las teclas crece con la tecla (18% de su tamaño), sin bajar nunca del
+   tamaño de siempre: en PC y móvil no cambia; en tablets deja de verse pequeña. */
+.key {
+  font-size: max(clamp(12px, 1.5vw, 18px), calc(var(--key-size) * 0.18));
+}
+
+/* ...salvo en móvil horizontal, donde siempre fue de 11px */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+  .key {
+    font-size: 11px;
+  }
+}
+
+/* Teclado lado a lado (PC, tablets y móviles en horizontal): el panel crece con
+   el ancho de la pantalla, como las teclas. 14px hasta ~1220px de ancho y hasta
+   22px en una pantalla de 1920. (Apilado tiene su propia regla, más arriba.) */
+@media (min-aspect-ratio: 6/5) {
+  .modal {
+    font-size: clamp(14px, 1.15vw, 22px);
   }
 }
