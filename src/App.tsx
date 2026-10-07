@@ -133,7 +133,7 @@ export default function App() {
 
   return (
     <>
-      <h1>Corne ZMK Visualizer Rey</h1>
+      <h1>Corne ZMK Visualizer</h1>
 
       <div className="layer-buttons">
         {CAPAS.map(({ id, texto }) => (
