@@ -17,6 +17,7 @@ habrá que actualizarla a propósito, nunca para que la prueba pase.
 | 2026-10-06 | En vista vertical (≤912px), cada mitad se desplaza 0,6 teclas hacia fuera para que los pulgares SPC y ENT no se corten | `style.css` |
 | 2026-10-07 | En móvil vertical, el ancho del panel incluye relleno y borde (`box-sizing: border-box`, máximo 404px): ya no se corta 6px por lado por debajo de 436px | `style.css` |
 | 2026-10-07 | Título sin «Rey»: «Corne ZMK Visualizer» | `index.html` |
+| 2026-10-07 | Etiqueta naranja del panel con letra oscura `#1a1915` en vez de blanca (opción D; contraste 3,2 → 5,5 : 1) | `style.css` |
 | 2026-10-07 | **Rediseño «ajuste a la pantalla»**: sin scroll, tamaño de tecla según el espacio, apilado según la proporción de la pantalla, letra y panel que crecen, panel más ancho. Afecta a casi todo el CSS, así que **`style.css` de esta copia pasa a ser igual al de `src/`**. Desde aquí la prueba vigila que los cambios de HTML/React no alteren el diseño; los cambios de CSS se revisan y aprueban a propósito | `style.css` |
 
 Cambios de comportamiento que la prueba no mide y por eso no se copiaron: la posición del

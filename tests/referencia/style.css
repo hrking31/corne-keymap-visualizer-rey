@@ -207,7 +207,8 @@ button.key {
 
 #modal-extra {
   background: #d97706;
-  color: #ffffff;
+  /* Letra oscura: el blanco sobre naranja daba 3,2:1 y costaba leerlo (opción D, 5,5:1) */
+  color: #1a1915;
   padding: calc(4em / 11) calc(15em / 11) calc(4em / 11) calc(6em / 11);
   font-weight: bold;
   font-size: calc(11em / 14);
