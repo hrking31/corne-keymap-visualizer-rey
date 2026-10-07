@@ -584,15 +584,26 @@ h1,
   );
 }
 
-/* Acrílico de la pantalla OLED */
+/* Acrílico de la pantalla OLED, con la pantalla encendida como la del teclado real
+   (señal, conectado, rayo y 100 %). Va donde en el dibujo: 4,5 unidades dentro del borde
+   del acrílico y 20 por debajo de su parte de arriba; mide 56 × 150 (60 unidades = 1 tecla) */
 .split::after {
-  background: #0f0e0c;
+  background:
+    url("./assets/oled-derecha.svg") calc(var(--k) * 0.1917) calc(var(--k) * 0.58 + 14px) /
+      calc(var(--k) * 0.9333) calc(var(--k) * 2.5) no-repeat,
+    #0f0e0c;
   clip-path: polygon(
     calc(var(--k) * 1.2) calc(var(--k) * 0.2467 + 14px),
     calc(var(--k) * 0.1167) calc(var(--k) * 0.2467 + 14px),
     calc(var(--k) * 0.1167) calc(var(--k) * 3.5833 + var(--g) * 3 + 36.0257px),
     calc(var(--k) * 1.2) calc(var(--k) * 3.13 + var(--g) * 2 + 29px)
   );
+}
+
+/* La mitad izquierda se refleja entera (scaleX(-1)): su pantalla ya viene volteada para
+   que el texto se lea al derecho */
+.split.left::after {
+  background-image: url("./assets/oled-izquierda.svg");
 }
 
 /* Lado a lado: la placa sobresale hacia el centro más que los pulgares, así que el
