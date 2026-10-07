@@ -1,0 +1,852 @@
+/* Ocupa toda la pantalla */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: #1c1b17; /* Fondo cálido oscuro */
+  color: #d1ccbc; /* Texto arena suave */
+  font-family: "Courier New", Courier, monospace;
+  text-align: center;
+}
+
+/* Barra superior */
+.top-bar {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* Título */
+.title {
+  margin: 0;
+  color: #e6e2d3; /* color hueso */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 600;
+}
+
+/* Contenedor de botones */
+.layer-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botones de capa */
+.layer-btn {
+  position: relative;
+  z-index: 10;
+  background: #2a2824;
+  color: #8c8573;
+  border: 1px solid #3d3a33;
+  border-radius: 4px;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.layer-btn, .key {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+.layer-btn:hover,
+.layer-btn:focus-visible {
+  background: #333;
+  border-color: #d97706;
+}
+
+/* Capa activa */
+.layer-btn.active {
+  background: #d97706; /* Naranja industrial */
+  color: #1a1a1a;
+  border-color: #d97706;
+}
+
+/* Contenedor principal del teclado */
+.keyboard-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(160px, 16vw, 260px);
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  transform: translateY(-50px);
+}
+
+/* Cada mitad del teclado */
+:root {
+  --key-size: clamp(60px, 6vw, 100px);
+  --key-gap: clamp(6px, 1vw, 12px);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(6, var(--key-size));
+  gap: var(--key-gap);
+  grid-auto-rows: minmax(var(--key-size), auto);
+}
+
+/* Teclas.
+   Las variables --tx --ty --rot --scale --mirror las ajusta el escalonado
+   por columnas y el abanico de los pulgares, más abajo. */
+.key {
+  --tx: 0px;
+  --ty: 0px;
+  --rot: 0deg;
+  --scale: 1;
+  --mirror: 1;
+
+  width: var(--key-size);
+  height: var(--key-size);
+  background: #2d2b26;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #3d3a33;
+  border-bottom: 4px solid #1a1915;
+  font-size: clamp(12px, 1.5vw, 18px);
+  font-weight: bold;
+  color: #d1ccbc;
+
+  transform: translate(var(--tx), var(--ty)) rotate(var(--rot))
+    scale(var(--mirror), 1) scale(var(--scale));
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s,
+    border-color 0.2s;
+}
+
+/* Las teclas con acción son <button> para poder usarlas con el teclado.
+   Esto anula los estilos que el navegador da a los botones, para que se vean
+   igual que las teclas vacías, que siguen siendo <div>. */
+button.key {
+  box-sizing: content-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  text-align: inherit;
+  text-indent: inherit;
+  text-shadow: inherit;
+  text-transform: inherit;
+  appearance: none;
+}
+
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+.key:hover,
+.key:focus-visible {
+  --scale: 1.12;
+  background: #3d3a33;
+  border-color: #d97706;
+  color: #fff;
+}
+
+/* Color naranja para teclas de capas */
+.key-naranja {
+  border-color: #d97706 !important;
+  color: #ff9d2e !important;
+}
+
+/* Modal de información */
+.modal {
+  position: fixed;
+  background: #e6e2d3; /* Arena industrial */
+  /* Todas las medidas son relativas a su letra (14px): a ese tamaño se ve igual que
+     con píxeles fijos, y si la letra crece (tablets), el panel entero crece con ella */
+  border-left: calc(8em / 14) solid #d97706;
+  padding: calc(18em / 14);
+  border-radius: calc(2em / 14);
+  pointer-events: none;
+  box-shadow: calc(8em / 14) calc(8em / 14) 0px rgba(0, 0, 0, 0.3);
+  width: calc(320em / 14); /* 320px con la letra base de 14px (antes 240) */
+  z-index: 9999;
+  color: #1a1915;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(6em / 14);
+  text-align: left;
+}
+
+#modal-title {
+  font-size: calc(22em / 14);
+  font-weight: 900;
+  text-transform: uppercase;
+  border-bottom: calc(2em / 22) solid rgba(0, 0, 0, 0.1);
+}
+
+#modal-desc {
+  color: #4a453c; /* café/grisáceo oscuro */
+  margin: calc(4em / 14) 0;
+  line-height: 1.4;
+}
+
+#modal-extra {
+  background: #d97706;
+  /* Letra oscura: el blanco sobre naranja daba 3,2:1 y costaba leerlo (opción D, 5,5:1) */
+  color: #1a1915;
+  /* Interlineado como la descripción (1,4) y algo más de aire: con el del navegador
+     las líneas se veían aplastadas */
+  padding: calc(6em / 11) calc(15em / 11) calc(6em / 11) calc(8em / 11);
+  line-height: 1.4;
+  font-weight: bold;
+  font-size: calc(11em / 14);
+  display: inline-block;
+  width: fit-content;
+}
+
+#modal-layer {
+  color: #8c8573;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: calc(10em / 14);
+  margin-top: calc(5em / 10);
+  letter-spacing: calc(1em / 10);
+}
+
+/* Elemento vacío al pie del modal: con el gap de la columna flex da 11px de aire */
+.modal-espaciador {
+  font-size: 1em;
+  margin-top: calc(5em / 14);
+}
+
+.hidden {
+  display: none;
+}
+
+/* EL TRUCO DEL ESPEJO
+   La mitad izquierda se dibuja como una copia de la derecha (el JS invierte cada
+   fila: Y P Ñ , . ESC, igual que F G C H L BSPC) y aquí se refleja entera.
+   Así las reglas de escalonado y de pulgares de abajo sirven para las dos mitades. */
+.split.left {
+  transform: scaleX(-1);
+}
+
+/* ...y cada tecla se vuelve a voltear para que su texto no se lea al revés */
+.split.left .key {
+  --mirror: -1;
+}
+
+/* ESCALONADO POR COLUMNAS
+   Cuenta desde la columna interior (F a la derecha, Y a la izquierda antes del
+   espejo): la 3.ª, la del dedo medio, es la más alta. Una sola regla para las dos. */
+.split .key:nth-child(6n + 1) {
+  --ty: -6px;
+}
+.split .key:nth-child(6n + 2) {
+  --ty: -14px;
+}
+.split .key:nth-child(6n + 3) {
+  --ty: -20px;
+}
+.split .key:nth-child(6n + 4) {
+  --ty: -14px;
+}
+
+/* Pulgares estilo Corne (las tres últimas teclas de cada mitad).
+   Va después del escalonado para poder sobrescribir su --ty. */
+.split .key:nth-last-child(3) {
+  height: calc(var(--key-size) * 1.45);
+  --tx: calc(var(--key-size) * -0.9);
+  --ty: calc(var(--key-size) * 0.2);
+  --rot: -35deg;
+}
+
+.split .key:nth-last-child(2) {
+  --tx: calc(var(--key-size) * -0.65);
+  --ty: calc(var(--key-size) * -0.05);
+  --rot: -18deg;
+}
+
+.split .key:nth-last-child(1) {
+  --tx: calc(var(--key-size) * -0.45);
+  --ty: calc(var(--key-size) * -0.2);
+}
+
+/* ===== Orden del teclado en móviles ===== */
+@media (max-width: 912px) and (orientation: portrait) {
+  .keyboard-container {
+    flex-direction: column;
+    gap: clamp(60px, 10vw, 120px);
+    transform: translateY(0);
+  }
+
+  /* Los pulgares en abanico sobresalen ~1,2 teclas hacia el centro de cada mitad
+     (SPC a la derecha arriba, ENT a la izquierda abajo). Cada mitad se desplaza
+     0,6 teclas hacia fuera para que el conjunto quede centrado y no se corten.
+     Aprobado por el autor (2026-10-06). */
+
+  /* mitad izquierda arriba */
+  .split.left {
+    order: 1;
+    transform: translateX(calc(var(--key-size) * -0.6)) scaleX(-1);
+  }
+
+  /* mitad derecha abajo */
+  .split:not(.left) {
+    order: 2;
+    transform: translateX(calc(var(--key-size) * 0.6));
+  }
+}
+
+/* ===== Ajuste de tamaño en móviles ===== */
+@media (max-width: 480px) {
+  :root {
+    --key-size: clamp(42px, 10vw, 56px);
+    --key-gap: clamp(7px, 1.2vw, 8px);
+  }
+
+  .title {
+    font-size: clamp(16px, 5vw, 20px);
+  }
+
+  .layer-buttons {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .layer-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+  }
+
+  .top-bar {
+    gap: 6px;
+    top: 10px;
+  }
+
+  .keyboard-container {
+    padding: 8px;
+    padding-top: 100px;
+    gap: 25px;
+    height: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --key-size: 38px;
+    --key-gap: 6px;
+  }
+}
+
+/* Ubicación del modal en móvil vertical (en horizontal se comporta como en el PC:
+   App.tsx lo deja quieto sobre la mitad contraria). Mismo corte que apila las
+   mitades (912px) y misma condición que MOVIL_VERTICAL en App.tsx. */
+@media (max-aspect-ratio: 6/5) {
+  .modal {
+    left: 50% !important;
+    transform: translateX(-50%);
+    /* El ancho incluye relleno y borde, así nunca se sale de la pantalla (antes,
+       por debajo de 436px se cortaba 6px por cada lado). 404px = 360 + relleno 36
+       + borde 8: el mismo tamaño máximo que antes. */
+    box-sizing: border-box;
+    width: calc(100% - 32px);
+    max-width: calc(404em / 14);
+    pointer-events: auto;
+    /* En pantallas grandes (tablets) la letra crece, y con ella todo el panel:
+       14px en móvil, hasta 21px en un iPad Pro */
+    font-size: clamp(14px, 2.2vmin, 21px);
+  }
+
+  /* Teclado superior → modal abajo */
+  .modal.from-top {
+    top: auto !important;
+    bottom: 16px;
+  }
+
+  /* Teclado inferior → modal arriba */
+  .modal.from-bottom {
+    bottom: auto !important;
+    top: 16px;
+  }
+}
+
+/* Ajuste para móviles en horizontal */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+
+  .top-bar {
+    position: relative; 
+    top: 0;
+    margin-top: 2px;
+    flex-direction: row; 
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .title {
+    font-size: 12px; 
+    margin: 0;
+  }
+
+  .layer-buttons {
+    gap: 10px;
+  }
+
+  .layer-btn {
+    padding: 2px 8px; 
+    font-size: 10px;
+  }
+
+  :root {
+    --key-size: clamp(30px, 12vh, 42px);
+    --key-gap: 5px;
+  }
+
+  .keyboard-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    height: auto;
+    min-height: auto;
+    padding-top: 30px;
+    transform: translateY(0);
+  }
+
+  .key {
+    font-size: 11px;
+  }
+}
+
+/* ===== PROPUESTA (2026-10-07): el teclado se ajusta a la pantalla, sin scroll =====
+   Título y botones arriba; el contenedor ocupa exactamente el resto de la pantalla
+   y es un "container" CSS: el tamaño de tecla sale del espacio que tiene (cqw/cqh). */
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* React dibuja la app dentro de #root: él también reparte el alto */
+#root {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+.layer-buttons {
+  flex: none;
+}
+
+.keyboard-container {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  container-type: size;
+  /* Ya se centra en el espacio libre bajo los botones: no hace falta subirlo */
+  transform: none;
+}
+
+/* Lado a lado: el ancho manda como siempre (6vw, entre 60 y 100px), pero nunca
+   más de lo que cabe: a lo alto el teclado mide unas 5,4 teclas, y a lo ancho
+   12 teclas más el hueco central (el mismo gap del contenedor) y los márgenes. */
+.split {
+  --key-size: min(
+    clamp(60px, 6vw, 100px),
+    calc((100cqh - 24px) / 5.4),
+    calc((100cqw - clamp(160px, 16vw, 260px) - 140px) / 12)
+  );
+}
+
+/* Si la pantalla no es claramente ancha (menos de 1,2 veces más ancha que alta:
+   móvil o tablet en vertical, o una ventana de PC casi cuadrada) las mitades se
+   apilan, que ahí deja las teclas más grandes, y crecen hasta llenar el espacio: cada mitad ocupa ~7,6 teclas de ancho (con el desplazamiento de los
+   pulgares) y las dos juntas ~11,2 de alto, con la separación. Máximo 120px. */
+@media (max-aspect-ratio: 6/5) {
+  .keyboard-container {
+    flex-direction: column;
+    gap: 0;
+    padding: 8px;
+    transform: none;
+  }
+
+  .split {
+    --key-size: min(calc((100cqw - 16px) / 7.6), calc((100cqh - 48px) / 11.2), 120px);
+  }
+
+  .split.left {
+    order: 1;
+    transform: translateX(calc(var(--key-size) * -0.6)) scaleX(-1);
+    /* Separación proporcional a la tecla: el abanico de los pulgares (SPC) crece
+       con ella y, con un hueco fijo, en las tablets tocaba la otra mitad */
+    margin-bottom: calc(var(--key-size) * 0.6);
+  }
+
+  .split:not(.left) {
+    order: 2;
+    transform: translateX(calc(var(--key-size) * 0.6));
+  }
+}
+
+/* La letra de las teclas crece con la tecla (18% de su tamaño), sin bajar nunca del
+   tamaño de siempre: en PC y móvil no cambia; en tablets deja de verse pequeña. */
+.key {
+  font-size: max(clamp(12px, 1.5vw, 18px), calc(var(--key-size) * 0.18));
+}
+
+/* ...salvo en móvil horizontal, donde siempre fue de 11px */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+  .key {
+    font-size: 11px;
+  }
+}
+
+/* Teclado lado a lado (PC, tablets y móviles en horizontal): el panel crece con
+   el ancho de la pantalla, como las teclas. 14px hasta ~1220px de ancho y hasta
+   22px en una pantalla de 1920. (Apilado tiene su propia regla, más arriba.) */
+@media (min-aspect-ratio: 6/5) {
+  .modal {
+    font-size: clamp(14px, 1.15vw, 22px);
+  }
+}
+
+/* ===== PLACA (2026-10-07, pedida por el autor) =====
+   Cada mitad lleva debajo su placa con el contorno que dibujó en Excalidraw
+   (Archivo/Placa Corne v3) y el acrílico negro de la pantalla OLED sobre los pulgares.
+   Es la mitad derecha; la izquierda sale sola con el truco del espejo.
+   La separación (--key-gap) y el escalonado van en px y no crecen con la tecla, así que
+   cada lado está amarrado al borde de la tecla que cubre y solo el aire alrededor se
+   escala con --key-size. Los polígonos se calcularon a partir del dibujo. */
+.split {
+  position: relative;
+  /* El contorno y la sombra siguen la silueta de la placa (las teclas quedan dentro) */
+  filter: drop-shadow(0 0 1px #8c8573)
+    drop-shadow(0 calc(var(--key-size) * 0.1) calc(var(--key-size) * 0.2) rgba(0, 0, 0, 0.55));
+}
+
+.split::before,
+.split::after {
+  --k: var(--key-size);
+  --g: var(--key-gap);
+  content: "";
+  position: absolute;
+  /* Lienzo justo para la placa: sobresale 1,32 teclas hacia dentro (pulgares y
+     pantalla), 0,14 teclas + 20px por arriba y 0,48 teclas por abajo. Si fuera más
+     grande, aunque sea transparente, la página tendría barras de desplazamiento */
+  left: calc(var(--k) * -1.35);
+  top: calc(var(--k) * -0.2 - 20px);
+  width: calc(var(--k) * 7.45 + var(--g) * 5 + 4px);
+  height: calc(var(--k) * 5.15 + var(--g) * 3 + 42px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Placa */
+.split::before {
+  background: #24221e;
+  clip-path: polygon(
+    calc(var(--k) * 4.45 + var(--g) * 2 + 2px) calc(var(--k) * 0.06),
+    calc(var(--k) * 3.25 + var(--g) * 2) calc(var(--k) * 0.06),
+    calc(var(--k) * 3.25 + var(--g) * 2) calc(var(--k) * 0.03 + 6px),
+    calc(var(--k) * 2.1833 + var(--g) * 1) calc(var(--k) * 0.03 + 6px),
+    calc(var(--k) * 2.1833 + var(--g) * 1) calc(var(--k) * 0.0633 + 14px),
+    calc(var(--k) * 1.15) calc(var(--k) * 0.0633 + 14px),
+    calc(var(--k) * 1.15) calc(var(--k) * 0.1633 + 14px),
+    calc(var(--k) * 0.0333) calc(var(--k) * 0.1633 + 14px),
+    calc(var(--k) * 0.0333) calc(var(--k) * 3.7833 + var(--g) * 3 + 36.0257px),
+    calc(var(--k) * 0.9667 + 1.6148px) calc(var(--k) * 5.1333 + var(--g) * 3 + 40.1215px),
+    calc(var(--k) * 1.9167 + 3.2531px) calc(var(--k) * 4.4667 + var(--g) * 3 + 38.9743px),
+    calc(var(--k) * 3.9167 + var(--g) * 2 + 2px) calc(var(--k) * 4.15 + var(--g) * 3 + 40px),
+    calc(var(--k) * 4.4333 + var(--g) * 3) calc(var(--k) * 3.3 + var(--g) * 2 + 35px),
+    calc(var(--k) * 7.45 + var(--g) * 5 + 2px) calc(var(--k) * 3.3 + var(--g) * 2 + 35px),
+    calc(var(--k) * 7.45 + var(--g) * 5 + 2px) calc(var(--k) * 0.0833 + 20px),
+    calc(var(--k) * 5.4833 + var(--g) * 3 + 2px) calc(var(--k) * 0.0833 + 20px),
+    calc(var(--k) * 5.4833 + var(--g) * 3 + 2px) calc(var(--k) * 0.0633 + 6px),
+    calc(var(--k) * 4.45 + var(--g) * 2 + 2px) calc(var(--k) * 0.0633 + 6px)
+  );
+}
+
+/* Acrílico de la pantalla OLED, con la pantalla encendida como la del teclado real
+   (señal, conectado, rayo y 100 %). Va donde en el dibujo: 4,5 unidades dentro del borde
+   del acrílico y 20 por debajo de su parte de arriba; mide 56 × 150 (60 unidades = 1 tecla) */
+.split::after {
+  background:
+    url("./assets/oled-derecha.svg") calc(var(--k) * 0.1917) calc(var(--k) * 0.58 + 14px) /
+      calc(var(--k) * 0.9333) calc(var(--k) * 2.5) no-repeat,
+    #0f0e0c;
+  clip-path: polygon(
+    calc(var(--k) * 1.2) calc(var(--k) * 0.2467 + 14px),
+    calc(var(--k) * 0.1167) calc(var(--k) * 0.2467 + 14px),
+    calc(var(--k) * 0.1167) calc(var(--k) * 3.5833 + var(--g) * 3 + 36.0257px),
+    calc(var(--k) * 1.2) calc(var(--k) * 3.13 + var(--g) * 2 + 29px)
+  );
+}
+
+/* La mitad izquierda se refleja entera (scaleX(-1)): su pantalla ya viene volteada para
+   que el texto se lea al derecho */
+.split.left::after {
+  background-image: url("./assets/oled-izquierda.svg");
+}
+
+/* Lado a lado: la placa sobresale hacia el centro más que los pulgares, así que el
+   hueco entre mitades pasa a medirse en teclas: 0,6 teclas entre las dos placas.
+   El tamaño de tecla cuenta el ancho de las placas (7,72 teclas por mitad, con ese
+   hueco) y su alto real: la placa sobresale 0,14 teclas + 20px por arriba y 0,48 por
+   abajo, en total 5,07 teclas + 3 separaciones + 40px, con 8px de aire arriba y abajo.
+   Como sobresale más por arriba, cada mitad baja la diferencia (10px − 0,17 teclas)
+   para que el bloque entero, placa incluida, quede centrado y nunca toque los botones. */
+@media (min-aspect-ratio: 6/5) {
+  .keyboard-container {
+    gap: 0;
+  }
+
+  .split.left {
+    margin-right: calc(var(--key-size) * 1.62);
+  }
+
+  .split:not(.left) {
+    margin-left: calc(var(--key-size) * 1.62);
+  }
+
+  .split {
+    --key-size: min(
+      clamp(60px, 6vw, 100px),
+      calc((100cqh - 3 * var(--key-gap) - 56px) / 5.08),
+      calc((100cqw - 10 * var(--key-gap) - 36px) / 15.44)
+    );
+    top: calc(10px - var(--key-size) * 0.1717);
+  }
+}
+
+/* Apilado: la placa de arriba baja 0,48 teclas bajo sus pulgares y la de abajo sube
+   0,14 teclas + 20px, así que el hueco entre mitades crece (queda ~0,33 teclas libre).
+   El tamaño de tecla cuenta el ancho de una placa (7,45 teclas con el desplazamiento
+   hacia fuera) y el alto de las dos (10,47 teclas), con algo de margen. */
+@media (max-aspect-ratio: 6/5) {
+  .split,
+  .invertir {
+    --key-size: min(
+      calc((100cqw - 5 * var(--key-gap) - 24px) / 7.45),
+      calc((100cqh - 6 * var(--key-gap) - 108px) / 10.47),
+      120px
+    );
+  }
+
+  .split.left {
+    margin-bottom: calc(var(--key-size) * 0.95 + 20px);
+  }
+}
+
+/* ===== ORDEN DE LAS MITADES AL APILAR (2026-10-07, pedido por el autor) =====
+   Botón ⇅ con el aspecto de los botones de capa. Solo existe con las mitades apiladas;
+   cambia cuál va arriba (App.tsx lo recuerda en el dispositivo). Va en el hueco que
+   deja el escalón entre las dos mitades, del lado de las columnas exteriores. */
+.invertir {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 16px;
+  /* Siempre naranja, como las teclas de capa, para que llame la atención (pedido del autor) */
+  border: 1px solid #d97706;
+  background: #2a2824;
+  color: #ff9d2e;
+  font: bold 16px/1 "Courier New", Courier, monospace;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  transition: 0.2s;
+}
+
+.invertir:hover,
+.invertir:focus-visible {
+  background: #333;
+}
+
+@media (max-aspect-ratio: 6/5) {
+  /* Las mitades están centradas, así que el centro del contenedor es el centro del
+     hueco entre ellas. Las columnas exteriores de la mitad de arriba terminan
+     1,35 teclas + G + 5px antes que su caja, y la placa de abajo empieza 0,14 teclas
+     + 6px antes que la suya: el hueco del escalón mide 2,16 teclas + G + 19px de alto
+     y su centro queda 0,745 teclas + G/2 + 5,5px por encima del centro.
+     A lo ancho, 0,9 teclas dentro del borde exterior de las placas. */
+  .invertir {
+    display: grid;
+    place-items: center;
+    left: calc(50% - var(--key-size) * 2.8 - var(--key-gap) * 2.5 - 1px);
+    top: calc(50% - var(--key-size) * 0.745 - var(--key-gap) * 0.5 - 5.5px);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Derecha arriba: el escalón queda al otro lado */
+  .keyboard-container.invertido .invertir {
+    left: auto;
+    right: calc(50% - var(--key-size) * 2.8 - var(--key-gap) * 2.5 - 1px);
+    transform: translate(50%, -50%);
+  }
+
+  /* Derecha arriba: los mismos desplazamientos, con el hueco bajo la de arriba */
+  .keyboard-container.invertido .split.left {
+    order: 2;
+    margin-bottom: 0;
+  }
+
+  .keyboard-container.invertido .split:not(.left) {
+    order: 1;
+    margin-bottom: calc(var(--key-size) * 0.95 + 20px);
+  }
+}
+
+/* ===== BIENVENIDA (2026-10-07, pedida por el autor) =====
+   Al abrir la app: el teclado con los LED en efecto Swirl (la animación va dentro del
+   SVG), acostado en todas las pantallas.
+   Está en index.html (se ve mientras carga la app) y Bienvenida.tsx la quita tras
+   1,8 s como mínimo; se desvanece en 0,4s (SALIDA_MS). */
+.bienvenida {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vmin, 32px);
+  /* El naranja del ícono, con el mismo degradado */
+  background: radial-gradient(circle at 50% 45%, #f59e0b, #b45309 75%);
+  /* Reserva abajo el alto de la firma: el teclado y el título se centran en el resto */
+  box-sizing: border-box;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+  transition: opacity 0.4s ease;
+}
+
+.bienvenida.saliendo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Sin animaciones si el sistema lo pide: la bienvenida ni se muestra */
+@media (prefers-reduced-motion: reduce) {
+  .bienvenida {
+    display: none;
+  }
+}
+
+.bienvenida img {
+  display: block;
+  height: auto;
+}
+
+/* 575 × 441, con aire alrededor. Deja sitio para el título */
+.bienvenida-teclado {
+  width: min(80vw, 760px, calc(62vh * 1.3));
+}
+
+/* Oscuro sobre el naranja, como el teclado del ícono */
+.bienvenida-titulo {
+  margin: 0;
+  color: #1a1915;
+  font-weight: bold;
+  font-size: clamp(28px, 7vmin, 64px);
+  letter-spacing: 0.08em;
+}
+
+/* Firma pegada al borde de abajo (respeta la barra del sistema en el móvil) */
+.bienvenida-pie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  color: #1a1915;
+  opacity: 0.75;
+  font-size: clamp(11px, 1.6vmin, 14px);
+  line-height: 1.4;
+}
+
+.bienvenida-pie p {
+  margin: 0;
+}
+
+/* En vertical, más ancho: casi todo el ancho de la pantalla */
+@media (max-aspect-ratio: 6/5) {
+  .bienvenida .bienvenida-teclado {
+    width: min(92vw, 760px);
+  }
+}
+
+/* ===== BOTONES DE CAPA EN MÓVIL (2026-10-07, opción A aprobada por el autor) =====
+   Seis botones con relleno y separación fijos medían ~356px: en 360px quedaban a 2px
+   del borde y en 320px se partían en dos líneas. Ahora hay siempre 16px a cada lado y,
+   si hace falta, el relleno lateral y la separación se achican con el ancho. */
+@media (max-width: 480px) {
+  .layer-buttons {
+    box-sizing: border-box;
+    padding-inline: 16px;
+    gap: clamp(4px, 1.5vw, 8px);
+  }
+
+  .layer-btn {
+    padding-inline: clamp(6px, 2.2vw, 12px);
+  }
+}
+
+/* ===== MÓVIL EN HORIZONTAL (2026-10-07, pedido por el autor) =====
+   El título pierde margen (21 → 8px) para dar alto al teclado. El teclado se centra como
+   en el resto de pantallas lado a lado (la regla de la placa ya deja aire con los
+   botones): fuera el arrimado arriba con 30px de relleno del diseño original. */
+@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
+  h1 {
+    margin-block: 8px;
+  }
+
+  .keyboard-container {
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
+/* ===== FIRMA AL PIE (2026-10-07, opción A del autor) =====
+   Una sola línea discreta, en el gris de la app, para quitarle poco alto al teclado
+   (~22px: el tamaño de tecla se recalcula solo con el espacio que queda). El nombre
+   enlaza a la web del autor. */
+.firma {
+  flex: none;
+  padding: 2px 16px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  color: #8c8573;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.firma a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: #4a453c;
+  text-underline-offset: 2px;
+  outline: none;
+  transition: color 0.2s;
+}
+
+.firma a:hover,
+.firma a:focus-visible {
+  color: #ff9d2e;
+  text-decoration-color: #d97706;
+}

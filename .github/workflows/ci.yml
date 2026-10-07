@@ -1,0 +1,96 @@
+# Revisión y publicación automáticas.
+#
+# - Pull request a main: revisa, prueba y compila; si Firebase está configurado,
+#   publica una vista previa temporal y deja el enlace como comentario.
+# - Push a main: lo mismo y, si todo pasa, publica el sitio real.
+# - Si algo falla en la revisión, NO se publica.
+#
+# Configuración necesaria en GitHub (Settings → Secrets and variables → Actions):
+#   Variable FIREBASE_PROJECT_ID          el id del proyecto de Firebase
+#   Secreto  FIREBASE_SERVICE_ACCOUNT     JSON de la cuenta de servicio con permiso de Hosting
+# Mientras la variable no exista, la etapa de publicar se salta (no falla).
+
+name: Revisar y publicar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Si llegan dos cambios seguidos, el segundo cancela al primero
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Buscar vulnerabilidades en las dependencias
+        run: npm audit --audit-level=high
+
+      - name: Revisar el código (ESLint)
+        run: npm run lint
+
+      - name: Comprobar los tipos (TypeScript)
+        run: npm run typecheck
+
+      # La prueba visual corre en Chromium sin ventana
+      - name: Preparar Chromium para la prueba visual
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Pruebas (datos, lógica y diseño)
+        run: npm test
+
+      - name: Compilar
+        run: npm run build
+
+      - name: Guardar la versión compilada
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  publicar:
+    needs: revisar
+    if: ${{ vars.FIREBASE_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Descargar el código (firebase.json)
+        uses: actions/checkout@v4
+
+      - name: Recuperar la versión compilada
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publicar (main) o vista previa (pull request)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          # "live" es el sitio real; vacío crea una vista previa por pull request
+          channelId: ${{ github.event_name == 'push' && 'live' || '' }}

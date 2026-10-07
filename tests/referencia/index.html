@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corne Map Interactivo</title>
+    <meta
+      name="description"
+      content="Visualizador interactivo del layout de un teclado Corne con firmware ZMK: qué hace cada tecla en cada una de sus 6 capas."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#000000" />
+  </head>
+  <body>
+    <h1>Corne ZMK Visualizer</h1>
+
+    <div class="layer-buttons">
+      <button class="layer-btn active" data-layer="BASE">Base</button>
+      <button class="layer-btn" data-layer="NUM">Num</button>
+      <button class="layer-btn" data-layer="SYM">Sym</button>
+      <button class="layer-btn" data-layer="NAV">Nav</button>
+      <button class="layer-btn" data-layer="LED">Led</button>
+      <button class="layer-btn" data-layer="FUN">Fun</button>
+    </div>
+
+    <div class="keyboard-container">
+      <div class="split left" id="left-side"></div>
+      <div class="split right" id="right-side"></div>
+    </div>
+
+    <!-- Cambio aprobado (2026-10-07): firma al pie, como en la app -->
+    <footer class="firma">
+      © 2026 CorneRey · Desarrollado por
+      <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">Hernando Rey</a>
+    </footer>
+
+    <div id="info-modal" class="modal hidden">
+      <div id="modal-layer"></div>
+      <div id="modal-title"></div>
+      <div id="modal-desc"></div>
+      <p id="modal-extra"></p>
+      <!-- Vacío a propósito: es un elemento más de la columna flex del modal y
+           le da 11px de aire al pie (gap 6px + margin-top 5px). Quitarlo cambia el diseño. -->
+      <small id="modal-layer"></small>
+    </div>
+
+    <script type="module" src="app.js"></script>
+
+<script>
+      if ("serviceWorker" in navigator) {
+        // Solo registramos el SW si NO estamos en entorno de desarrollo local
+        if (
+          window.location.hostname !== "localhost" && 
+          window.location.hostname !== "127.0.0.1"
+        ) {
+          navigator.serviceWorker.register("sw.js")
+            .then(() => console.log("Service Worker: Activado para producción"))
+            .catch(err => console.log("Service Worker: Error", err));
+        } else {
+          // Esto limpia cualquier rastro del SW en tu navegador local 
+          // para que el Live Preview no se bloquee
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+              registration.unregister();
+              console.log("Modo Desarrollo: Service Worker desactivado para Live Preview");
+            }
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

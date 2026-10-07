@@ -8,7 +8,7 @@ Visualizador interactivo del **layout** que uso en mi **Corne (crkbd)** con firm
 
 ## 🔗 Demo
 
-👉 **[hrking31.github.io/corne-keymap-visualizer-rey](https://hrking31.github.io/corne-keymap-visualizer-rey/)**
+👉 **[corne-rey.web.app](https://corne-rey.web.app/)**
 
 > ⌨️ El teclado, su configuración y las decisiones de diseño del layout están en el
 > repositorio **[CorneRey-zmk](https://github.com/hrking31/CorneRey-zmk)**.
@@ -38,11 +38,16 @@ Eso es esta app.
 
 ## ✨ Características
 
-- ✅ Visualización de las **6 capas** completas, con la geometría real del Corne
-- ✅ Modal descriptivo al pasar sobre cada tecla
-- ✅ Interfaz limpia y responsive (escritorio, móvil vertical y horizontal)
-- ✅ Funciona **sin conexión** (PWA instalable en el celular)
-- ✅ Sin dependencias ni build: se sirve tal cual
+- ✅ Las **6 capas** completas, con la geometría real del Corne: columnas escalonadas y pulgares en abanico
+- ✅ **Placa con el contorno de mi teclado** y la pantalla OLED mostrando su estado, como en el real
+- ✅ Panel con la descripción de cada tecla, con **ratón, teclado (Tab, Enter, Escape) o dedo**
+- ✅ Accesible: cada tecla se anuncia en los lectores de pantalla («BSPC, Capa Base»)
+- ✅ **Cabe siempre en la pantalla, sin desplazamiento**: escritorio, tablet y móvil, en vertical u horizontal
+- ✅ En el móvil las mitades se apilan, y un botón ⇅ elige cuál va arriba
+- ✅ Bienvenida con los LED en el efecto *Swirl* de ZMK, mientras carga la app
+- ✅ **PWA** instalable que funciona **sin conexión**
+- ✅ Cabeceras de seguridad estrictas (Content-Security-Policy y compañía)
+- ✅ Una **prueba visual** que garantiza que el diseño no cambia sin querer
 
 ---
 
@@ -64,95 +69,163 @@ Eso es esta app.
 
 ## 🛠️ Cómo usarlo
 
-**La forma fácil:** abre la
-[demo](https://hrking31.github.io/corne-keymap-visualizer-rey/). En el celular, usa «Añadir a
-pantalla de inicio» y queda instalado como una app que funciona sin conexión.
+**La forma fácil:** abre la [demo](https://corne-rey.web.app/). En el celular, usa «Añadir a
+pantalla de inicio» y queda instalada como una app que funciona sin conexión.
 
-**En local:**
+**En local** (necesita Node.js 20.19 o superior):
 
 ```bash
 git clone https://github.com/hrking31/corne-keymap-visualizer-rey.git
-```
-
-Luego abre `index.html` con cualquier servidor estático. Con la extensión *Live Server* de
-VS Code basta.
-
-> ⚠️ No lo abras con doble clic (`file://`): el service worker no se registra y los
-> navegadores bloquean la carga de los módulos.
-
-**Pruebas** (necesitan Node.js):
-
-```bash
+cd corne-keymap-visualizer-rey
 npm install
-npm test
+npm run dev
 ```
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Comprueba los tipos y compila en `dist/` |
+| `npm run preview` | Sirve lo compilado **con las mismas cabeceras de seguridad que producción** |
+| `npm run lint` | Revisa el código con ESLint (sin avisos permitidos) |
+| `npm test` | Todas las pruebas: datos, lógica y diseño |
+| `npm run test:unit` | Solo las rápidas (datos y lógica) |
+| `npm run test:visual` | Solo la prueba visual (abre Chromium sin ventana) |
 
 ---
 
 ## 🔧 Cómo está hecho
 
 ```
-index.html      # Una sola pantalla
-app.js          # Render del teclado, modal y cambio de capa
-teclado.js      # Lógica pura (bloques y filas), sin DOM
-data.js         # 6 capas × 42 teclas  ← el contenido
-tests/          # Pruebas con Vitest
-style.css       # Diseño y geometría del teclado
-sw.js           # Service worker
-manifest.json   # PWA
+src/
+  App.tsx              # Estado (capa, panel, orden), botones de capa, posición del panel
+  components/
+    Bloque.tsx         # Una mitad del teclado
+    Modal.tsx          # El panel con la descripción de cada tecla
+    Bienvenida.tsx     # Quita la bienvenida (que está en index.html) cuando la app ya cargó
+  assets/              # La bienvenida animada y la pantalla OLED (SVG)
+  data.ts              # 6 capas × 42 teclas  ← el contenido
+  teclado.ts           # Lógica pura: bloques y filas
+  tipos.ts             # Capa, Tecla, Keymap
+  style.css            # Todo el diseño, incluida la geometría del teclado
+tests/
+  *.test.ts            # Datos y lógica (Vitest)
+  visual/              # Prueba visual (Vitest en modo navegador)
+  referencia/          # Copia congelada de la versión original
+firebase.json          # Hosting y cabeceras de seguridad
+.github/workflows/     # Revisión y publicación automáticas
 ```
 
-**Sin frameworks.** HTML, CSS y JavaScript puro. No porque los frameworks estén mal, sino
-porque el problema no los pedía: es una pantalla que pinta 42 elementos y cambia de capa.
-Meter React habría significado más build, más dependencias y más superficie de mantenimiento
-para dibujar un teclado. Un buen desarrollador elige la herramienta según el problema; no al
-revés.
+### Primero sin frameworks, después React
 
-**El teclado es CSS puro.** Esta fue la parte divertida. Un Corne no es una cuadrícula: las
-columnas están escalonadas según el largo de cada dedo y las tres teclas de cada pulgar están
-giradas en abanico. Está resuelto con **CSS Grid** más **variables por tecla** (`--tx`,
-`--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una sola `transform`. El escalonado usa
-selectores `nth-child(6n + k)` y el abanico `nth-last-child`. Una mitad se dibuja y la otra se
-espeja con `scaleX(-1)`, contra-espejando el texto de cada tecla para que siga siendo legible.
-Cero imágenes, cero SVG: geometría declarativa.
+La primera versión era HTML, CSS y JavaScript puro, y estaba bien así: una pantalla que pinta
+42 elementos y cambia de capa no pedía más. Sigue disponible en la etiqueta
+[`v1.1-vanilla`](https://github.com/hrking31/corne-keymap-visualizer-rey/tree/v1.1-vanilla).
 
-**PWA sin internet.** Manifest y service worker con estrategia *network-first*: intenta traer
-la versión fresca y, si no hay red, sirve la copia en caché. Una chuleta que necesita conexión
-para consultarse no sirve de nada.
+La migré a **React + TypeScript + Vite** cuando el plan creció: un editor con inicio de
+sesión, una base de datos y, más adelante, que cualquiera pueda cargar su propio teclado.
+La regla de la migración fue que **no cambiara un solo píxel**, y no se comprobó a ojo:
+una prueba mide las dos versiones en el mismo navegador, en cuatro tamaños de pantalla, y
+compara la posición de las 252 teclas, su fuente, los 213 paneles y la paleta de colores.
+Esa prueba atrapó cambios que nadie habría visto, como un elemento vacío que aportaba 11 px
+de aire al panel, o una animación que aparecía porque React reutiliza los elementos.
 
-**Responsive de verdad.** En escritorio las dos mitades se muestran una al lado de otra, como
-están sobre la mesa. En móvil vertical se apilan, y el panel de información aparece del lado
-contrario a la mitad que estás tocando, para no tapar con el dedo lo que quieres leer. Hay un
-breakpoint extra para móvil en horizontal, donde lo escaso no es el ancho sino el alto.
+### El teclado es CSS puro
 
-**Datos separados de la vista.** Todo el contenido vive en `data.js` como un objeto de seis
-capas por 42 teclas. `app.js` no sabe nada de teclas concretas: solo recorre datos y pinta.
-Añadir una capa no toca una línea de lógica.
+Un Corne no es una cuadrícula: las columnas están escalonadas según el largo de cada dedo y
+las tres teclas de cada pulgar están giradas en abanico. Está resuelto con **CSS Grid** más
+**variables por tecla** (`--tx`, `--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una
+sola `transform`. El escalonado usa selectores `nth-child(6n + k)` y el abanico
+`nth-last-child`. Las teclas y la placa no usan imágenes: es geometría declarativa. Solo la
+pantalla OLED y la bienvenida son dibujos (SVG).
+
+### La placa: de un dibujo a polígonos CSS
+
+Quería que se pareciera a mi teclado, así que dibujé el contorno de la placa en Excalidraw,
+sobre la geometría real de la app. Pasarlo a CSS tenía un truco: el tamaño de las teclas
+cambia con la pantalla, pero la separación entre ellas y el escalonado de las columnas van en
+píxeles fijos. Si escalaba el dibujo entero, en un móvil una columna se salía de la placa.
+
+Por eso cada lado recto del contorno está **amarrado al borde de la tecla que cubre**, y solo
+el aire que queda alrededor crece con la tecla. El resultado son dos `clip-path: polygon()`
+por mitad (placa y acrílico de la pantalla), escritos con `calc()` a partir de `--key-size` y
+`--key-gap`, que la mitad izquierda hereda gratis gracias al truco del espejo. Antes de darlo
+por bueno lo medí en más de 20 tamaños de pantalla: ninguna tecla se sale de su placa.
+
+### ⭐ El truco del espejo: una sola regla para las dos manos
+
+Las dos mitades de un Corne son simétricas: la columna del dedo medio es la más alta en las
+dos, y los pulgares se abren en abanico hacia el centro. Escribir el escalonado dos veces,
+una por mano y con los valores al revés, era lo obvio. En lugar de eso, **la mitad izquierda
+se dibuja como una copia de la derecha y luego se refleja**, como en un espejo:
+
+```
+Lo que ves:   ESC  .   ,   Ñ   P   Y            F   G   C   H   L  BSPC
+                       ▲   ▲▲  ▲                    ▲   ▲▲  ▲
+                       dedo medio (más alta)        dedo medio (más alta)
+
+1. data.ts guarda la mitad izquierda:   ESC  .   ,   Ñ   P   Y
+2. El código invierte cada fila:        Y    P   Ñ   ,   .   ESC
+   → ahora está en el mismo orden que la derecha: F G C H L BSPC
+3. El CSS sube cada tecla según su posición, contando desde dentro:
+      1.ª 6 px · 2.ª 14 px · 3.ª 20 px · 4.ª 14 px · 5.ª y 6.ª 0 px
+   → la misma regla sirve para las dos mitades
+4. scaleX(-1) refleja la mitad entera:  ESC  .   ,   Ñ   P   Y   ✓
+5. --mirror: -1 vuelve a voltear cada tecla, para que la «Ñ» no se lea al revés
+```
+
+Resultado: **cuatro reglas de escalonado y tres de pulgares dibujan las 42 teclas**. Cambiar
+la altura de una columna se hace en un solo sitio y las dos manos quedan siempre simétricas.
+
+El precio, aceptado a conciencia: el navegador recorre las teclas en el orden del paso 2,
+así que con la tecla Tab la mitad izquierda se recorre de dentro hacia fuera (Y, P, Ñ… ESC).
+Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplica.
+
+### Responsive de verdad
+
+La app solo muestra algo que cabe en la pantalla, así que **nunca hay desplazamiento**: el
+contenedor del teclado es un *container* de CSS y el tamaño de tecla sale del espacio que
+tiene (`cqw`/`cqh`), contando el alto y el ancho reales de las placas.
+
+Cuando la pantalla es ancha, las dos mitades se muestran una al lado de otra, como están sobre
+la mesa, y el panel de información aparece **quieto sobre la mitad contraria** a la tecla:
+nunca tapa la tecla que tocas ni persigue al ratón o al dedo. Cuando no lo es (móvil o tablet
+en vertical), las mitades se apilan y el panel sale arriba o abajo, del lado contrario a la
+mitad que tocas. Un botón ⇅, en el hueco que deja el escalón entre las dos mitades, elige
+cuál va arriba y lo recuerda en el dispositivo.
+
+### Calidad y seguridad
+
+- **Revisión automática** en cada cambio (GitHub Actions): vulnerabilidades en las
+  dependencias, ESLint, TypeScript, las pruebas y la compilación. Si algo falla, no se publica.
+  Cada *pull request* recibe su propia vista previa en Firebase.
+- **Cabeceras de seguridad** en Firebase Hosting: CSP que solo permite recursos propios,
+  protección contra *clickjacking* (`frame-ancestors 'none'`), `nosniff`, `Referrer-Policy` y
+  `Permissions-Policy`.
+- **Credenciales con permisos mínimos:** la cuenta que publica desde GitHub solo puede tocar
+  Hosting.
+- **Sin conexión:** `vite-plugin-pwa` genera el service worker y el manifiesto, con un ícono
+  adaptable (*maskable*) para Android.
+- **SVG compatibles con la CSP:** la bienvenida se anima con `<animate>` de SVG y no lleva
+  estilos dentro, que la política de seguridad bloquearía.
 
 ---
 
 ## 🗺️ Próximos pasos
 
-**Generar `data.js` desde el `.keymap`.** Hoy el firmware y el visualizador son dos fuentes de
-verdad que hay que mantener a mano, y tarde o temprano se desincronizan. La evolución natural
-es un generador que lea el `.keymap` de ZMK y produzca los datos del visualizador, corriendo
-en GitHub Actions cada vez que cambie la configuración. El teclado y su chuleta dejarían de
-poder contradecirse porque serían la misma fuente.
-
-Después de eso:
-
-- Buscador de teclas: *¿dónde está la llave?* → te dice la capa
-- Navegación por teclado y etiquetas ARIA (un visualizador de teclado debería poder usarse con el teclado)
-- Soporte táctil explícito, en lugar de depender de la emulación del navegador
-- Exportar a PNG
-- Modo de práctica que dicte combinaciones para memorizar la distribución
+- **Editor con inicio de sesión** (Firebase Authentication + Firestore): escribir desde el
+  celular qué hace cada tecla, sin tocar el código. Lectura pública, escritura solo del dueño.
+- **Generar los datos desde el `.keymap`**: que el firmware y el visualizador no puedan
+  contradecirse porque salen de la misma fuente.
+- **Cualquier teclado ZMK**: que cualquiera cargue su `.keymap` y obtenga su propio visualizador.
+- **Google Play**, como Trusted Web Activity.
+- Buscador inverso (*¿cómo escribo `{`?*), modo práctica y exportar a imagen.
 
 ---
 
 ## 🧰 Stack
 
-HTML5 · CSS3 (Grid, variables personalizadas, transforms) · JavaScript ES6 sin dependencias ·
-PWA (Web App Manifest + Service Worker) · GitHub Pages
+React 19 · TypeScript · Vite · CSS3 (Grid, variables, transforms) · Vitest (también en modo
+navegador) · ESLint · vite-plugin-pwa · Firebase Hosting · GitHub Actions
 
 ---
 
@@ -162,11 +235,22 @@ PWA (Web App Manifest + Service Worker) · GitHub Pages
 - 📘 [ZMK Firmware](https://zmk.dev)
 - ⌨️ [Corne (crkbd)](https://github.com/foostan/crkbd)
 
+⭐ Si te resulta útil, deja una estrella en el repo.
+
 ---
 
-## 👤 Autor
+<p align="center">
+  <a href="https://hernandorey-31.web.app/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/firma-es-oscuro.svg">
+      <img alt="Hernando Rey, Desarrollador Full Stack e Ingeniero Electrónico" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/firma-es-claro.svg" width="100%">
+    </picture>
+  </a>
+</p>
 
-Proyecto creado por **Hernando Rey**
-🔗 [GitHub](https://github.com/hrking31)
-
-⭐ Si te resulta útil, deja una estrella en el repo.
+<p align="center">
+  <a href="https://hernandorey-31.web.app/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-portafolio-oscuro.svg"><img alt="Portafolio" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-portafolio-claro.svg" height="41"></picture></a>
+  <a href="https://www.linkedin.com/in/hernandorey/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-linkedin-oscuro.svg"><img alt="LinkedIn" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-linkedin-claro.svg" height="41"></picture></a>
+  <a href="https://github.com/hrking31"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-github-oscuro.svg"><img alt="GitHub" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-github-claro.svg" height="41"></picture></a>
+  <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=hrking31@gmail.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-correo-oscuro.svg"><img alt="hrking31@gmail.com" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-correo-claro.svg" height="41"></picture></a>
+</p>
