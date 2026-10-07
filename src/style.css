@@ -527,3 +527,124 @@ h1,
     font-size: clamp(14px, 1.15vw, 22px);
   }
 }
+
+/* ===== PLACA (2026-10-07, pedida por el autor) =====
+   Cada mitad lleva debajo su placa con el contorno que dibujó en Excalidraw
+   (Archivo/Placa Corne v3) y el acrílico negro de la pantalla OLED sobre los pulgares.
+   Es la mitad derecha; la izquierda sale sola con el truco del espejo.
+   La separación (--key-gap) y el escalonado van en px y no crecen con la tecla, así que
+   cada lado está amarrado al borde de la tecla que cubre y solo el aire alrededor se
+   escala con --key-size. Los polígonos se calcularon a partir del dibujo. */
+.split {
+  position: relative;
+  /* El contorno y la sombra siguen la silueta de la placa (las teclas quedan dentro) */
+  filter: drop-shadow(0 0 1px #8c8573)
+    drop-shadow(0 calc(var(--key-size) * 0.1) calc(var(--key-size) * 0.2) rgba(0, 0, 0, 0.55));
+}
+
+.split::before,
+.split::after {
+  --k: var(--key-size);
+  --g: var(--key-gap);
+  content: "";
+  position: absolute;
+  /* Lienzo justo para la placa: sobresale 1,32 teclas hacia dentro (pulgares y
+     pantalla), 0,14 teclas + 20px por arriba y 0,48 teclas por abajo. Si fuera más
+     grande, aunque sea transparente, la página tendría barras de desplazamiento */
+  left: calc(var(--k) * -1.35);
+  top: calc(var(--k) * -0.2 - 20px);
+  width: calc(var(--k) * 7.45 + var(--g) * 5 + 4px);
+  height: calc(var(--k) * 5.15 + var(--g) * 3 + 42px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Placa de fibra de carbono: tejido cruzado (twill) hecho con degradados, con un
+   brillo diagonal suave encima. El tamaño del tejido crece con la tecla. */
+.split::before {
+  --t: max(8px, calc(var(--k) * 0.18));
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 35%, rgba(255, 255, 255, 0.035) 65%, transparent),
+    linear-gradient(27deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 4) / var(--t) var(--t),
+    linear-gradient(207deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) 0 / var(--t) var(--t),
+    linear-gradient(27deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 2) / var(--t) var(--t),
+    linear-gradient(207deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) calc(var(--t) / 4) / var(--t) var(--t),
+    linear-gradient(90deg, #1b1b1b calc(var(--t) / 2), transparent calc(var(--t) / 2)) 0 0 / var(--t) var(--t),
+    linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424) 0 0 / var(--t) var(--t),
+    #131313;
+  clip-path: polygon(
+    calc(var(--k) * 4.45 + var(--g) * 2 + 2px) calc(var(--k) * 0.06),
+    calc(var(--k) * 3.25 + var(--g) * 2) calc(var(--k) * 0.06),
+    calc(var(--k) * 3.25 + var(--g) * 2) calc(var(--k) * 0.03 + 6px),
+    calc(var(--k) * 2.1833 + var(--g) * 1) calc(var(--k) * 0.03 + 6px),
+    calc(var(--k) * 2.1833 + var(--g) * 1) calc(var(--k) * 0.0633 + 14px),
+    calc(var(--k) * 1.15) calc(var(--k) * 0.0633 + 14px),
+    calc(var(--k) * 1.15) calc(var(--k) * 0.1633 + 14px),
+    calc(var(--k) * 0.0333) calc(var(--k) * 0.1633 + 14px),
+    calc(var(--k) * 0.0333) calc(var(--k) * 3.7833 + var(--g) * 3 + 36.0257px),
+    calc(var(--k) * 0.9667 + 1.6148px) calc(var(--k) * 5.1333 + var(--g) * 3 + 40.1215px),
+    calc(var(--k) * 1.9167 + 3.2531px) calc(var(--k) * 4.4667 + var(--g) * 3 + 38.9743px),
+    calc(var(--k) * 3.9167 + var(--g) * 2 + 2px) calc(var(--k) * 4.15 + var(--g) * 3 + 40px),
+    calc(var(--k) * 4.4333 + var(--g) * 3) calc(var(--k) * 3.3 + var(--g) * 2 + 35px),
+    calc(var(--k) * 7.45 + var(--g) * 5 + 2px) calc(var(--k) * 3.3 + var(--g) * 2 + 35px),
+    calc(var(--k) * 7.45 + var(--g) * 5 + 2px) calc(var(--k) * 0.0833 + 20px),
+    calc(var(--k) * 5.4833 + var(--g) * 3 + 2px) calc(var(--k) * 0.0833 + 20px),
+    calc(var(--k) * 5.4833 + var(--g) * 3 + 2px) calc(var(--k) * 0.0633 + 6px),
+    calc(var(--k) * 4.45 + var(--g) * 2 + 2px) calc(var(--k) * 0.0633 + 6px)
+  );
+}
+
+/* Acrílico de la pantalla OLED */
+.split::after {
+  background: #0f0e0c;
+  clip-path: polygon(
+    calc(var(--k) * 1.2) calc(var(--k) * 0.2467 + 14px),
+    calc(var(--k) * 0.1167) calc(var(--k) * 0.2467 + 14px),
+    calc(var(--k) * 0.1167) calc(var(--k) * 3.5833 + var(--g) * 3 + 36.0257px),
+    calc(var(--k) * 1.2) calc(var(--k) * 3.13 + var(--g) * 2 + 29px)
+  );
+}
+
+/* Lado a lado: la placa sobresale hacia el centro más que los pulgares, así que el
+   hueco entre mitades pasa a medirse en teclas: 0,6 teclas entre las dos placas.
+   El tamaño de tecla cuenta ahora el ancho de las placas (7,72 teclas por mitad,
+   con ese hueco) y su alto (5,41 teclas, centrado). */
+@media (min-aspect-ratio: 6/5) {
+  .keyboard-container {
+    gap: 0;
+  }
+
+  .split.left {
+    margin-right: calc(var(--key-size) * 1.62);
+  }
+
+  .split:not(.left) {
+    margin-left: calc(var(--key-size) * 1.62);
+  }
+
+  .split {
+    --key-size: min(
+      clamp(60px, 6vw, 100px),
+      calc((100cqh - 3 * var(--key-gap) - 28px) / 5.41),
+      calc((100cqw - 10 * var(--key-gap) - 36px) / 15.44)
+    );
+  }
+}
+
+/* Apilado: la placa de arriba baja 0,48 teclas bajo sus pulgares y la de abajo sube
+   0,14 teclas + 20px, así que el hueco entre mitades crece (queda ~0,33 teclas libre).
+   El tamaño de tecla cuenta el ancho de una placa (7,45 teclas con el desplazamiento
+   hacia fuera) y el alto de las dos (10,47 teclas), con algo de margen. */
+@media (max-aspect-ratio: 6/5) {
+  .split {
+    --key-size: min(
+      calc((100cqw - 5 * var(--key-gap) - 24px) / 7.45),
+      calc((100cqh - 6 * var(--key-gap) - 108px) / 10.47),
+      120px
+    );
+  }
+
+  .split.left {
+    margin-bottom: calc(var(--key-size) * 0.95 + 20px);
+  }
+}
