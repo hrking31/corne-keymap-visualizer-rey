@@ -115,9 +115,17 @@ export default function App() {
     el.style.top = Math.max(Math.min(centrado, tope), debajoDeLosBotones) + "px";
   };
 
-  // Al aparecer, el modal ya mide su tamaño real y se puede centrar
+  // Al aparecer, el modal ya mide su tamaño real y se puede centrar. Su posición se borra
+  // aquí, cuando React ya lo ocultó, y no al salir de la tecla: si se borraba antes, al
+  // pasar rápido por varias teclas se pintaba un cuadro con el modal aún visible y sin
+  // posición, y aparecía un instante arriba a la izquierda.
   useLayoutEffect(() => {
+    const el = modalRef.current;
     if (modal.visible) colocarModal();
+    else if (el) {
+      el.style.left = "";
+      el.style.top = "";
+    }
   }, [modal]);
 
   const mostrar = (tecla: Tecla, lado: Lado) => {
@@ -140,10 +148,6 @@ export default function App() {
     setModal((anterior) =>
       anterior.visible ? { ...anterior, visible: false, extra: "" } : anterior,
     );
-    if (modalRef.current) {
-      modalRef.current.style.left = "";
-      modalRef.current.style.top = "";
-    }
   };
 
   // En el móvil no hay "salir con el ratón": el modal se cierra al tocar fuera de
