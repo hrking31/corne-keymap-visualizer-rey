@@ -789,12 +789,19 @@ h1,
   margin: 0;
 }
 
+/* PRUEBA (2026-10-07, pedida por el autor): en el móvil vertical también sale acostado,
+   un poco más ancho. La versión de pie sigue ahí: para volver a ella, añadir la clase
+   "de-pie" a .bienvenida en Bienvenida.tsx (DE_PIE = true). */
 @media (max-aspect-ratio: 6/5) {
   .bienvenida .bienvenida-horizontal {
+    width: min(92vw, 760px);
+  }
+
+  .bienvenida.de-pie .bienvenida-horizontal {
     display: none;
   }
 
-  .bienvenida .bienvenida-vertical {
+  .bienvenida.de-pie .bienvenida-vertical {
     display: block;
   }
 }

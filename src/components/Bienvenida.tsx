@@ -7,6 +7,9 @@ import vertical from "../assets/bienvenida-vertical.svg";
 const VISIBLE_MS = 120_000;
 const SALIDA_MS = 400;
 
+// PRUEBA: false = acostado también en el móvil vertical; true = de pie, con la OLED arriba
+const DE_PIE = false;
+
 type Fase = "visible" | "saliendo" | "fuera";
 
 // Pantalla de bienvenida al abrir la app: la mano izquierda del Corne con los LED en
@@ -36,7 +39,7 @@ export default function Bienvenida() {
 
   return (
     <div
-      className={fase === "saliendo" ? "bienvenida saliendo" : "bienvenida"}
+      className={["bienvenida", DE_PIE && "de-pie", fase === "saliendo" && "saliendo"].filter(Boolean).join(" ")}
       aria-hidden="true"
       onPointerDown={() => setFase("saliendo")}
     >
