@@ -823,3 +823,30 @@ h1,
     padding-top: 0;
   }
 }
+
+/* ===== FIRMA AL PIE (2026-10-07, opción A del autor) =====
+   Una sola línea discreta, en el gris de la app, para quitarle poco alto al teclado
+   (~22px: el tamaño de tecla se recalcula solo con el espacio que queda). El nombre
+   enlaza a la web del autor. */
+.firma {
+  flex: none;
+  padding: 2px 16px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  color: #8c8573;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.firma a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: #4a453c;
+  text-underline-offset: 2px;
+  outline: none;
+  transition: color 0.2s;
+}
+
+.firma a:hover,
+.firma a:focus-visible {
+  color: #ff9d2e;
+  text-decoration-color: #d97706;
+}

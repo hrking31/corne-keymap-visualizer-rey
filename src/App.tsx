@@ -220,6 +220,13 @@ export default function App() {
         </button>
       </div>
 
+      <footer className="firma">
+        © 2026 CorneRey · Desarrollado por{" "}
+        <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">
+          Hernando Rey
+        </a>
+      </footer>
+
       <Modal estado={modal} ref={modalRef} />
       <Bienvenida />
     </>
