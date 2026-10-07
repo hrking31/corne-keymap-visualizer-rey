@@ -82,11 +82,11 @@
   <g transform="matrix(0 1 -1 0 469.5 138)">
     <rect x="0" y="0" width="150" height="56" rx="3" fill="#000"/>
     <!-- Más pequeño (70 %) y en la parte de arriba de la pantalla, como en la foto -->
-    <g transform="translate(6 -6) scale(0.7)">
+    <g transform="translate(106.9 -6) scale(0.7)">
       <circle cx="18" cy="31" r="2.4" fill="#f4f1e8"/><path d="M13.05 27.05 A7 7 0 0 1 22.95 27.05" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M9.51 23.51 A12 12 0 0 1 26.49 23.51" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M5.98 19.98 A17 17 0 0 1 30.02 19.98" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/>
       <path d="M38 23 L43 28 L53 16" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
-    <g transform="translate(45.2 -4) scale(0.7)">
+    <g transform="translate(-59.8 -4) scale(0.7)">
       <path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="#f4f1e8"/>
       <text x="144" y="28" text-anchor="end" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="#f4f1e8">100%</text>
     </g></g>
