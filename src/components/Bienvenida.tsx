@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import teclado from "../assets/bienvenida.svg";
 
 // Cuánto se ve la bienvenida y cuánto tarda en desvanecerse (igual que en style.css)
-// TEMPORAL (2026-10-07): 2 minutos para que el autor pruebe el efecto. Lo normal: 1800
-const VISIBLE_MS = 120_000;
+const VISIBLE_MS = 1800;
 const SALIDA_MS = 400;
 
 type Fase = "visible" | "saliendo" | "fuera";
