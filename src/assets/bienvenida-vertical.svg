@@ -81,8 +81,10 @@
   <polygon points="409,118 474,118 474,347 409,307" fill="#0b0a09" stroke="#000" stroke-width="2"/>
   <g transform="matrix(0 1 -1 0 464 138)">
     <rect x="0" y="0" width="150" height="44" rx="3" fill="#000"/>
-    <path d="M18 9 L10 24 H16 L13 35 L23 19 H17 Z" fill="#f4f1e8"/>
-    <text x="29" y="27" font-family="'Courier New', Courier, monospace" font-weight="bold" font-size="14" fill="#f4f1e8">100%</text>
-    <circle cx="128" cy="33" r="2.6" fill="#f4f1e8"/><path d="M122.34 28.34 A8 8 0 0 1 133.66 28.34" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M118.10 24.10 A14 14 0 0 1 137.90 24.10" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M113.86 19.86 A20 20 0 0 1 142.14 19.86" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/></g>
+    <circle cx="18" cy="31" r="2.4" fill="#f4f1e8"/><path d="M13.05 27.05 A7 7 0 0 1 22.95 27.05" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M9.51 23.51 A12 12 0 0 1 26.49 23.51" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M5.98 19.98 A17 17 0 0 1 30.02 19.98" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M38 23 L43 28 L53 16" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="#f4f1e8"/>
+    <text x="144" y="28" text-anchor="end" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="#f4f1e8">100%</text>
+    <line x1="107" y1="34" x2="144" y2="34" stroke="#f4f1e8" stroke-width="1"/></g>
 </g>
 </svg>
