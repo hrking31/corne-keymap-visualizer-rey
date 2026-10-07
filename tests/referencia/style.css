@@ -608,8 +608,11 @@ h1,
 
 /* Lado a lado: la placa sobresale hacia el centro más que los pulgares, así que el
    hueco entre mitades pasa a medirse en teclas: 0,6 teclas entre las dos placas.
-   El tamaño de tecla cuenta ahora el ancho de las placas (7,72 teclas por mitad,
-   con ese hueco) y su alto (5,41 teclas, centrado). */
+   El tamaño de tecla cuenta el ancho de las placas (7,72 teclas por mitad, con ese
+   hueco) y su alto real: la placa sobresale 0,14 teclas + 20px por arriba y 0,48 por
+   abajo, en total 5,07 teclas + 3 separaciones + 40px, con 8px de aire arriba y abajo.
+   Como sobresale más por arriba, cada mitad baja la diferencia (10px − 0,17 teclas)
+   para que el bloque entero, placa incluida, quede centrado y nunca toque los botones. */
 @media (min-aspect-ratio: 6/5) {
   .keyboard-container {
     gap: 0;
@@ -626,9 +629,10 @@ h1,
   .split {
     --key-size: min(
       clamp(60px, 6vw, 100px),
-      calc((100cqh - 3 * var(--key-gap) - 28px) / 5.41),
+      calc((100cqh - 3 * var(--key-gap) - 56px) / 5.08),
       calc((100cqw - 10 * var(--key-gap) - 36px) / 15.44)
     );
+    top: calc(10px - var(--key-size) * 0.1717);
   }
 }
 
@@ -806,15 +810,16 @@ h1,
 }
 
 /* ===== MÓVIL EN HORIZONTAL (2026-10-07, pedido por el autor) =====
-   La placa sobresale ~25px por encima de las teclas y quedaba a 4-5px de los botones de
-   capa. Los botones suben (el título pierde margen: 21 → 8px) y el teclado baja (el
-   relleno de arriba pasa de 30 a 38px, contando lo que sobresale la placa). */
+   El título pierde margen (21 → 8px) para dar alto al teclado. El teclado se centra como
+   en el resto de pantallas lado a lado (la regla de la placa ya deja aire con los
+   botones): fuera el arrimado arriba con 30px de relleno del diseño original. */
 @media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
   h1 {
     margin-block: 8px;
   }
 
   .keyboard-container {
-    padding-top: 38px;
+    align-items: center;
+    padding-top: 0;
   }
 }
