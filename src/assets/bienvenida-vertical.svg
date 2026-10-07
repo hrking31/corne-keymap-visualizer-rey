@@ -79,8 +79,8 @@
     <rect x="236" y="314" width="50" height="48" rx="8" fill="url(#cara)"/>
     <path d="M243 315.5 H279" stroke="#6b665b" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
   <polygon points="409,118 474,118 474,347 409,307" fill="#0b0a09" stroke="#000" stroke-width="2"/>
-  <g transform="matrix(0 1 -1 0 464 138)">
-    <rect x="0" y="0" width="150" height="44" rx="3" fill="#000"/>
+  <g transform="matrix(0 1 -1 0 469.5 138)">
+    <rect x="0" y="0" width="150" height="56" rx="3" fill="#000"/>
     <!-- Más pequeño (70 %) y en la parte de arriba de la pantalla, como en la foto -->
     <g transform="translate(6 -6) scale(0.7)">
       <circle cx="18" cy="31" r="2.4" fill="#f4f1e8"/><path d="M13.05 27.05 A7 7 0 0 1 22.95 27.05" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M9.51 23.51 A12 12 0 0 1 26.49 23.51" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/><path d="M5.98 19.98 A17 17 0 0 1 30.02 19.98" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round"/>
@@ -89,7 +89,6 @@
     <g transform="translate(45.2 -4) scale(0.7)">
       <path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="#f4f1e8"/>
       <text x="144" y="28" text-anchor="end" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="#f4f1e8">100%</text>
-      <line x1="107" y1="34" x2="144" y2="34" stroke="#f4f1e8" stroke-width="1"/>
     </g></g>
 </g>
 </svg>
