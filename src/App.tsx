@@ -4,6 +4,7 @@ import { dividirBloques } from "./teclado";
 import type { Capa, Tecla } from "./tipos";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
+import Bienvenida from "./components/Bienvenida";
 
 const CAPAS: { id: Capa; texto: string }[] = [
   { id: "BASE", texto: "Base" },
@@ -30,6 +31,24 @@ const esMovilVertical = () => window.matchMedia(MOVIL_VERTICAL).matches;
 
 type Lado = "izquierdo" | "derecho";
 
+// Qué mitad va arriba al apilar: se recuerda en este dispositivo. localStorage puede
+// fallar (modo privado, datos bloqueados): entonces se usa el orden de siempre.
+const CLAVE_ORDEN = "corne-orden-mitades";
+const leerInvertido = () => {
+  try {
+    return localStorage.getItem(CLAVE_ORDEN) === "derecha-arriba";
+  } catch {
+    return false;
+  }
+};
+const guardarInvertido = (invertido: boolean) => {
+  try {
+    localStorage.setItem(CLAVE_ORDEN, invertido ? "derecha-arriba" : "izquierda-arriba");
+  } catch {
+    // Sin almacenamiento solo se pierde el recuerdo; el botón sigue funcionando
+  }
+};
+
 const MODAL_INICIAL: EstadoModal = {
   visible: false,
   borde: "",
@@ -44,8 +63,21 @@ export default function App() {
   const [modal, setModal] = useState<EstadoModal>(MODAL_INICIAL);
   const modalRef = useRef<HTMLDivElement>(null);
   const ladoActual = useRef<Lado>("izquierdo");
+  // Si la mitad de la tecla tocada está abajo al apilar (el modal sale entonces arriba)
+  const mitadAbajo = useRef(false);
+  // Apilado: false = izquierda arriba (como siempre), true = derecha arriba
+  const [invertido, setInvertido] = useState(leerInvertido);
 
   const { izquierdo, derecho } = dividirBloques(keymap[capa]);
+
+  // ¿Esa mitad está abajo cuando el teclado se apila?
+  const estaAbajo = (lado: Lado) => (lado === "derecho") !== invertido;
+
+  const invertir = () => {
+    guardarInvertido(!invertido);
+    setInvertido(!invertido);
+    ocultar();
+  };
 
   // El modal nunca tapa los botones de capa: empieza, como muy arriba, justo debajo
   // de ellos (se mide en cada momento, porque el título cambia de alto según la pantalla).
@@ -62,8 +94,8 @@ export default function App() {
     const debajoDeLosBotones = Math.max((botones?.bottom ?? 0) + margen, margen);
 
     if (esMovilVertical()) {
-      // Tocar la mitad de abajo (derecha) lo saca arriba: from-bottom en el CSS
-      el.style.top = ladoActual.current === "derecho" ? debajoDeLosBotones + "px" : "";
+      // Tocar la mitad de abajo lo saca arriba: from-bottom en el CSS
+      el.style.top = mitadAbajo.current ? debajoDeLosBotones + "px" : "";
       return;
     }
 
@@ -90,11 +122,12 @@ export default function App() {
 
   const mostrar = (tecla: Tecla, lado: Lado) => {
     ladoActual.current = lado;
+    mitadAbajo.current = estaAbajo(lado);
     const movil = esMovilVertical();
 
     setModal({
       visible: true,
-      borde: movil ? (lado === "derecho" ? "from-bottom" : "from-top") : "",
+      borde: movil ? (mitadAbajo.current ? "from-bottom" : "from-top") : "",
       capa: NOMBRES_CAPA[capa],
       titulo: tecla.label,
       desc: tecla.desc,
@@ -149,7 +182,7 @@ export default function App() {
         ))}
       </div>
 
-      <div className="keyboard-container">
+      <div className={invertido ? "keyboard-container invertido" : "keyboard-container"}>
         <Bloque
           id="left-side"
           lado="left"
@@ -170,9 +203,21 @@ export default function App() {
           onMostrar={(tecla) => mostrar(tecla, "derecho")}
           onOcultar={ocultar}
         />
+        {/* Solo se ve con las mitades apiladas: en el hueco entre las dos (style.css) */}
+        <button
+          type="button"
+          className="invertir"
+          aria-pressed={invertido}
+          aria-label="Invertir el orden de las mitades"
+          title="Invertir el orden de las mitades"
+          onClick={invertir}
+        >
+          ⇅
+        </button>
       </div>
 
       <Modal estado={modal} ref={modalRef} />
+      <Bienvenida />
     </>
   );
 }

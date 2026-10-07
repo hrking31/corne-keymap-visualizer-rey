@@ -559,19 +559,9 @@ h1,
   pointer-events: none;
 }
 
-/* Placa de fibra de carbono: tejido cruzado (twill) hecho con degradados, con un
-   brillo diagonal suave encima. El tamaño del tejido crece con la tecla. */
+/* Placa lisa. La de fibra de carbono está guardada más abajo (.carbono) */
 .split::before {
-  --t: max(8px, calc(var(--k) * 0.18));
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 35%, rgba(255, 255, 255, 0.035) 65%, transparent),
-    linear-gradient(27deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 4) / var(--t) var(--t),
-    linear-gradient(207deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) 0 / var(--t) var(--t),
-    linear-gradient(27deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 2) / var(--t) var(--t),
-    linear-gradient(207deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) calc(var(--t) / 4) / var(--t) var(--t),
-    linear-gradient(90deg, #1b1b1b calc(var(--t) / 2), transparent calc(var(--t) / 2)) 0 0 / var(--t) var(--t),
-    linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424) 0 0 / var(--t) var(--t),
-    #131313;
+  background: #24221e;
   clip-path: polygon(
     calc(var(--k) * 4.45 + var(--g) * 2 + 2px) calc(var(--k) * 0.06),
     calc(var(--k) * 3.25 + var(--g) * 2) calc(var(--k) * 0.06),
@@ -605,6 +595,23 @@ h1,
   );
 }
 
+/* VARIANTE GUARDADA: placa de fibra de carbono. Tejido cruzado (twill) hecho con
+   degradados y un brillo diagonal suave; el tejido crece con la tecla.
+   Desactivada a petición del autor (2026-10-07), por si cambia de parecer: para
+   usarla, añadir la clase "carbono" al .keyboard-container en App.tsx. */
+.carbono .split::before {
+  --t: max(8px, calc(var(--k) * 0.18));
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 35%, rgba(255, 255, 255, 0.035) 65%, transparent),
+    linear-gradient(27deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 4) / var(--t) var(--t),
+    linear-gradient(207deg, #151515 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) 0 / var(--t) var(--t),
+    linear-gradient(27deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) 0 calc(var(--t) / 2) / var(--t) var(--t),
+    linear-gradient(207deg, #222 calc(var(--t) / 4), transparent calc(var(--t) / 4)) calc(var(--t) / 2) calc(var(--t) / 4) / var(--t) var(--t),
+    linear-gradient(90deg, #1b1b1b calc(var(--t) / 2), transparent calc(var(--t) / 2)) 0 0 / var(--t) var(--t),
+    linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424) 0 0 / var(--t) var(--t),
+    #131313;
+}
+
 /* Lado a lado: la placa sobresale hacia el centro más que los pulgares, así que el
    hueco entre mitades pasa a medirse en teclas: 0,6 teclas entre las dos placas.
    El tamaño de tecla cuenta ahora el ancho de las placas (7,72 teclas por mitad,
@@ -636,7 +643,8 @@ h1,
    El tamaño de tecla cuenta el ancho de una placa (7,45 teclas con el desplazamiento
    hacia fuera) y el alto de las dos (10,47 teclas), con algo de margen. */
 @media (max-aspect-ratio: 6/5) {
-  .split {
+  .split,
+  .invertir {
     --key-size: min(
       calc((100cqw - 5 * var(--key-gap) - 24px) / 7.45),
       calc((100cqh - 6 * var(--key-gap) - 108px) / 10.47),
@@ -646,5 +654,115 @@ h1,
 
   .split.left {
     margin-bottom: calc(var(--key-size) * 0.95 + 20px);
+  }
+}
+
+/* ===== ORDEN DE LAS MITADES AL APILAR (2026-10-07, pedido por el autor) =====
+   Botón ⇅ con el aspecto de los botones de capa. Solo existe con las mitades apiladas;
+   cambia cuál va arriba (App.tsx lo recuerda en el dispositivo). Va en el hueco que
+   deja el escalón entre las dos mitades, del lado de las columnas exteriores. */
+.invertir {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 16px;
+  border: 1px solid #3d3a33;
+  background: #2a2824;
+  color: #8c8573;
+  font: bold 16px/1 "Courier New", Courier, monospace;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  transition: 0.2s;
+}
+
+.invertir:hover,
+.invertir:focus-visible {
+  background: #333;
+  border-color: #d97706;
+}
+
+.invertir[aria-pressed="true"] {
+  color: #ff9d2e;
+}
+
+@media (max-aspect-ratio: 6/5) {
+  /* Las mitades están centradas, así que el centro del contenedor es el centro del
+     hueco entre ellas. Las columnas exteriores de la mitad de arriba terminan
+     1,35 teclas + G + 5px antes que su caja, y la placa de abajo empieza 0,14 teclas
+     + 6px antes que la suya: el hueco del escalón mide 2,16 teclas + G + 19px de alto
+     y su centro queda 0,745 teclas + G/2 + 5,5px por encima del centro.
+     A lo ancho, 0,9 teclas dentro del borde exterior de las placas. */
+  .invertir {
+    display: grid;
+    place-items: center;
+    left: calc(50% - var(--key-size) * 2.8 - var(--key-gap) * 2.5 - 1px);
+    top: calc(50% - var(--key-size) * 0.745 - var(--key-gap) * 0.5 - 5.5px);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Derecha arriba: el escalón queda al otro lado */
+  .keyboard-container.invertido .invertir {
+    left: auto;
+    right: calc(50% - var(--key-size) * 2.8 - var(--key-gap) * 2.5 - 1px);
+    transform: translate(50%, -50%);
+  }
+
+  /* Derecha arriba: los mismos desplazamientos, con el hueco bajo la de arriba */
+  .keyboard-container.invertido .split.left {
+    order: 2;
+    margin-bottom: 0;
+  }
+
+  .keyboard-container.invertido .split:not(.left) {
+    order: 1;
+    margin-bottom: calc(var(--key-size) * 0.95 + 20px);
+  }
+}
+
+/* ===== BIENVENIDA (2026-10-07, pedida por el autor) =====
+   Al abrir la app: el teclado con los LED en efecto Swirl (la animación va dentro del
+   SVG). Acostado en PC y en horizontal; de pie, con la OLED arriba, en vertical.
+   Se desvanece en 0,4s (SALIDA_MS en Bienvenida.tsx). */
+.bienvenida {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  background: #1c1b17;
+  transition: opacity 0.4s ease;
+}
+
+.bienvenida.saliendo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bienvenida img {
+  display: block;
+  height: auto;
+}
+
+/* 575 × 441: el SVG acostado, con aire para el resplandor */
+.bienvenida-horizontal {
+  width: min(80vw, 760px, calc(70vh * 1.3));
+}
+
+.bienvenida .bienvenida-vertical {
+  display: none;
+  width: min(80vw, calc(70vh / 1.3));
+}
+
+@media (max-aspect-ratio: 6/5) {
+  .bienvenida .bienvenida-horizontal {
+    display: none;
+  }
+
+  .bienvenida .bienvenida-vertical {
+    display: block;
   }
 }
