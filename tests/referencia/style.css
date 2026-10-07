@@ -663,9 +663,10 @@ h1,
   height: 32px;
   padding: 0;
   border-radius: 16px;
-  border: 1px solid #3d3a33;
+  /* Siempre naranja, como las teclas de capa, para que llame la atención (pedido del autor) */
+  border: 1px solid #d97706;
   background: #2a2824;
-  color: #8c8573;
+  color: #ff9d2e;
   font: bold 16px/1 "Courier New", Courier, monospace;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -676,11 +677,6 @@ h1,
 .invertir:hover,
 .invertir:focus-visible {
   background: #333;
-  border-color: #d97706;
-}
-
-.invertir[aria-pressed="true"] {
-  color: #ff9d2e;
 }
 
 @media (max-aspect-ratio: 6/5) {
@@ -782,5 +778,21 @@ h1,
 @media (max-aspect-ratio: 6/5) {
   .bienvenida .bienvenida-teclado {
     width: min(92vw, 760px);
+  }
+}
+
+/* ===== BOTONES DE CAPA EN MÓVIL (2026-10-07, opción A aprobada por el autor) =====
+   Seis botones con relleno y separación fijos medían ~356px: en 360px quedaban a 2px
+   del borde y en 320px se partían en dos líneas. Ahora hay siempre 16px a cada lado y,
+   si hace falta, el relleno lateral y la separación se achican con el ancho. */
+@media (max-width: 480px) {
+  .layer-buttons {
+    box-sizing: border-box;
+    padding-inline: 16px;
+    gap: clamp(4px, 1.5vw, 8px);
+  }
+
+  .layer-btn {
+    padding-inline: clamp(6px, 2.2vw, 12px);
   }
 }
