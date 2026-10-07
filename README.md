@@ -39,9 +39,12 @@ Eso es esta app.
 ## ✨ Características
 
 - ✅ Las **6 capas** completas, con la geometría real del Corne: columnas escalonadas y pulgares en abanico
+- ✅ **Placa con el contorno de mi teclado** y la pantalla OLED mostrando su estado, como en el real
 - ✅ Panel con la descripción de cada tecla, con **ratón, teclado (Tab, Enter, Escape) o dedo**
 - ✅ Accesible: cada tecla se anuncia en los lectores de pantalla («BSPC, Capa Base»)
-- ✅ Responsive: escritorio, móvil vertical y horizontal
+- ✅ **Cabe siempre en la pantalla, sin desplazamiento**: escritorio, tablet y móvil, en vertical u horizontal
+- ✅ En el móvil las mitades se apilan, y un botón ⇅ elige cuál va arriba
+- ✅ Bienvenida con los LED en el efecto *Swirl* de ZMK, mientras carga la app
 - ✅ **PWA** instalable que funciona **sin conexión**
 - ✅ Cabeceras de seguridad estrictas (Content-Security-Policy y compañía)
 - ✅ Una **prueba visual** que garantiza que el diseño no cambia sin querer
@@ -94,10 +97,12 @@ npm run dev
 
 ```
 src/
-  App.tsx              # Estado (capa, panel), botones de capa, posición del panel
+  App.tsx              # Estado (capa, panel, orden), botones de capa, posición del panel
   components/
     Bloque.tsx         # Una mitad del teclado
     Modal.tsx          # El panel con la descripción de cada tecla
+    Bienvenida.tsx     # Quita la bienvenida (que está en index.html) cuando la app ya cargó
+  assets/              # La bienvenida animada y la pantalla OLED (SVG)
   data.ts              # 6 capas × 42 teclas  ← el contenido
   teclado.ts           # Lógica pura: bloques y filas
   tipos.ts             # Capa, Tecla, Keymap
@@ -130,7 +135,21 @@ Un Corne no es una cuadrícula: las columnas están escalonadas según el largo 
 las tres teclas de cada pulgar están giradas en abanico. Está resuelto con **CSS Grid** más
 **variables por tecla** (`--tx`, `--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una
 sola `transform`. El escalonado usa selectores `nth-child(6n + k)` y el abanico
-`nth-last-child`. Cero imágenes, cero SVG: geometría declarativa.
+`nth-last-child`. Las teclas y la placa no usan imágenes: es geometría declarativa. Solo la
+pantalla OLED y la bienvenida son dibujos (SVG).
+
+### La placa: de un dibujo a polígonos CSS
+
+Quería que se pareciera a mi teclado, así que dibujé el contorno de la placa en Excalidraw,
+sobre la geometría real de la app. Pasarlo a CSS tenía un truco: el tamaño de las teclas
+cambia con la pantalla, pero la separación entre ellas y el escalonado de las columnas van en
+píxeles fijos. Si escalaba el dibujo entero, en un móvil una columna se salía de la placa.
+
+Por eso cada lado recto del contorno está **amarrado al borde de la tecla que cubre**, y solo
+el aire que queda alrededor crece con la tecla. El resultado son dos `clip-path: polygon()`
+por mitad (placa y acrílico de la pantalla), escritos con `calc()` a partir de `--key-size` y
+`--key-gap`, que la mitad izquierda hereda gratis gracias al truco del espejo. Antes de darlo
+por bueno lo medí en más de 20 tamaños de pantalla: ninguna tecla se sale de su placa.
 
 ### ⭐ El truco del espejo: una sola regla para las dos manos
 
@@ -163,12 +182,16 @@ Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplic
 
 ### Responsive de verdad
 
-En escritorio las dos mitades se muestran una al lado de otra, como están sobre la mesa, y el
-panel de información aparece **quieto sobre la mitad contraria** a la tecla, a media altura de
-la pantalla: nunca tapa la tecla que tocas ni persigue al ratón o al dedo. En móvil vertical
-las mitades se apilan, cada una desplazada 0,6 teclas hacia fuera para que los pulgares en
-abanico no se corten, y el panel aparece arriba o abajo, del lado contrario a la mitad que
-estás tocando.
+La app solo muestra algo que cabe en la pantalla, así que **nunca hay desplazamiento**: el
+contenedor del teclado es un *container* de CSS y el tamaño de tecla sale del espacio que
+tiene (`cqw`/`cqh`), contando el alto y el ancho reales de las placas.
+
+Cuando la pantalla es ancha, las dos mitades se muestran una al lado de otra, como están sobre
+la mesa, y el panel de información aparece **quieto sobre la mitad contraria** a la tecla:
+nunca tapa la tecla que tocas ni persigue al ratón o al dedo. Cuando no lo es (móvil o tablet
+en vertical), las mitades se apilan y el panel sale arriba o abajo, del lado contrario a la
+mitad que tocas. Un botón ⇅, en el hueco que deja el escalón entre las dos mitades, elige
+cuál va arriba y lo recuerda en el dispositivo.
 
 ### Calidad y seguridad
 
@@ -182,6 +205,8 @@ estás tocando.
   Hosting.
 - **Sin conexión:** `vite-plugin-pwa` genera el service worker y el manifiesto, con un ícono
   adaptable (*maskable*) para Android.
+- **SVG compatibles con la CSP:** la bienvenida se anima con `<animate>` de SVG y no lleva
+  estilos dentro, que la política de seguridad bloquearía.
 
 ---
 
