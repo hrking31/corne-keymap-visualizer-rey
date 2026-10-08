@@ -1,11 +1,12 @@
 // La cuenta del usuario, para la app. Firebase se carga con import() solo si ya había una
-// sesión abierta o el usuario pulsa «Entrar»: un visitante no lo descarga nunca.
-import { useEffect, useState } from "react";
+// sesión abierta o el usuario muestra intención de entrar: un visitante no lo descarga.
+import { useEffect, useRef, useState } from "react";
 import type { TecladoConfig } from "../teclados/tipos";
 import { guardarCopia, haySesion, leerCopia, marcarSesion } from "./copia";
 import type { Usuario } from "./sesion";
 
-let modulo: Promise<typeof import("./sesion")> | null = null;
+type Modulo = typeof import("./sesion");
+let modulo: Promise<Modulo> | null = null;
 const cargarSesion = () => (modulo ??= import("./sesion"));
 
 // Mensajes en lenguaje claro para los errores más comunes al entrar
@@ -17,12 +18,19 @@ function mensajeDe(e: unknown): string {
   return "No se pudo entrar. Inténtalo otra vez.";
 }
 
+// Qué ofrece el botón de entrar: «Entrar», «Conectando…» (descargando Firebase) o
+// «Continuar con Google» (ya descargado, falta el clic que abre la ventana)
+export type PasoEntrada = "entrar" | "conectando" | "continuar";
+
 export type Cuenta = {
   usuario: Usuario | null;
   // El teclado del usuario; null si no hay sesión o aún no lo ha configurado
   teclado: TecladoConfig | null;
   error: string;
-  entrar: () => Promise<void>;
+  paso: PasoEntrada;
+  // Empieza a descargar Firebase (al pasar el puntero o el dedo por «Entrar»)
+  precargar: () => void;
+  entrar: () => void;
   salir: () => Promise<void>;
 };
 
@@ -35,6 +43,20 @@ export function useCuenta(habilitada: boolean): Cuenta {
     habilitada && haySesion() ? leerCopia() : null,
   );
   const [error, setError] = useState("");
+  const [paso, setPaso] = useState<PasoEntrada>("entrar");
+  // El módulo ya descargado: entrar() lo usa sin esperar nada
+  const listo = useRef<Modulo | null>(null);
+
+  const precargar = () => {
+    if (!habilitada || listo.current) return;
+    cargarSesion().then(
+      (m) => {
+        listo.current = m;
+        setPaso((p) => (p === "conectando" ? "continuar" : p));
+      },
+      () => setError("No se pudo conectar. Revisa la conexión."),
+    );
+  };
 
   useEffect(() => {
     if (!conectar) return;
@@ -44,6 +66,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
 
     cargarSesion()
       .then((s) => {
+        listo.current = s;
         if (cancelado) return;
         dejarSesion = s.escucharSesion((u) => {
           dejarTeclado();
@@ -55,6 +78,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
             guardarCopia(null);
             return;
           }
+          setPaso("entrar");
           dejarTeclado = s.escucharTeclado(
             u.uid,
             (t) => {
@@ -74,19 +98,30 @@ export function useCuenta(habilitada: boolean): Cuenta {
     };
   }, [conectar]);
 
-  const entrar = async () => {
+  // Los navegadores solo dejan abrir la ventana de Google en el mismo clic: si Firebase
+  // ya está descargado se abre ahora mismo, sin esperar nada antes; si no, se descarga
+  // y el botón pasa a «Continuar con Google» para un segundo clic.
+  const entrar = () => {
     setError("");
     setConectar(true);
-    try {
-      await (await cargarSesion()).entrar();
-    } catch (e) {
-      setError(mensajeDe(e));
+    const m = listo.current;
+    if (!m) {
+      setPaso("conectando");
+      precargar();
+      return;
     }
+    m.entrar().then(
+      () => setPaso("entrar"),
+      (e) => {
+        setPaso("entrar");
+        setError(mensajeDe(e));
+      },
+    );
   };
 
   const salir = async () => {
     await (await cargarSesion()).salir();
   };
 
-  return { usuario, teclado, error, entrar, salir };
+  return { usuario, teclado, error, paso, precargar, entrar, salir };
 }

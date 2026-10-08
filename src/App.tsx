@@ -236,14 +236,20 @@ export default function App({ tecladoInicial }: Props) {
               <button type="button" className="enlace" onClick={cuenta.salir}>
                 Salir
               </button>
+            ) : cuenta.paso === "conectando" ? (
+              <span>Conectando…</span>
             ) : (
               <button
                 type="button"
                 className="enlace"
                 title="Entra con Google para configurar tu teclado"
+                // Firebase empieza a descargarse en cuanto se muestra la intención de entrar
+                onPointerEnter={cuenta.precargar}
+                onFocus={cuenta.precargar}
+                onTouchStart={cuenta.precargar}
                 onClick={cuenta.entrar}
               >
-                Entrar
+                {cuenta.paso === "continuar" ? "Continuar con Google" : "Entrar"}
               </button>
             )}
             {" · "}
