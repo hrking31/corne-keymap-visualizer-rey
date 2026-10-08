@@ -1,14 +1,14 @@
-import { dividirFilas, tieneAccion } from "../teclado";
-import type { Capa, Tecla } from "../tipos";
+import { dividirFilas } from "../teclado";
+import type { TeclaDibujo } from "../teclados/tipos";
 
 type Props = {
   id: "left-side" | "right-side";
   lado: "left" | "right";
-  capa: Capa;
+  capa: string;
   nombreCapa: string;
-  teclas: Tecla[];
+  teclas: TeclaDibujo[];
   espejo: boolean;
-  onMostrar: (tecla: Tecla) => void;
+  onMostrar: (tecla: TeclaDibujo) => void;
   onOcultar: () => void;
 };
 
@@ -25,23 +25,16 @@ export default function Bloque(props: Props) {
         // capa, como la versión vanilla. Si las reutilizara, el borde y el color
         // harían la transición de 0.2s del CSS (p. ej. al volverse naranja).
         const key = `${capa}-${i}`;
-        const clases = tecla.clase ? `key ${tecla.clase}` : "key";
+        const clases = tecla.deCapa ? "key key-naranja" : "key";
+        const texto = tecla.texto.trim();
 
-        // Tecla vacía: no hace nada en esta capa, así que ni se enfoca ni se anuncia
-        if (!tieneAccion(tecla)) {
-          return (
-            <div key={key} className={clases} aria-hidden="true">
-              {tecla.label}
-            </div>
-          );
-        }
-
+        // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»
         return (
           <button
             key={key}
             type="button"
             className={clases}
-            aria-label={`${tecla.label.trim()}, ${nombreCapa}`}
+            aria-label={`${texto || `Key ${tecla.pos}`}, ${nombreCapa}`}
             aria-describedby="info-modal"
             onMouseEnter={() => onMostrar(tecla)}
             onMouseLeave={onOcultar}
@@ -53,7 +46,7 @@ export default function Bloque(props: Props) {
             // Toque en el móvil, o Enter/Espacio con teclado
             onClick={() => onMostrar(tecla)}
           >
-            {tecla.label}
+            {tecla.texto}
           </button>
         );
       })}

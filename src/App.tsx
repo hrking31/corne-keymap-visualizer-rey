@@ -1,28 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { keymap } from "./data";
 import { dividirBloques } from "./teclado";
-import type { Capa, Tecla } from "./tipos";
+import { teclasParaDibujar } from "./teclados/convertir";
+import { ajustesDelNavegador, crearTeclado, nombreVisible } from "./teclados/plantillas";
+import type { TeclaDibujo, TecladoConfig } from "./teclados/tipos";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 import Bienvenida from "./components/Bienvenida";
 
-const CAPAS: { id: Capa; texto: string }[] = [
-  { id: "BASE", texto: "Base" },
-  { id: "NUM", texto: "Num" },
-  { id: "SYM", texto: "Sym" },
-  { id: "NAV", texto: "Nav" },
-  { id: "LED", texto: "Led" },
-  { id: "FUN", texto: "Fun" },
-];
-
-const NOMBRES_CAPA: Record<Capa, string> = {
-  BASE: "Capa Base",
-  NUM: "Capa Números",
-  SYM: "Capa Símbolos",
-  NAV: "Capa Navegación",
-  LED: "Capa Led RGB",
-  FUN: "Capa Funciones",
-};
+// Sin cuenta se ve una capa Base de ejemplo: QWERTY en el idioma y el sistema del navegador
+const tecladoDeEjemplo = () =>
+  crearTeclado(ajustesDelNavegador(navigator.language, navigator.platform));
 
 // Móvil vertical: el modal sale arriba o abajo, por CSS. Misma condición que la
 // media query de .modal en style.css; en horizontal se comporta como en el PC.
@@ -58,8 +45,14 @@ const MODAL_INICIAL: EstadoModal = {
   extra: "",
 };
 
-export default function App() {
-  const [capa, setCapa] = useState<Capa>("BASE");
+type Props = {
+  // El teclado a mostrar. Sin él, el de ejemplo (más adelante, el de la cuenta del usuario)
+  tecladoInicial?: TecladoConfig;
+};
+
+export default function App({ tecladoInicial }: Props) {
+  const [teclado] = useState<TecladoConfig>(() => tecladoInicial ?? tecladoDeEjemplo());
+  const [capa, setCapa] = useState<string>(teclado.orden[0]);
   const [modal, setModal] = useState<EstadoModal>(MODAL_INICIAL);
   const modalRef = useRef<HTMLDivElement>(null);
   const ladoActual = useRef<Lado>("izquierdo");
@@ -68,7 +61,10 @@ export default function App() {
   // Apilado: false = izquierda arriba (como siempre), true = derecha arriba
   const [invertido, setInvertido] = useState(leerInvertido);
 
-  const { izquierdo, derecho } = dividirBloques(keymap[capa]);
+  const capaActual = teclado.capas[capa];
+  // En el panel: «Capa» y el nombre largo («Capa Navegación»)
+  const nombreCapa = `Capa ${capaActual.largo || capaActual.corto}`;
+  const { izquierdo, derecho } = dividirBloques(teclasParaDibujar(capaActual));
 
   // ¿Esa mitad está abajo cuando el teclado se apila?
   const estaAbajo = (lado: Lado) => (lado === "derecho") !== invertido;
@@ -128,7 +124,8 @@ export default function App() {
     }
   }, [modal]);
 
-  const mostrar = (tecla: Tecla, lado: Lado) => {
+  // Una tecla sin texto también abre el panel: muestra la capa y su «Key N»
+  const mostrar = (tecla: TeclaDibujo, lado: Lado) => {
     ladoActual.current = lado;
     mitadAbajo.current = estaAbajo(lado);
     const movil = esMovilVertical();
@@ -136,11 +133,11 @@ export default function App() {
     setModal({
       visible: true,
       borde: movil ? (mitadAbajo.current ? "from-bottom" : "from-top") : "",
-      capa: NOMBRES_CAPA[capa],
-      titulo: tecla.label,
-      desc: tecla.desc,
-      extra: tecla.extra ?? "",
-      extraDisplay: tecla.extra ? "block" : "none",
+      capa: nombreCapa,
+      titulo: tecla.texto,
+      desc: `Key ${tecla.pos}`,
+      extra: tecla.descripcion,
+      extraDisplay: tecla.descripcion ? "block" : "none",
     });
   };
 
@@ -170,28 +167,33 @@ export default function App() {
 
   return (
     <>
-      <h1>Corne ZMK Visualizer</h1>
+      {/* La cabecera no cambia nada por sí misma (display: contents); en el móvil en
+          horizontal pone el nombre y los botones en la misma fila si caben (style.css) */}
+      <header className="cabecera">
+        <h1>{nombreVisible(teclado)}</h1>
 
-      <div className="layer-buttons">
-        {CAPAS.map(({ id, texto }) => (
-          <button
-            key={id}
-            className={id === capa ? "layer-btn active" : "layer-btn"}
-            data-layer={id}
-            aria-pressed={id === capa}
-            onClick={() => setCapa(id)}
-          >
-            {texto}
-          </button>
-        ))}
-      </div>
+        <div className="layer-buttons" data-capas={teclado.orden.length}>
+          {teclado.orden.map((id) => (
+            <button
+              key={id}
+              className={id === capa ? "layer-btn active" : "layer-btn"}
+              data-layer={id}
+              aria-pressed={id === capa}
+              aria-label={`Capa ${teclado.capas[id].largo || teclado.capas[id].corto}`}
+              onClick={() => setCapa(id)}
+            >
+              {teclado.capas[id].corto}
+            </button>
+          ))}
+        </div>
+      </header>
 
       <div className={invertido ? "keyboard-container invertido" : "keyboard-container"}>
         <Bloque
           id="left-side"
           lado="left"
           capa={capa}
-          nombreCapa={NOMBRES_CAPA[capa]}
+          nombreCapa={nombreCapa}
           teclas={izquierdo}
           espejo
           onMostrar={(tecla) => mostrar(tecla, "izquierdo")}
@@ -201,7 +203,7 @@ export default function App() {
           id="right-side"
           lado="right"
           capa={capa}
-          nombreCapa={NOMBRES_CAPA[capa]}
+          nombreCapa={nombreCapa}
           teclas={derecho}
           espejo={false}
           onMostrar={(tecla) => mostrar(tecla, "derecho")}
