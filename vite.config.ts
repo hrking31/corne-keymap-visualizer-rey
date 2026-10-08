@@ -86,6 +86,16 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          // Reglas de Firestore: solo corren con el emulador (en la CI); sin él se saltan
+          name: "reglas",
+          include: ["tests/reglas/*.test.ts"],
+          environment: "node",
+          testTimeout: 30_000,
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: "visual",
           include: ["tests/visual/*.test.ts"],
           // Mide 4 anchos × 6 capas × ~210 modales en dos versiones de la app
