@@ -21,11 +21,12 @@ export default defineConfig({
     // Solo para las pantallas del editor (src/editor.css); el teclado sigue con style.css
     tailwindcss(),
     VitePWA({
-      // Al publicar una versión nueva, la app instalada se actualiza sola
-      registerType: "autoUpdate",
-      // Registro en un archivo aparte (registerSW.js), no incrustado en el HTML:
+      // Al publicar una versión nueva no se recarga sola (podría cortar una edición):
+      // la app muestra «Hay una versión nueva · Actualizar» (src/components/AvisoVersion.tsx)
+      registerType: "prompt",
+      // El registro lo hace la propia app (virtual:pwa-register), no un script en el HTML:
       // así la Content-Security-Policy puede prohibir los scripts en línea
-      injectRegister: "script",
+      injectRegister: false,
       // Mismos nombre y colores que el manifest.json original; se añade lo que
       // pide Google Play para publicarla como Trusted Web Activity
       manifest: {
