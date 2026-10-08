@@ -34,11 +34,20 @@ que pueda abrirla en el celular mientras escribo en el PC.
 
 Eso es esta app.
 
+Y como no soy el único aprendiendo un Corne, ahora **cualquiera puede configurar el suyo**: entra
+con su cuenta de Google, elige su distribución, su idioma y su sistema operativo, y la app le
+arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué hace cada tecla.
+
 ---
 
 ## ✨ Características
 
-- ✅ Las **6 capas** completas, con la geometría real del Corne: columnas escalonadas y pulgares en abanico
+- ✅ **Cada usuario configura su teclado**: entra con Google, un asistente le llena la capa Base
+  (QWERTY, Colemak-DH, Colemak o Dvorak; español de Latinoamérica o de España, o inglés; Windows,
+  macOS o Linux) y después agrega hasta **10 capas** y edita cada tecla: texto, descripción y si
+  cambia de capa
+- ✅ Su teclado se guarda en la nube y se abre **también sin conexión**, en el PC y en el celular
+- ✅ La geometría real del Corne: columnas escalonadas y pulgares en abanico
 - ✅ **Placa con el contorno de mi teclado** y la pantalla OLED mostrando su estado, como en el real
 - ✅ Panel con la descripción de cada tecla, con **ratón, teclado (Tab, Enter, Escape) o dedo**
 - ✅ Accesible: cada tecla se anuncia en los lectores de pantalla («BSPC, Capa Base»)
@@ -51,7 +60,7 @@ Eso es esta app.
 
 ---
 
-## 🧠 Las capas que muestra
+## 🧠 Las capas de mi Corne (un ejemplo)
 
 | Botón | Capa | Contenido |
 |-------|------|-----------|
@@ -71,6 +80,13 @@ Eso es esta app.
 
 **La forma fácil:** abre la [demo](https://corne-rey.web.app/). En el celular, usa «Añadir a
 pantalla de inicio» y queda instalada como una app que funciona sin conexión.
+
+1. Sin cuenta ves una capa Base de ejemplo (QWERTY, en el idioma de tu navegador).
+2. Pulsa **Entrar** (abajo) y entra con Google. La primera vez, el asistente te pregunta cómo es
+   tu teclado y crea tu capa Base.
+3. Pulsa **Editar**: ＋ agrega una capa, ✎ le cambia el nombre (o la mueve o la borra) y al
+   tocar una tecla escribes qué hace. ⇄ intercambia dos teclas.
+4. Desde la misma pantalla puedes **borrar tu cuenta** y todos tus datos.
 
 **En local** (necesita Node.js 20.19 o superior):
 
@@ -97,11 +113,15 @@ npm run dev
 
 ```
 src/
-  App.tsx              # Estado (capa, panel, orden), botones de capa, posición del panel
+  App.tsx              # Estado (capa, panel, orden, edición), botones de capa, posición del panel
   components/
     Bloque.tsx         # Una mitad del teclado
     Modal.tsx          # El panel con la descripción de cada tecla
     Bienvenida.tsx     # Quita la bienvenida (que está en index.html) cuando la app ya cargó
+    AvisoVersion.tsx   # «Hay una versión nueva · Actualizar»
+    editor/            # Asistente, barra de edición, editores de capa y de tecla (Tailwind)
+  teclados/            # El modelo: distribuciones, plantillas, validación y edición (lógica pura)
+  firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
   assets/              # La bienvenida animada y la pantalla OLED (SVG)
   data.ts              # 6 capas × 42 teclas  ← el contenido
   teclado.ts           # Lógica pura: bloques y filas
@@ -111,6 +131,8 @@ tests/
   *.test.ts            # Datos y lógica (Vitest)
   visual/              # Prueba visual (Vitest en modo navegador)
   referencia/          # Copia congelada de la versión original
+  reglas/              # Reglas de Firestore, en el emulador de Firebase (CI)
+firestore.rules        # Quién puede leer y escribir cada teclado
 firebase.json          # Hosting y cabeceras de seguridad
 .github/workflows/     # Revisión y publicación automáticas
 ```
@@ -180,6 +202,20 @@ El precio, aceptado a conciencia: el navegador recorre las teclas en el orden de
 así que con la tecla Tab la mitad izquierda se recorre de dentro hacia fuera (Y, P, Ñ… ESC).
 Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplica.
 
+### Cada teclado, un documento
+
+Cada usuario tiene **un documento** en Firestore con todo su teclado: sus capas (nombre corto
+para el botón, largo para el panel) y sus teclas, guardadas por su **número de posición en ZMK**
+(0–41), el mismo orden del `.keymap`. Así el día que la app lea el firmware, cada texto cae en
+su sitio y las descripciones no se pierden.
+
+Las distribuciones se describen como **lo que envía el teclado**, no como lo que se ve: el
+mismo código `SEMI` se ve `;` en inglés y `Ñ` en español, y la tecla `GUI` se llama
+`WIN`, `CMD` o `SUPER` según el sistema. Una sola tabla sirve para los tres idiomas.
+
+Los visitantes que solo miran **no descargan Firebase**: la librería (unos 190 KB) se baja
+cuando el usuario muestra intención de entrar, y el service worker no la precarga.
+
 ### Responsive de verdad
 
 La app solo muestra algo que cabe en la pantalla, así que **nunca hay desplazamiento**: el
@@ -203,6 +239,14 @@ cuál va arriba y lo recuerda en el dispositivo.
   `Permissions-Policy`.
 - **Credenciales con permisos mínimos:** la cuenta que publica desde GitHub solo puede tocar
   Hosting.
+- **Reglas de Firestore probadas:** cada usuario solo puede leer, escribir y borrar su propio
+  teclado; se validan los límites (10 capas, Base primera, largos de los textos). Las pruebas
+  corren en el emulador de Firebase en cada cambio: ni otro usuario ni alguien sin sesión pueden
+  tocar un teclado ajeno.
+- **Sin contraseñas propias:** solo se entra con Google, así la app no guarda contraseñas que se
+  puedan filtrar. Cada usuario puede **borrar su cuenta y sus datos** desde la app.
+- **La política de seguridad (CSP)** solo abre los dominios de Google que necesitan el inicio de
+  sesión y Firestore.
 - **Sin conexión:** `vite-plugin-pwa` genera el service worker y el manifiesto, con un ícono
   adaptable (*maskable*) para Android.
 - **SVG compatibles con la CSP:** la bienvenida se anima con `<animate>` de SVG y no lleva
@@ -212,11 +256,9 @@ cuál va arriba y lo recuerda en el dispositivo.
 
 ## 🗺️ Próximos pasos
 
-- **Editor con inicio de sesión** (Firebase Authentication + Firestore): escribir desde el
-  celular qué hace cada tecla, sin tocar el código. Lectura pública, escritura solo del dueño.
-- **Generar los datos desde el `.keymap`**: que el firmware y el visualizador no puedan
-  contradecirse porque salen de la misma fuente.
-- **Cualquier teclado ZMK**: que cualquiera cargue su `.keymap` y obtenga su propio visualizador.
+- **Cargar el `.keymap`**: que cada usuario suba el archivo de su firmware y la app cree sola
+  sus capas con sus textos; solo le queda escribir las descripciones.
+- **Otros teclados ZMK** (Sofle, Lily58, el Corne de 36 teclas…) leyendo su *physical layout*.
 - **Google Play**, como Trusted Web Activity.
 - Buscador inverso (*¿cómo escribo `{`?*), modo práctica y exportar a imagen.
 
@@ -224,8 +266,10 @@ cuál va arriba y lo recuerda en el dispositivo.
 
 ## 🧰 Stack
 
-React 19 · TypeScript · Vite · CSS3 (Grid, variables, transforms) · Vitest (también en modo
-navegador) · ESLint · vite-plugin-pwa · Firebase Hosting · GitHub Actions
+React 19 · TypeScript · Vite · CSS3 (Grid, variables, transforms, container queries) ·
+Tailwind CSS 4 (solo el editor) · Firebase Authentication · Cloud Firestore · Firebase Hosting ·
+Vitest (también en modo navegador y con el emulador de Firestore) · ESLint · vite-plugin-pwa ·
+GitHub Actions
 
 ---
 
