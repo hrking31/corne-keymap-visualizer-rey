@@ -3,13 +3,11 @@
 // datos son las reglas de firestore.rules.
 export const firebaseConfig = {
   apiKey: "AIzaSyClsvkDgjmsgbM752-YpDtARZx5Bcy_Wr4",
-  // El inicio de sesión se sirve desde el mismo dominio de la app (Firebase Hosting
-  // atiende /__/auth/ en cada sitio y en cada vista previa): así funciona aunque el
-  // navegador bloquee las cookies de terceros. En local, el dominio de Firebase.
-  authDomain:
-    typeof location !== "undefined" && location.hostname.endsWith(".web.app")
-      ? location.hostname
-      : "corne-rey.firebaseapp.com",
+  // El dominio que Firebase registró en Google al crear el proyecto. Con cualquier otro
+  // (p. ej. el de la propia app o el de una vista previa) Google responde «La solicitud
+  // de esta app no es válida» hasta registrarlo a mano en Google Cloud. Con la ventana
+  // emergente (signInWithPopup) funciona desde cualquier dirección de la app.
+  authDomain: "corne-rey.firebaseapp.com",
   projectId: "corne-rey",
   storageBucket: "corne-rey.firebasestorage.app",
   messagingSenderId: "725556610949",
