@@ -167,8 +167,7 @@ export default function App({ tecladoInicial }: Props) {
 
   return (
     <>
-      {/* La cabecera no cambia nada por sí misma (display: contents); en el móvil en
-          horizontal pone el nombre y los botones en la misma fila si caben (style.css) */}
+      {/* Agrupa nombre y botones sin cambiar el diseño (display: contents en style.css) */}
       <header className="cabecera">
         <h1>{nombreVisible(teclado)}</h1>
 

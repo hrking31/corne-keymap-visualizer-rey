@@ -853,8 +853,9 @@ h1,
 }
 
 /* ===== CABECERA CON HASTA 10 CAPAS (Fase 2, aprobado por el autor) =====
-   La cabecera agrupa el nombre del teclado y los botones de capa, pero por sí misma no
-   cambia nada (display: contents): el diseño de siempre queda igual. */
+   La cabecera agrupa el nombre del teclado y los botones de capa, pero no cambia nada
+   (display: contents): el nombre arriba y los botones debajo, como siempre, también en
+   horizontal (el autor lo prefirió así; los 10 botones caben en una fila). */
 .cabecera {
   display: contents;
 }
@@ -873,25 +874,5 @@ h1,
   .layer-buttons[data-capas="9"],
   .layer-buttons[data-capas="10"] {
     grid-template-columns: repeat(5, auto);
-  }
-}
-
-/* Móvil en horizontal: el nombre y los botones en la misma fila si caben (si el nombre
-   es largo o la pantalla angosta, los botones bajan solos a la línea siguiente) */
-@media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
-  .cabecera {
-    display: flex;
-    flex: none;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    column-gap: 16px;
-    row-gap: 4px;
-    padding: 6px 16px 0;
-  }
-
-  .cabecera h1 {
-    margin: 0;
-    font-size: 22px;
   }
 }
