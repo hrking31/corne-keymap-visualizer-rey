@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { keymap } from "../src/data";
 import { ORDEN_DIBUJO, desdeKeymap, teclasParaDibujar } from "../src/teclados/convertir";
 import { DISTRIBUCIONES, textoDe } from "../src/teclados/distribuciones";
-import { ajustesDelNavegador, crearBase, crearTeclado } from "../src/teclados/plantillas";
+import { ajustesDelNavegador, crearBase, crearTeclado, nombreVisible } from "../src/teclados/plantillas";
 import type { Ajustes, CapaConfig, Distribucion, Idioma, SistemaOperativo } from "../src/teclados/tipos";
 import { LIMITES, validarTeclado } from "../src/teclados/validar";
 
@@ -122,6 +122,12 @@ describe("validarTeclado", () => {
 
   it("un teclado nuevo es válido", () => {
     expect(validarTeclado(crearTeclado(ajustes))).toEqual([]);
+  });
+
+  it("sin nombre se muestra «Corne ZMK»; con nombre, el suyo", () => {
+    expect(nombreVisible(crearTeclado(ajustes))).toBe("Corne ZMK");
+    expect(nombreVisible({ nombre: "   " })).toBe("Corne ZMK");
+    expect(nombreVisible({ nombre: "Corne ZMK Rey" })).toBe("Corne ZMK Rey");
   });
 
   it("detecta más de 10 capas, Base fuera de lugar y textos demasiado largos", () => {

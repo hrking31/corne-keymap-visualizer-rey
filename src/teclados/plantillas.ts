@@ -36,10 +36,16 @@ export function crearBase({ distribucion, idioma, so }: Ajustes): CapaConfig {
   return { corto: "BASE", largo: "Base", teclas };
 }
 
-// Un teclado nuevo: solo la capa Base
-export function crearTeclado(ajustes: Ajustes, nombre = "Mi Corne"): TecladoConfig {
+// Un teclado nuevo: solo la capa Base y sin nombre (se muestra NOMBRE_POR_DEFECTO)
+export function crearTeclado(ajustes: Ajustes, nombre = ""): TecladoConfig {
   return { nombre, ajustes, orden: ["base"], capas: { base: crearBase(ajustes) } };
 }
+
+// Lo que se ve arriba en la app: el nombre que puso el usuario o, si no puso ninguno
+// (o no tiene cuenta), «Corne ZMK»
+export const NOMBRE_POR_DEFECTO = "Corne ZMK";
+export const nombreVisible = (teclado: Pick<TecladoConfig, "nombre">) =>
+  teclado.nombre.trim() || NOMBRE_POR_DEFECTO;
 
 // Ajustes de la Base de ejemplo para un visitante: QWERTY en el idioma y el sistema de su
 // navegador (español de España solo si lo dice; cualquier otro español, Latinoamérica).
