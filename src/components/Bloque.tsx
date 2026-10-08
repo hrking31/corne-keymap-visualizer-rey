@@ -10,12 +10,17 @@ type Props = {
   espejo: boolean;
   onMostrar: (tecla: TeclaDibujo) => void;
   onOcultar: () => void;
+  // Modo edición: tocar una tecla la elige (no se muestra el panel de información)
+  alElegir?: (tecla: TeclaDibujo) => void;
+  // La tecla que se está editando o intercambiando, resaltada
+  elegida?: number | null;
 };
 
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida } = props;
+  const editando = Boolean(alElegir);
   const filas = dividirFilas(teclas, espejo);
 
   return (
@@ -35,16 +40,17 @@ export default function Bloque(props: Props) {
             type="button"
             className={clases}
             aria-label={`${texto || `Key ${tecla.pos}`}, ${nombreCapa}`}
-            aria-describedby="info-modal"
-            onMouseEnter={() => onMostrar(tecla)}
-            onMouseLeave={onOcultar}
+            aria-describedby={editando ? undefined : "info-modal"}
+            data-elegida={elegida === tecla.pos || undefined}
+            onMouseEnter={editando ? undefined : () => onMostrar(tecla)}
+            onMouseLeave={editando ? undefined : onOcultar}
             // Solo con Tab: un clic de ratón también enfoca, pero ahí ya manda el hover
             onFocus={(e) => {
-              if (e.currentTarget.matches(":focus-visible")) onMostrar(tecla);
+              if (!editando && e.currentTarget.matches(":focus-visible")) onMostrar(tecla);
             }}
-            onBlur={onOcultar}
+            onBlur={editando ? undefined : onOcultar}
             // Toque en el móvil, o Enter/Espacio con teclado
-            onClick={() => onMostrar(tecla)}
+            onClick={() => (alElegir ? alElegir(tecla) : onMostrar(tecla))}
           >
             {tecla.texto}
           </button>

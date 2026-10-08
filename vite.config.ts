@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { playwright } from "@vitest/browser-playwright";
 import { VitePWA } from "vite-plugin-pwa";
 import firebase from "./firebase.json" with { type: "json" };
@@ -17,6 +18,8 @@ export default defineConfig({
   preview: { headers: cabecerasProduccion },
   plugins: [
     react(),
+    // Solo para las pantallas del editor (src/editor.css); el teclado sigue con style.css
+    tailwindcss(),
     VitePWA({
       // Al publicar una versión nueva, la app instalada se actualiza sola
       registerType: "autoUpdate",

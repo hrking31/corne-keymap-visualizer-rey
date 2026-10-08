@@ -57,7 +57,13 @@ export const salir = () => signOut(auth);
 export function escucharTeclado(uid: string, cambio: (t: TecladoConfig | null) => void, error: (e: Error) => void) {
   return onSnapshot(
     tecladoDe(uid),
-    (d) => cambio(d.exists() ? (d.data() as TecladoConfig) : null),
+    (d) => {
+      if (!d.exists()) return cambio(null);
+      // La fecha de actualización la maneja el servidor: la app no la necesita
+      const datos = d.data();
+      delete datos.actualizado;
+      cambio(datos as TecladoConfig);
+    },
     error,
   );
 }

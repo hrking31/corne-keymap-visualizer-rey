@@ -26,12 +26,17 @@ export type Cuenta = {
   usuario: Usuario | null;
   // El teclado del usuario; null si no hay sesión o aún no lo ha configurado
   teclado: TecladoConfig | null;
+  // true cuando ya se sabe si el usuario tiene teclado (llegó de Firestore o de su caché)
+  tecladoCargado: boolean;
   error: string;
   paso: PasoEntrada;
   // Empieza a descargar Firebase (al pasar el puntero o el dedo por «Entrar»)
   precargar: () => void;
   entrar: () => void;
   salir: () => Promise<void>;
+  // Guarda el teclado entero del usuario (el editor lo usa en cada cambio)
+  guardar: (teclado: TecladoConfig) => Promise<void>;
+  borrarCuenta: () => Promise<void>;
 };
 
 // habilitada = false: no se toca Firebase (la prueba visual monta la app con datos fijos)
@@ -42,6 +47,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
   const [teclado, setTeclado] = useState<TecladoConfig | null>(() =>
     habilitada && haySesion() ? leerCopia() : null,
   );
+  const [tecladoCargado, setTecladoCargado] = useState(false);
   const [error, setError] = useState("");
   const [paso, setPaso] = useState<PasoEntrada>("entrar");
   // El módulo ya descargado: entrar() lo usa sin esperar nada
@@ -73,6 +79,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
           dejarTeclado = () => {};
           setUsuario(u);
           marcarSesion(Boolean(u));
+          setTecladoCargado(false);
           if (!u) {
             setTeclado(null);
             guardarCopia(null);
@@ -83,6 +90,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
             u.uid,
             (t) => {
               setTeclado(t);
+              setTecladoCargado(true);
               guardarCopia(t);
             },
             () => setError("No se pudo leer tu teclado. Revisa la conexión."),
@@ -123,5 +131,26 @@ export function useCuenta(habilitada: boolean): Cuenta {
     await (await cargarSesion()).salir();
   };
 
-  return { usuario, teclado, error, paso, precargar, entrar, salir };
+  const guardar = async (nuevo: TecladoConfig) => {
+    if (!usuario) return;
+    setError("");
+    try {
+      await (await cargarSesion()).guardarTeclado(usuario.uid, nuevo);
+    } catch {
+      setError("No se pudo guardar. Revisa la conexión e inténtalo otra vez.");
+    }
+  };
+
+  const borrarCuenta = async () => {
+    setError("");
+    try {
+      await (await cargarSesion()).borrarCuenta();
+      guardarCopia(null);
+      marcarSesion(false);
+    } catch {
+      setError("No se pudo borrar la cuenta. Inténtalo otra vez.");
+    }
+  };
+
+  return { usuario, teclado, tecladoCargado, error, paso, precargar, entrar, salir, guardar, borrarCuenta };
 }
