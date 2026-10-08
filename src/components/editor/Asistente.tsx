@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { DISTRIBUCIONES, IDIOMAS, SISTEMAS } from "../../teclados/distribuciones";
+import { dividirBloques } from "../../teclado";
+import { teclasParaDibujar } from "../../teclados/convertir";
 import { crearBase } from "../../teclados/plantillas";
+import Bloque from "../Bloque";
 import type { Ajustes, Distribucion, Idioma, SistemaOperativo } from "../../teclados/tipos";
 import { LIMITES } from "../../teclados/validar";
 
@@ -40,16 +43,13 @@ function Grupo<T extends string>(props: { titulo: string; valor: T; lista: [T, s
   );
 }
 
-// Vista previa pequeña de la capa Base (solo las tres filas, sin pulgares), para el móvil
+// Vista previa en el móvil: la mitad izquierda real del teclado (placa, escalonado y
+// pulgares), con la capa Base que se va eligiendo. Solo para mirar: no se puede tocar.
 function VistaPrevia({ ajustes }: { ajustes: Ajustes }) {
-  const base = crearBase(ajustes);
+  const { izquierdo } = dividirBloques(teclasParaDibujar(crearBase(ajustes)));
   return (
-    <div className="grid grid-cols-12 gap-[3px] rounded-md border border-borde bg-panel p-2" aria-hidden="true">
-      {Array.from({ length: 36 }, (_, pos) => (
-        <span key={pos} className="truncate rounded-sm bg-boton py-1 text-center text-[9px] font-bold text-texto">
-          {base.teclas[pos]?.texto}
-        </span>
-      ))}
+    <div className="vista-mitad" inert aria-hidden="true">
+      <Bloque lado="left" capa="vista" nombreCapa="Capa Base" teclas={izquierdo} espejo onMostrar={() => {}} onOcultar={() => {}} />
     </div>
   );
 }
@@ -68,7 +68,7 @@ export default function Asistente(props: Props) {
     <Grupo key="s" titulo="¿Qué sistema operativo usas?" valor={ajustes.so} lista={opciones<SistemaOperativo>(SISTEMAS)}
       onCambio={(so) => onAjustes({ ...ajustes, so })} />,
     <label key="n" className="flex flex-col gap-2 text-sm font-bold text-hueso">
-      Nombre del teclado (opcional)
+      Nombre del teclado
       <input className="campo" value={nombre} maxLength={LIMITES.nombre} placeholder="Corne ZMK"
         onChange={(e) => onNombre(e.target.value)} />
     </label>,
@@ -106,15 +106,18 @@ export default function Asistente(props: Props) {
 
   // PC y tablet: todo en un panel a la derecha; el teclado, al lado, cambia en vivo
   return (
-    <aside className="fixed top-0 right-0 z-40 box-border flex h-full w-[340px] flex-col gap-5 overflow-y-auto border-l border-borde bg-panel p-5 text-left"
+    <aside className="compacto fixed top-0 right-0 z-40 box-border flex h-full w-[340px] flex-col gap-3 overflow-y-auto border-l border-borde bg-panel p-4 text-left"
       aria-label="Configura tu teclado">
       <h2 className="m-0 text-lg text-hueso">Configura tu teclado</h2>
-      <p className="m-0 text-sm text-gris">Elige cómo es tu teclado: la capa Base se llena sola y la ves al lado.</p>
-      {preguntas[3]}
-      {preguntas[0]}
-      {preguntas[1]}
-      {preguntas[2]}
-      <div className="mt-auto flex justify-end">{crear}</div>
+      {/* El espacio que sobra se reparte entre las secciones: con pantalla alta respiran,
+          con pantalla baja se juntan y el panel sigue sin desplazamiento */}
+      <div className="flex flex-1 flex-col justify-evenly gap-3">
+        {preguntas[3]}
+        {preguntas[0]}
+        {preguntas[1]}
+        {preguntas[2]}
+      </div>
+      <div className="flex justify-end">{crear}</div>
     </aside>
   );
 }

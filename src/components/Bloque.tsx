@@ -2,7 +2,8 @@ import { dividirFilas } from "../teclado";
 import type { TeclaDibujo } from "../teclados/tipos";
 
 type Props = {
-  id: "left-side" | "right-side";
+  // La app los usa para colocar el panel; la vista previa del asistente no lleva id
+  id?: "left-side" | "right-side";
   lado: "left" | "right";
   capa: string;
   nombreCapa: string;

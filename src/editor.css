@@ -118,3 +118,37 @@ body.con-panel {
   box-sizing: border-box;
   padding-right: 340px;
 }
+
+/* Panel del asistente en PC: opciones más bajas, para que quepa sin desplazamiento */
+.compacto .opcion {
+  padding: 5px 10px;
+}
+
+.compacto fieldset {
+  gap: 4px;
+}
+
+.compacto legend {
+  margin-bottom: 4px;
+}
+
+/* Vista previa del asistente en el móvil: la mitad izquierda real del teclado. La tecla
+   sale del ancho disponible (la mitad con su placa mide ~7,45 teclas), y la mitad se
+   centra contando lo que la placa sobresale hacia dentro (pulgares y pantalla) */
+.vista-mitad {
+  container-type: inline-size;
+  display: flex;
+  justify-content: center;
+}
+
+.vista-mitad .split {
+  --key-size: min(calc((100cqw - 5 * var(--key-gap) - 8px) / 7.45), 52px);
+  margin: calc(var(--key-size) * 0.14 + 24px) 0 calc(var(--key-size) * 0.48 + 8px);
+  top: 0;
+}
+
+.vista-mitad .split.left {
+  transform: translateX(calc(var(--key-size) * -0.61)) scaleX(-1);
+  margin-bottom: calc(var(--key-size) * 0.48 + 8px);
+  order: 0;
+}
