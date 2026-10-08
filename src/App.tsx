@@ -6,6 +6,7 @@ import type { TeclaDibujo, TecladoConfig } from "./teclados/tipos";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 import Bienvenida from "./components/Bienvenida";
+import { useCuenta } from "./firebase/useCuenta";
 
 // Sin cuenta se ve una capa Base de ejemplo: QWERTY en el idioma y el sistema del navegador
 const tecladoDeEjemplo = () =>
@@ -51,8 +52,14 @@ type Props = {
 };
 
 export default function App({ tecladoInicial }: Props) {
-  const [teclado] = useState<TecladoConfig>(() => tecladoInicial ?? tecladoDeEjemplo());
-  const [capa, setCapa] = useState<string>(teclado.orden[0]);
+  // Con datos fijos (la prueba visual) no se usa la cuenta
+  const cuenta = useCuenta(!tecladoInicial);
+  const [ejemplo] = useState<TecladoConfig>(tecladoDeEjemplo);
+  // El teclado que se ve: el fijo, el de la cuenta del usuario o, si no hay, el de ejemplo
+  const teclado = tecladoInicial ?? cuenta.teclado ?? ejemplo;
+  const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
+  // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
+  const capa = teclado.capas[capaElegida] ? capaElegida : teclado.orden[0];
   const [modal, setModal] = useState<EstadoModal>(MODAL_INICIAL);
   const modalRef = useRef<HTMLDivElement>(null);
   const ladoActual = useRef<Lado>("izquierdo");
@@ -222,10 +229,35 @@ export default function App({ tecladoInicial }: Props) {
       </div>
 
       <footer className="firma">
+        {/* Entrar / Salir: no aparece con datos fijos (la prueba visual) */}
+        {!tecladoInicial && (
+          <>
+            {cuenta.usuario ? (
+              <button type="button" className="enlace" onClick={cuenta.salir}>
+                Salir
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="enlace"
+                title="Entra con Google para configurar tu teclado"
+                onClick={cuenta.entrar}
+              >
+                Entrar
+              </button>
+            )}
+            {" · "}
+          </>
+        )}
         © 2026 CorneRey · Desarrollado por{" "}
         <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">
           Hernando Rey
         </a>
+        {cuenta.error && (
+          <span className="firma-error" role="alert">
+            {cuenta.error}
+          </span>
+        )}
       </footer>
 
       <Modal estado={modal} ref={modalRef} />

@@ -50,6 +50,19 @@ export default defineConfig({
       workbox: {
         // Todo lo necesario para funcionar sin conexión
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest}"],
+        // Firebase (sesion-….js, ~180 KB) no se descarga por adelantado: solo lo usa quien
+        // entra con su cuenta. Se guarda la primera vez que se pide y desde ahí sirve sin red
+        globIgnores: ["**/sesion-*.js"],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/sesion-[\w-]+\.js$/,
+            handler: "CacheFirst",
+            options: { cacheName: "firebase", expiration: { maxEntries: 4 } },
+          },
+        ],
+        // Las páginas del inicio de sesión de Google (/__/auth/…) las sirve Firebase: el
+        // service worker no debe responderlas con la app
+        navigateFallbackDenylist: [/^\/__\//],
       },
     }),
   ],

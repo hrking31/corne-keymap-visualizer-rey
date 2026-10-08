@@ -876,3 +876,32 @@ h1,
     grid-template-columns: repeat(5, auto);
   }
 }
+
+/* ===== CUENTA (Fase 2.3) =====
+   «Entrar» / «Salir» en la línea de la firma: un botón con el aspecto de su enlace. */
+.firma .enlace {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: #4a453c;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.2s;
+}
+
+.firma .enlace:hover,
+.firma .enlace:focus-visible {
+  color: #ff9d2e;
+  text-decoration-color: #d97706;
+}
+
+/* Un error al entrar, en la misma línea y en naranja */
+.firma-error {
+  display: block;
+  color: #ff9d2e;
+}
