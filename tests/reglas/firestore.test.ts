@@ -46,10 +46,25 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
     const ref = doc(de("ana"), "teclados/ana");
     await assertSucceeds(setDoc(ref, { ...nuevo(), actualizado: serverTimestamp() }));
     await assertSucceeds(getDoc(ref));
+    // Como lo hace la app (guardarTecla): una tecla y la fecha del servidor
     await assertSucceeds(
-      updateDoc(ref, new FieldPath("capas", "base", "teclas", "0"), { texto: "ESC", descripcion: "Salir", deCapa: false }),
+      updateDoc(
+        ref,
+        new FieldPath("capas", "base", "teclas", "0"),
+        { texto: "ESC", descripcion: "Salir", deCapa: false },
+        "actualizado",
+        serverTimestamp(),
+      ),
     );
+    // Sin tocar la fecha también vale: se queda la que tenía
+    await assertSucceeds(updateDoc(ref, "nombre", "Corne ZMK Rey"));
     await assertSucceeds(deleteDoc(ref));
+  });
+
+  it("al editar no se puede inventar la fecha de actualización", async () => {
+    const ref = doc(de("ana"), "teclados/ana");
+    await assertSucceeds(setDoc(ref, { ...nuevo(), actualizado: serverTimestamp() }));
+    await assertFails(updateDoc(ref, "actualizado", new Date(2000, 0, 1)));
   });
 
   it("otro usuario no puede leer, escribir ni borrar un teclado ajeno", async () => {

@@ -28,8 +28,10 @@ service cloud.firestore {
         && capaValida(t, 0) && capaValida(t, 1) && capaValida(t, 2) && capaValida(t, 3)
         && capaValida(t, 4) && capaValida(t, 5) && capaValida(t, 6) && capaValida(t, 7)
         && capaValida(t, 8) && capaValida(t, 9)
-        // La fecha de actualización la pone el servidor, no el teléfono
-        && (!('actualizado' in t) || t.actualizado == request.time);
+        // La fecha de actualización la pone el servidor, no el teléfono: o es la de este
+        // momento (serverTimestamp) o se queda la que ya tenía
+        && (!('actualizado' in t) || t.actualizado == request.time
+            || (resource != null && t.actualizado == resource.data.get('actualizado', null)));
     }
 
     function ajustesValidos(a) {
