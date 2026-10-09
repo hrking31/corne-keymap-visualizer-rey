@@ -57,7 +57,7 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
       ),
     );
     // Sin tocar la fecha también vale: se queda la que tenía
-    await assertSucceeds(updateDoc(ref, "nombre", "Corne ZMK Rey"));
+    await assertSucceeds(updateDoc(ref, "nombre", "Rey"));
     await assertSucceeds(deleteDoc(ref));
   });
 
