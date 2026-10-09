@@ -71,7 +71,7 @@ export default function EditorTecla(props: Props) {
   return (
     <aside
       ref={ventana}
-      className={`fixed z-40 box-border w-[min(340px,calc(100vw-32px))] rounded-md border border-borde bg-panel p-4 text-left shadow-xl`}
+      className={`fixed z-40 box-border w-[min(340px,calc(100vw-32px))] overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left shadow-xl`}
       aria-label={`Editar Key ${tecla.pos}`}
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >

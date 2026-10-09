@@ -79,7 +79,7 @@ export default function EditorCapa(props: Props) {
   return (
     <aside
       ref={ventana}
-      className="fixed left-1/2 z-40 box-border w-[min(280px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-borde bg-panel p-4 text-left shadow-xl"
+      className="fixed left-1/2 z-40 box-border w-[min(280px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left shadow-xl"
       aria-label={`Editar la capa ${capa.corto}`}
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >

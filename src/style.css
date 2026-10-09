@@ -789,6 +789,54 @@ h1,
   outline-offset: 3px;
 }
 
+/* Arriba «Inicia sesión con» y abajo «Google»: la «G» de colores y «oogle» con los
+   colores de Google, en letra sin remates como su logotipo (pedido del autor) */
+.ingreso-entrar:has(.ingreso-google) {
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 24px 8px;
+}
+
+.ingreso-entrar-arriba {
+  font-size: 12px;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+}
+
+.ingreso-google {
+  display: inline-flex;
+  align-items: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.ingreso-entrar .ingreso-google svg {
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 1px;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.ingreso-google .rojo {
+  color: #ea4335;
+}
+
+.ingreso-google .amarillo {
+  color: #fbbc05;
+}
+
+.ingreso-google .azul {
+  color: #4285f4;
+}
+
+.ingreso-google .verde {
+  color: #34a853;
+}
+
 .ingreso-entrar:disabled {
   cursor: progress;
   opacity: 0.85;
