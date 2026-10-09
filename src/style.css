@@ -730,28 +730,24 @@ h1,
   align-items: center;
   justify-content: center;
   gap: clamp(12px, 3vmin, 32px);
-  /* El fondo de la app, con una luz tenue detrás del teclado, como un foco sobre la mesa
-     (antes era naranja; el autor la pasó a los colores de la app) */
-  background: radial-gradient(circle at 50% 42%, #3d3a33, #1c1b17 70%);
+  /* El naranja del ícono, con el mismo degradado */
+  background: radial-gradient(circle at 50% 45%, #f59e0b, #b45309 75%);
   /* Reserva abajo el alto de la firma: el resto se centra en lo que queda */
   box-sizing: border-box;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
 }
 
-/* 575 × 441. En vertical, casi todo el ancho de la pantalla. En relieve, como si saliera
-   de la pantalla: brillo fino en el canto de arriba, contorno gris como las placas de la
-   app, y dos sombras (una corta y marcada, otra larga y difusa) que le dan altura */
+/* 575 × 441. En vertical, casi todo el ancho de la pantalla */
 .ingreso-teclado {
   display: block;
   width: min(92vw, 760px);
   height: auto;
-  filter: drop-shadow(0 -1px 0 rgba(230, 226, 211, 0.35)) drop-shadow(0 0 1px #8c8573)
-    drop-shadow(0 8px 10px rgba(0, 0, 0, 0.75)) drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
 }
 
+/* Oscuro sobre el naranja, como el teclado del ícono */
 .ingreso-titulo {
   margin: 0;
-  color: #e6e2d3;
+  color: #1a1915;
   font-weight: bold;
   /* «Corne ZMK Visualizer»: cabe en una línea en un móvil de 360px */
   font-size: clamp(22px, 6vmin, 56px);
@@ -770,24 +766,27 @@ h1,
   align-items: center;
   gap: 12px;
   padding: 12px 22px;
-  /* Como los botones de la app: borde naranja al pasar por encima */
-  border: 1px solid #3d3a33;
+  border: 0;
   border-radius: 6px;
-  background: #2a2824;
+  background: #1a1915;
   color: #e6e2d3;
   font-family: inherit;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  outline: none;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-  transition: border-color 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .ingreso-entrar:hover,
+.ingreso-entrar:focus-visible {
+  background: #2a2824;
+}
+
 .ingreso-entrar:focus-visible,
-.ingreso-entrar:active {
-  border-color: #d97706;
+.ingreso-demo:focus-visible {
+  outline: 2px solid #1a1915;
+  outline-offset: 3px;
 }
 
 .ingreso-entrar:disabled {
@@ -808,27 +807,19 @@ h1,
   padding: 6px 10px;
   border: 0;
   background: none;
-  color: #8c8573;
+  color: #1a1915;
   font-family: inherit;
   font-size: 15px;
   font-weight: bold;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-  outline: none;
-  transition: color 0.2s ease;
-}
-
-.ingreso-demo:hover,
-.ingreso-demo:focus-visible,
-.ingreso-demo:active {
-  color: #ff9d2e;
 }
 
 .ingreso-error {
   max-width: 300px;
   margin: 0;
-  color: #ff9d2e;
+  color: #1a1915;
   font-size: 13px;
   text-align: center;
 }
@@ -839,7 +830,8 @@ h1,
   left: 0;
   right: 0;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-  color: #8c8573;
+  color: #1a1915;
+  opacity: 0.75;
   font-size: clamp(11px, 1.6vmin, 14px);
   line-height: 1.4;
 }
