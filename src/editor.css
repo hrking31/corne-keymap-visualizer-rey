@@ -406,3 +406,9 @@ input[type="radio"] {
   opacity: 0.3;
   cursor: default;
 }
+
+/* Botón principal más pequeño, para avisos de una línea («Hay una versión nueva») */
+.boton-principal.boton-compacto {
+  padding: 6px 12px;
+  font-size: 12px;
+}

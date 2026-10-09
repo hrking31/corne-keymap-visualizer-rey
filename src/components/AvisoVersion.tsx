@@ -18,11 +18,12 @@ export default function AvisoVersion() {
 
   return (
     <div
-      className="fixed bottom-12 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-md border border-naranja bg-panel px-4 py-2 text-sm text-hueso shadow-xl"
+      // w-max: con left-1/2 el navegador solo le dejaba media pantalla y partía el texto
+      className="fixed bottom-12 left-1/2 z-50 flex w-max max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-3 rounded-md border border-naranja bg-panel py-2 pr-2 pl-4 text-sm text-hueso shadow-xl"
       role="status"
     >
-      Hay una versión nueva
-      <button type="button" className="boton-principal" onClick={() => actualizar?.(true)}>
+      <span className="whitespace-nowrap">Hay una versión nueva</span>
+      <button type="button" className="boton-principal boton-compacto" onClick={() => actualizar?.(true)}>
         Actualizar
       </button>
     </div>
