@@ -1,21 +1,30 @@
-import { dividirFilas, tieneAccion } from "../teclado";
-import type { Capa, Tecla } from "../tipos";
+import { dividirFilas } from "../teclado";
+import type { TeclaDibujo } from "../teclados/tipos";
 
 type Props = {
-  id: "left-side" | "right-side";
+  // La app los usa para colocar el panel; la vista previa del asistente no lleva id
+  id?: "left-side" | "right-side";
   lado: "left" | "right";
-  capa: Capa;
+  capa: string;
   nombreCapa: string;
-  teclas: Tecla[];
+  teclas: TeclaDibujo[];
   espejo: boolean;
-  onMostrar: (tecla: Tecla) => void;
+  onMostrar: (tecla: TeclaDibujo) => void;
   onOcultar: () => void;
+  // Modo edición: tocar una tecla la elige (no se muestra el panel de información)
+  alElegir?: (tecla: TeclaDibujo) => void;
+  // La tecla que se está editando o intercambiando, resaltada
+  elegida?: number | null;
+  // Mientras se edita: si la elegida está marcada como tecla de capa (toda naranja) o no
+  // (sin naranja), aunque todavía no se haya guardado
+  deCapaElegida?: boolean;
 };
 
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, deCapaElegida } = props;
+  const editando = Boolean(alElegir);
   const filas = dividirFilas(teclas, espejo);
 
   return (
@@ -25,35 +34,36 @@ export default function Bloque(props: Props) {
         // capa, como la versión vanilla. Si las reutilizara, el borde y el color
         // harían la transición de 0.2s del CSS (p. ej. al volverse naranja).
         const key = `${capa}-${i}`;
-        const clases = tecla.clase ? `key ${tecla.clase}` : "key";
+        const vistaPrevia = elegida === tecla.pos && deCapaElegida !== undefined;
+        const clases = vistaPrevia
+          ? deCapaElegida
+            ? "key key-capa-editando"
+            : "key"
+          : tecla.deCapa
+            ? "key key-naranja"
+            : "key";
+        const texto = tecla.texto.trim();
 
-        // Tecla vacía: no hace nada en esta capa, así que ni se enfoca ni se anuncia
-        if (!tieneAccion(tecla)) {
-          return (
-            <div key={key} className={clases} aria-hidden="true">
-              {tecla.label}
-            </div>
-          );
-        }
-
+        // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»
         return (
           <button
             key={key}
             type="button"
             className={clases}
-            aria-label={`${tecla.label.trim()}, ${nombreCapa}`}
-            aria-describedby="info-modal"
-            onMouseEnter={() => onMostrar(tecla)}
-            onMouseLeave={onOcultar}
+            aria-label={`${texto || `Key ${tecla.pos}`}, ${nombreCapa}`}
+            aria-describedby={editando ? undefined : "info-modal"}
+            data-elegida={elegida === tecla.pos || undefined}
+            onMouseEnter={editando ? undefined : () => onMostrar(tecla)}
+            onMouseLeave={editando ? undefined : onOcultar}
             // Solo con Tab: un clic de ratón también enfoca, pero ahí ya manda el hover
             onFocus={(e) => {
-              if (e.currentTarget.matches(":focus-visible")) onMostrar(tecla);
+              if (!editando && e.currentTarget.matches(":focus-visible")) onMostrar(tecla);
             }}
-            onBlur={onOcultar}
+            onBlur={editando ? undefined : onOcultar}
             // Toque en el móvil, o Enter/Espacio con teclado
-            onClick={() => onMostrar(tecla)}
+            onClick={() => (alElegir ? alElegir(tecla) : onMostrar(tecla))}
           >
-            {tecla.label}
+            {tecla.texto}
           </button>
         );
       })}

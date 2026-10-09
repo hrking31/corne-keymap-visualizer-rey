@@ -58,6 +58,17 @@ jobs:
       - name: Pruebas (datos, lógica y diseño)
         run: npm test
 
+      # Las reglas de seguridad de Firestore se prueban en el emulador de Firebase, que
+      # necesita Java: solo aquí, para no tener que instalarlo en el PC
+      - name: Preparar Java para el emulador de Firestore
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Probar las reglas de Firestore
+        run: npx -y firebase-tools@15 emulators:exec --only firestore --project demo-corne "npx vitest run --project reglas"
+
       - name: Compilar
         run: npm run build
 

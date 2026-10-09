@@ -14,7 +14,8 @@ const TAMAÑOS: [number, number][] = [
 describe.each(TAMAÑOS)("a %ipx de ancho", (ancho, alto) => {
   it("se ve idéntica a v1.1-vanilla", async () => {
     const original = await medir("/tests/referencia/index.html", ancho, alto);
-    const actual = await medir("/index.html", ancho, alto);
+    // La app con los mismos datos que la original (tests/visual/autor.tsx)
+    const actual = await medir("/tests/visual/autor.html", ancho, alto);
 
     expect.soft(actual.elementos, "título, botones y bloques").toEqual(original.elementos);
     expect.soft(actual.capas, "teclas de cada capa").toEqual(original.capas);

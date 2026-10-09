@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { playwright } from "@vitest/browser-playwright";
 import { VitePWA } from "vite-plugin-pwa";
 import firebase from "./firebase.json" with { type: "json" };
@@ -17,12 +18,15 @@ export default defineConfig({
   preview: { headers: cabecerasProduccion },
   plugins: [
     react(),
+    // Solo para las pantallas del editor (src/editor.css); el teclado sigue con style.css
+    tailwindcss(),
     VitePWA({
-      // Al publicar una versión nueva, la app instalada se actualiza sola
-      registerType: "autoUpdate",
-      // Registro en un archivo aparte (registerSW.js), no incrustado en el HTML:
+      // Al publicar una versión nueva no se recarga sola (podría cortar una edición):
+      // la app muestra «Hay una versión nueva · Actualizar» (src/components/AvisoVersion.tsx)
+      registerType: "prompt",
+      // El registro lo hace la propia app (virtual:pwa-register), no un script en el HTML:
       // así la Content-Security-Policy puede prohibir los scripts en línea
-      injectRegister: "script",
+      injectRegister: false,
       // Mismos nombre y colores que el manifest.json original; se añade lo que
       // pide Google Play para publicarla como Trusted Web Activity
       manifest: {
@@ -36,7 +40,9 @@ export default defineConfig({
         scope: "/",
         display: "standalone",
         orientation: "any",
-        background_color: "#3A3F44",
+        // La pantalla de carga de Android (ícono sobre este color): el naranja del ícono
+        // y de la pantalla de ingreso
+        background_color: "#d97706",
         theme_color: "#3A3F44",
         categories: ["productivity", "utilities"],
         icons: [
@@ -50,6 +56,19 @@ export default defineConfig({
       workbox: {
         // Todo lo necesario para funcionar sin conexión
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest}"],
+        // Firebase (sesion-….js, ~180 KB) no se descarga por adelantado: solo lo usa quien
+        // entra con su cuenta. Se guarda la primera vez que se pide y desde ahí sirve sin red
+        globIgnores: ["**/sesion-*.js"],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/sesion-[\w-]+\.js$/,
+            handler: "CacheFirst",
+            options: { cacheName: "firebase", expiration: { maxEntries: 4 } },
+          },
+        ],
+        // Las páginas del inicio de sesión de Google (/__/auth/…) las sirve Firebase: el
+        // service worker no debe responderlas con la app
+        navigateFallbackDenylist: [/^\/__\//],
       },
     }),
   ],
@@ -68,6 +87,16 @@ export default defineConfig({
           name: "unitarias",
           include: ["tests/*.test.ts"],
           environment: "node",
+        },
+      },
+      {
+        extends: true,
+        test: {
+          // Reglas de Firestore: solo corren con el emulador (en la CI); sin él se saltan
+          name: "reglas",
+          include: ["tests/reglas/*.test.ts"],
+          environment: "node",
+          testTimeout: 30_000,
         },
       },
       {

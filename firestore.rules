@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firestore. Cada usuario tiene UN documento con su teclado,
+// teclados/{uid}, y solo él puede leerlo, escribirlo o borrarlo. Todo lo demás está
+// prohibido. Los límites son los mismos de src/teclados/validar.ts.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /teclados/{uid} {
+      allow read, delete: if esDueno(uid);
+      allow create, update: if esDueno(uid) && tecladoValido(request.resource.data);
+    }
+
+    function esDueno(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function tecladoValido(t) {
+      return t.keys().hasAll(['nombre', 'ajustes', 'orden', 'capas'])
+        && t.keys().hasOnly(['nombre', 'ajustes', 'orden', 'capas', 'actualizado'])
+        && t.nombre is string && t.nombre.size() <= 12
+        && ajustesValidos(t.ajustes)
+        // Entre 1 y 10 capas, y la primera es siempre Base (la capa 0 de ZMK)
+        && t.orden is list && t.orden.size() >= 1 && t.orden.size() <= 10
+        && t.orden[0] == 'base'
+        && t.capas is map && t.capas.size() == t.orden.size()
+        && t.capas.keys().hasOnly(t.orden)
+        && capaValida(t, 0) && capaValida(t, 1) && capaValida(t, 2) && capaValida(t, 3)
+        && capaValida(t, 4) && capaValida(t, 5) && capaValida(t, 6) && capaValida(t, 7)
+        && capaValida(t, 8) && capaValida(t, 9)
+        // La fecha de actualización la pone el servidor, no el teléfono: o es la de este
+        // momento (serverTimestamp) o se queda la que ya tenía
+        && (!('actualizado' in t) || t.actualizado == request.time
+            || (resource != null && t.actualizado == resource.data.get('actualizado', null)));
+    }
+
+    function ajustesValidos(a) {
+      return a is map
+        && a.keys().hasOnly(['distribucion', 'idioma', 'so'])
+        && a.distribucion in ['qwerty', 'colemak-dh', 'colemak', 'dvorak']
+        && a.idioma in ['es-LA', 'es-ES', 'en-US']
+        && a.so in ['windows', 'macos', 'linux'];
+    }
+
+    // Las reglas no tienen bucles: se revisa cada posición del orden, y las que no
+    // existen (menos de 10 capas) pasan sin evaluar el resto
+    function capaValida(t, i) {
+      return i >= t.orden.size() || datosDeCapaValidos(t.capas[t.orden[i]]);
+    }
+
+    function datosDeCapaValidos(c) {
+      return c is map
+        && c.keys().hasOnly(['corto', 'largo', 'teclas'])
+        && c.corto is string && c.corto.size() >= 1 && c.corto.size() <= 6
+        && c.largo is string && c.largo.size() <= 24
+        // Una capa tiene como mucho 42 teclas (el Corne)
+        && c.teclas is map && c.teclas.size() <= 42;
+    }
+  }
+}

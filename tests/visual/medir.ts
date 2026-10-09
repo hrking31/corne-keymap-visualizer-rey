@@ -12,9 +12,13 @@ export type Medicion = {
   colores: string[];
 };
 
-// Empieza en NUM y termina en BASE: así cada clic cambia de verdad de capa
-// (la app arranca en BASE) y se puede comprobar que las teclas se recrean.
-const ORDEN_CAPAS = ["NUM", "SYM", "NAV", "LED", "FUN", "BASE"];
+// Los botones de capa se recorren por su posición (la original los llama «NUM», la app
+// por el id de la capa). Empieza en el 2.º y termina en el 1.º (Base): así cada clic
+// cambia de verdad de capa (las dos arrancan en Base) y se ve que las teclas se recrean.
+const ORDEN_CAPAS = [1, 2, 3, 4, 5, 0];
+
+// Los textos se comparan sin espacios sobrantes: «ALT » y «ALT» se ven igual
+const texto = (el: Element) => (el.textContent ?? "").trim();
 
 const redondear = (n: number) => Math.round(n * 100) / 100;
 
@@ -68,15 +72,16 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
     for (const selector of ["h1", ".layer-buttons", ".keyboard-container", "#left-side", "#right-side"]) {
       medicion.elementos[selector] = caja(doc.querySelector(selector)!);
     }
-    doc.querySelectorAll(".layer-btn").forEach((boton) => {
-      medicion.elementos[`botón ${boton.textContent}`] = caja(boton);
+    doc.querySelectorAll(".layer-btn").forEach((boton, n) => {
+      medicion.elementos[`botón ${n + 1}`] = caja(boton);
     });
 
     const modal = doc.getElementById("info-modal")!;
     const tituloModal = doc.getElementById("modal-title")!;
 
-    for (const capa of ORDEN_CAPAS) {
-      const boton = doc.querySelector<HTMLElement>(`.layer-btn[data-layer="${capa}"]`)!;
+    for (const n of ORDEN_CAPAS) {
+      const capa = `capa ${n + 1}`;
+      const boton = doc.querySelectorAll<HTMLElement>(".layer-btn")[n];
       const anteriores = new Set(doc.querySelectorAll(".key"));
 
       boton.click();
@@ -89,35 +94,35 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
         // tipografía (p. ej. un <button> que no hereda Courier) no movería ninguna caja
         contenido: teclas.map((t) => {
           const e = win.getComputedStyle(t);
-          return `${t.className}|${t.textContent}|${e.fontFamily} ${e.fontSize} ${e.fontWeight} ${e.lineHeight} ${e.letterSpacing}`;
+          return `${t.className}|${texto(t)}|${e.fontFamily} ${e.fontSize} ${e.fontWeight} ${e.lineHeight} ${e.letterSpacing}`;
         }),
         teclasNuevas: teclas.filter((t) => !anteriores.has(t)).length,
       };
       anotarColores(win, doc.querySelectorAll("*"), colores);
 
       for (const [i, tecla] of teclas.entries()) {
-        const texto = tecla.textContent ?? "";
-        if (!texto.trim()) continue;
+        const etiqueta = texto(tecla);
+        if (!etiqueta) continue;
 
         // React escucha mouseover/mouseout; la versión vanilla, mouseenter/mouseleave
         tecla.dispatchEvent(new win.MouseEvent("mouseover", { bubbles: true }));
         tecla.dispatchEvent(new win.MouseEvent("mouseenter"));
         await esperar(
-          () => !modal.classList.contains("hidden") && tituloModal.textContent === texto,
-          `abrir el modal de ${capa} ${texto}`,
+          () => !modal.classList.contains("hidden") && texto(tituloModal) === etiqueta,
+          `abrir el modal de ${capa} ${etiqueta}`,
         );
 
         const r = modal.getBoundingClientRect();
         const partes = [...modal.children].map(
-          (parte) => `${parte.textContent}/${win.getComputedStyle(parte).display}`,
+          (parte) => `${texto(parte)}/${win.getComputedStyle(parte).display}`,
         );
-        medicion.modales[`${capa} #${i} ${texto}`] =
+        medicion.modales[`${capa} #${i} ${etiqueta}`] =
           `${redondear(r.width)}x${redondear(r.height)} ${partes.join(" | ")}`;
         anotarColores(win, [modal, ...modal.querySelectorAll("*")], colores);
 
         tecla.dispatchEvent(new win.MouseEvent("mouseout", { bubbles: true }));
         tecla.dispatchEvent(new win.MouseEvent("mouseleave"));
-        await esperar(() => modal.classList.contains("hidden"), `cerrar el modal de ${texto}`);
+        await esperar(() => modal.classList.contains("hidden"), `cerrar el modal de ${etiqueta}`);
       }
     }
 

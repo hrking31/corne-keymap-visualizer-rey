@@ -766,7 +766,8 @@ h1,
   margin: 0;
   color: #1a1915;
   font-weight: bold;
-  font-size: clamp(28px, 7vmin, 64px);
+  /* «Corne ZMK Visualizer»: cabe en una línea en un móvil de 360px */
+  font-size: clamp(22px, 6vmin, 56px);
   letter-spacing: 0.08em;
 }
 
@@ -849,4 +850,58 @@ h1,
 .firma a:focus-visible {
   color: #ff9d2e;
   text-decoration-color: #d97706;
+}
+
+/* ===== CABECERA CON HASTA 10 CAPAS (Fase 2, aprobado por el autor) =====
+   La cabecera agrupa el nombre del teclado y los botones de capa, pero no cambia nada
+   (display: contents): el nombre arriba y los botones debajo, como siempre, también en
+   horizontal (el autor lo prefirió así; los 10 botones caben en una fila). */
+.cabecera {
+  display: contents;
+}
+
+/* Pantallas estrechas con más de 6 capas: dos filas parejas (7 → 4 + 3, 10 → 5 + 5) */
+@media (max-width: 600px) {
+  .layer-buttons[data-capas="7"],
+  .layer-buttons[data-capas="8"],
+  .layer-buttons[data-capas="9"],
+  .layer-buttons[data-capas="10"] {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    justify-content: center;
+  }
+
+  .layer-buttons[data-capas="9"],
+  .layer-buttons[data-capas="10"] {
+    grid-template-columns: repeat(5, auto);
+  }
+}
+
+/* ===== CUENTA (Fase 2.3) =====
+   «Entrar» / «Salir» en la línea de la firma: un botón con el aspecto de su enlace. */
+.firma .enlace {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: #4a453c;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.2s;
+}
+
+.firma .enlace:hover,
+.firma .enlace:focus-visible {
+  color: #ff9d2e;
+  text-decoration-color: #d97706;
+}
+
+/* Un error al entrar, en la misma línea y en naranja */
+.firma-error {
+  display: block;
+  color: #ff9d2e;
 }
