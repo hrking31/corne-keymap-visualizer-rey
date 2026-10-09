@@ -152,3 +152,257 @@ body.con-panel {
   margin-bottom: calc(var(--key-size) * 0.48 + 8px);
   order: 0;
 }
+
+/* ===== MENÚ DE AJUSTES (2026-10-09, pedido por el autor) =====
+   Engranaje fijo en la esquina superior derecha, fuera del teclado. Su menú: Editar,
+   Borrar mi cuenta y Salir (con sesión) o Entrar con Google y Atrás (en la demo). */
+.menu-ajustes {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  z-index: 30;
+}
+
+/* Con el engranaje en pantalla, el nombre del teclado no llega hasta él: uno largo pasa
+   a dos líneas antes que meterse debajo (8 + 36 + 8 px a cada lado, para seguir centrado) */
+body:has(.menu-ajustes) h1 {
+  padding-inline: 52px;
+}
+
+.menu-boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* Solo el ícono, sin recuadro; el área que se toca sigue siendo de 36 × 36 */
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  /* El gris del texto de los botones de capa (y del borde de la placa) */
+  color: var(--color-gris);
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
+}
+
+.menu-boton:hover,
+.menu-boton:focus-visible,
+.menu-boton:active,
+.menu-boton[aria-expanded="true"] {
+  color: var(--color-naranja-claro);
+}
+
+.menu-boton svg {
+  width: 22px;
+  height: 22px;
+}
+
+.menu-lista {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 4px 0;
+  border: 1px solid var(--color-borde);
+  border-radius: 6px;
+  background: var(--color-panel);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.menu-opcion {
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: var(--color-gris);
+  font: bold 14px var(--font-mono);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+}
+
+.menu-opcion:hover,
+.menu-opcion:focus-visible,
+.menu-opcion:active {
+  background: var(--color-boton);
+  color: var(--color-naranja-claro);
+}
+
+.menu-opcion.peligro {
+  color: #e8835a;
+}
+
+.menu-opcion.peligro:hover,
+.menu-opcion.peligro:focus-visible {
+  background: #3a2018;
+  color: #e8835a;
+}
+
+/* ===== EDICIÓN SIN FRANJA ARRIBA (2026-10-09, pedida por el autor) =====
+   «Listo» va dentro de la fila de capas, al final, y el nombre se escribe en el propio
+   título (TituloEditable). */
+/* «Listo» en contorno, del gris de los textos e íconos; naranja al pasar por encima */
+.layer-buttons .boton-principal {
+  padding: 8px 16px;
+  border-color: var(--color-gris);
+  background: none;
+  color: var(--color-gris);
+  font-size: 13px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+/* :active: en el móvil no hay «pasar el puntero»; el color cambia mientras el dedo pulsa */
+.layer-buttons .boton-principal:hover,
+.layer-buttons .boton-principal:focus-visible,
+.layer-buttons .boton-principal:active {
+  border-color: var(--color-naranja);
+  background: none;
+  color: var(--color-naranja-claro);
+}
+
+/* En el móvil, del tamaño de los botones de capa (style.css), para no salirse */
+@media (max-width: 480px) {
+  .layer-buttons .boton-principal {
+    padding: 6px clamp(6px, 2.2vw, 12px);
+    font-size: 12px;
+    border-radius: 16px;
+  }
+}
+
+/* El nombre dentro del título, con su misma letra: sin caja, solo una línea naranja debajo */
+.titulo-campo {
+  box-sizing: content-box;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid var(--color-naranja);
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  outline: none;
+}
+
+.titulo-campo:focus {
+  border-bottom-color: var(--color-naranja-claro);
+}
+
+.titulo-campo::placeholder {
+  color: var(--color-gris);
+}
+
+/* Un cursor dibujado parpadea siempre, para recordar que el nombre se puede cambiar:
+   delante del rótulo si está vacío, detrás del nombre si ya tiene uno. Al tocar la caja
+   desaparece y queda el cursor de verdad */
+.titulo-envoltura {
+  position: relative;
+  display: inline-block;
+}
+
+.titulo-envoltura[data-cursor]:not(:focus-within)::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 20%;
+  left: 0;
+  border-left: 2px solid var(--color-naranja-claro);
+  animation: parpadeo 1s steps(1) infinite;
+}
+
+.titulo-envoltura[data-cursor="detras"]::after {
+  left: auto;
+  right: -4px;
+}
+
+@keyframes parpadeo {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titulo-envoltura[data-cursor]::after {
+    animation: none;
+  }
+}
+
+/* Editar la capa (✎) y agregar una (＋) en la fila de capas: solo el ícono, sin recuadro */
+.boton-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  color: var(--color-gris);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
+}
+
+.boton-icono:hover,
+.boton-icono:focus-visible,
+.boton-icono:active {
+  color: var(--color-naranja-claro);
+}
+
+/* Mientras se edita una tecla marcada como «Tecla de capa»: toda naranja, para que se
+   distinga. Al guardar queda como las demás de capa (solo borde, .key-naranja) */
+.key.key-capa-editando {
+  border-color: var(--color-naranja) !important;
+  background: var(--color-naranja) !important;
+  color: #1a1915 !important;
+}
+
+/* Casillas en naranja, como el resto de la app (el navegador las pinta en azul) */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-naranja);
+}
+
+/* Mover una capa: un solo recuadro con «Mover» en el centro; las flechas son los botones */
+.mover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--color-borde);
+  border-radius: 4px;
+  background: var(--color-boton);
+  color: var(--color-gris);
+  font: bold 12px var(--font-mono);
+  text-transform: uppercase;
+}
+
+.mover-flecha {
+  padding: 6px 16px;
+  border: 0;
+  background: none;
+  color: var(--color-gris);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
+}
+
+.mover-flecha:hover:not(:disabled),
+.mover-flecha:focus-visible,
+.mover-flecha:active:not(:disabled) {
+  color: var(--color-naranja-claro);
+}
+
+.mover-flecha:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

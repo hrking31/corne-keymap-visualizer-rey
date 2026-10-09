@@ -124,10 +124,10 @@ describe("validarTeclado", () => {
     expect(validarTeclado(crearTeclado(ajustes))).toEqual([]);
   });
 
-  it("sin nombre se muestra «Corne ZMK»; con nombre, el suyo", () => {
+  it("sin nombre se muestra «Corne ZMK»; con nombre, en medio: «Corne Rey ZMK»", () => {
     expect(nombreVisible(crearTeclado(ajustes))).toBe("Corne ZMK");
     expect(nombreVisible({ nombre: "   " })).toBe("Corne ZMK");
-    expect(nombreVisible({ nombre: "Corne ZMK Rey" })).toBe("Corne ZMK Rey");
+    expect(nombreVisible({ nombre: " Rey " })).toBe("Corne Rey ZMK");
   });
 
   it("detecta más de 10 capas, Base fuera de lugar y textos demasiado largos", () => {

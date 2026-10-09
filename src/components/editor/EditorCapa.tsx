@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useVentanaEditor } from "./useVentanaEditor";
 import type { CapaConfig } from "../../teclados/tipos";
 import { LIMITES } from "../../teclados/validar";
 
 type Props = {
   capa: CapaConfig;
+  // Su número en ZMK (Base = 0): sin nombre propio, el título es «CAPA 3»
+  numero: number;
   esBase: boolean;
   puedeIzquierda: boolean;
   puedeDerecha: boolean;
-  apilado: boolean;
   onGuardar: (nombres: Pick<CapaConfig, "corto" | "largo">) => void;
   onMover: (direccion: -1 | 1) => void;
   onBorrar: () => void;
@@ -15,9 +17,16 @@ type Props = {
 };
 
 // Editar una capa: nombre corto (el botón), nombre largo (el panel), moverla y borrarla.
+// Ventana flotante centrada, en el PC y en el móvil.
 // Base se puede renombrar en su nombre largo, pero ni se mueve ni se borra.
 export default function EditorCapa(props: Props) {
-  const { capa, esBase, puedeIzquierda, puedeDerecha, apilado, onGuardar, onMover, onBorrar, onCerrar } = props;
+  const { capa, numero, esBase, puedeIzquierda, puedeDerecha, onGuardar, onMover, onBorrar, onCerrar } = props;
+  // Sale debajo de los botones de capa; tocar fuera la cierra, igual que la ✕ y Escape
+  const ventana = useVentanaEditor<HTMLElement>(onCerrar);
+  // El nombre de la capa (el largo o, si no tiene, el corto); con el automático de una capa
+  // nueva («CAPA6»), «CAPA 6» con su número
+  const automatico = /^CAPA ?\d+$/.test(capa.corto);
+  const titulo = capa.largo || (automatico ? `CAPA ${numero}` : capa.corto);
   const [corto, setCorto] = useState(capa.corto);
   const [largo, setLargo] = useState(capa.largo);
 
@@ -29,24 +38,28 @@ export default function EditorCapa(props: Props) {
         if (corto.trim()) onGuardar({ corto, largo });
       }}
     >
-      <h2 className="m-0 text-base text-hueso">Capa {capa.corto}</h2>
+      <h2 className="m-0 text-base text-naranja-claro uppercase">{titulo}</h2>
       <label className="flex flex-col gap-1 text-sm font-bold text-hueso">
-        Nombre corto (el botón, máximo {LIMITES.corto})
+        Nombre corto
         <input className="campo uppercase" value={corto} maxLength={LIMITES.corto} required disabled={esBase}
           onChange={(e) => setCorto(e.target.value)} />
       </label>
       <label className="flex flex-col gap-1 text-sm font-bold text-hueso">
-        Nombre largo (la primera línea del panel)
+        Nombre largo
         <input className="campo" value={largo} maxLength={LIMITES.largo} placeholder="Navegación"
           onChange={(e) => setLargo(e.target.value)} />
       </label>
       {!esBase && (
-        <div className="flex gap-2">
-          <button type="button" className="layer-btn" disabled={!puedeIzquierda} onClick={() => onMover(-1)}>
-            ← Mover
+        // Un solo recuadro: «Mover» en el centro y las flechas, que son los botones, a los lados
+        <div className="mover" role="group" aria-label="Mover la capa">
+          <button type="button" className="mover-flecha" disabled={!puedeIzquierda}
+            aria-label="Mover a la izquierda" title="Mover a la izquierda" onClick={() => onMover(-1)}>
+            ←
           </button>
-          <button type="button" className="layer-btn" disabled={!puedeDerecha} onClick={() => onMover(1)}>
-            Mover →
+          <span>Mover</span>
+          <button type="button" className="mover-flecha" disabled={!puedeDerecha}
+            aria-label="Mover a la derecha" title="Mover a la derecha" onClick={() => onMover(1)}>
+            →
           </button>
         </div>
       )}
@@ -63,20 +76,10 @@ export default function EditorCapa(props: Props) {
     </form>
   );
 
-  if (apilado) {
-    return (
-      <section className="fixed inset-0 z-50 flex flex-col gap-4 overflow-y-auto bg-fondo p-4 text-left" aria-label={`Editar la capa ${capa.corto}`}>
-        <button type="button" className="layer-btn self-start" onClick={onCerrar}>
-          ← Teclado
-        </button>
-        {contenido}
-      </section>
-    );
-  }
-
   return (
     <aside
-      className="fixed top-28 left-1/2 z-40 box-border w-[340px] -translate-x-1/2 rounded-md border border-borde bg-panel p-4 text-left shadow-xl"
+      ref={ventana}
+      className="fixed left-1/2 z-40 box-border w-[min(280px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-borde bg-panel p-4 text-left shadow-xl"
       aria-label={`Editar la capa ${capa.corto}`}
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >

@@ -53,7 +53,7 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
 - ✅ Accesible: cada tecla se anuncia en los lectores de pantalla («BSPC, Capa Base»)
 - ✅ **Cabe siempre en la pantalla, sin desplazamiento**: escritorio, tablet y móvil, en vertical u horizontal
 - ✅ En el móvil las mitades se apilan, y un botón ⇅ elige cuál va arriba
-- ✅ Bienvenida con los LED en el efecto *Swirl* de ZMK, mientras carga la app
+- ✅ Pantalla de ingreso con los LED en el efecto *Swirl* de ZMK: «Entrar con Google» o «Ver demo»
 - ✅ **PWA** instalable que funciona **sin conexión**
 - ✅ Cabeceras de seguridad estrictas (Content-Security-Policy y compañía)
 - ✅ Una **prueba visual** que garantiza que el diseño no cambia sin querer
@@ -117,12 +117,12 @@ src/
   components/
     Bloque.tsx         # Una mitad del teclado
     Modal.tsx          # El panel con la descripción de cada tecla
-    Bienvenida.tsx     # Quita la bienvenida (que está en index.html) cuando la app ya cargó
+    Ingreso.tsx        # Pantalla de ingreso (sin sesión): entrar con Google o ver la demo
     AvisoVersion.tsx   # «Hay una versión nueva · Actualizar»
     editor/            # Asistente, barra de edición, editores de capa y de tecla (Tailwind)
   teclados/            # El modelo: distribuciones, plantillas, validación y edición (lógica pura)
   firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
-  assets/              # La bienvenida animada y la pantalla OLED (SVG)
+  assets/              # El teclado animado del ingreso y la pantalla OLED (SVG)
   data.ts              # 6 capas × 42 teclas  ← el contenido
   teclado.ts           # Lógica pura: bloques y filas
   tipos.ts             # Capa, Tecla, Keymap
@@ -158,7 +158,7 @@ las tres teclas de cada pulgar están giradas en abanico. Está resuelto con **C
 **variables por tecla** (`--tx`, `--ty`, `--rot`, `--scale`, `--mirror`) combinadas en una
 sola `transform`. El escalonado usa selectores `nth-child(6n + k)` y el abanico
 `nth-last-child`. Las teclas y la placa no usan imágenes: es geometría declarativa. Solo la
-pantalla OLED y la bienvenida son dibujos (SVG).
+pantalla OLED y el teclado del ingreso son dibujos (SVG).
 
 ### La placa: de un dibujo a polígonos CSS
 
@@ -249,7 +249,7 @@ cuál va arriba y lo recuerda en el dispositivo.
   sesión y Firestore.
 - **Sin conexión:** `vite-plugin-pwa` genera el service worker y el manifiesto, con un ícono
   adaptable (*maskable*) para Android.
-- **SVG compatibles con la CSP:** la bienvenida se anima con `<animate>` de SVG y no lleva
+- **SVG compatibles con la CSP:** el teclado del ingreso se anima con `<animate>` de SVG y no lleva
   estilos dentro, que la política de seguridad bloquearía.
 
 ---

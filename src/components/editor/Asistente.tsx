@@ -69,7 +69,7 @@ export default function Asistente(props: Props) {
       onCambio={(so) => onAjustes({ ...ajustes, so })} />,
     <label key="n" className="flex flex-col gap-2 text-sm font-bold text-hueso">
       Nombre del teclado
-      <input className="campo" value={nombre} maxLength={LIMITES.nombre} placeholder="Corne ZMK"
+      <input className="campo" value={nombre} maxLength={LIMITES.nombre} placeholder="Nombre teclado"
         onChange={(e) => onNombre(e.target.value)} />
     </label>,
   ];

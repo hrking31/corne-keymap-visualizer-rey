@@ -16,10 +16,11 @@ import {
 import { validarTeclado } from "./teclados/validar";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
-import Bienvenida from "./components/Bienvenida";
+import Ingreso from "./components/Ingreso";
+import MenuAjustes, { type OpcionMenu } from "./components/MenuAjustes";
 import { useCuenta } from "./firebase/useCuenta";
 import Asistente from "./components/editor/Asistente";
-import BarraEdicion from "./components/editor/BarraEdicion";
+import TituloEditable from "./components/editor/TituloEditable";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
@@ -73,6 +74,10 @@ export default function App({ tecladoInicial }: Props) {
   const cuenta = useCuenta(!tecladoInicial);
   const apilado = useApilado();
   const [ejemplo] = useState<TecladoConfig>(tecladoDeEjemplo);
+  // Sin sesión solo se ve la pantalla de ingreso, hasta que el usuario entra o pide ver
+  // la demo (el teclado de ejemplo)
+  const [verDemo, setVerDemo] = useState(false);
+  const ingreso = !tecladoInicial && cuenta.sesion === "cerrada" && !verDemo;
 
   // Asistente: el usuario entró y todavía no tiene teclado. Lo que elige se ve en vivo
   const asistente = !tecladoInicial && Boolean(cuenta.usuario) && cuenta.tecladoCargado && !cuenta.teclado;
@@ -91,6 +96,8 @@ export default function App({ tecladoInicial }: Props) {
   const mio = cuenta.usuario ? cuenta.teclado : null;
   const modoEdicion = editando && Boolean(mio) && !tecladoInicial;
   const [teclaEditada, setTeclaEditada] = useState<{ pos: number; lado: Lado } | null>(null);
+  // «Tecla de capa» marcada o no en el editor, aún sin guardar (null: la de la tecla)
+  const [vistaDeCapa, setVistaDeCapa] = useState<boolean | null>(null);
   const [capaEnEdicion, setCapaEnEdicion] = useState(false);
   const [intercambiando, setIntercambiando] = useState<number | null>(null);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
@@ -141,6 +148,7 @@ export default function App({ tecladoInicial }: Props) {
       return;
     }
     setCapaEnEdicion(false);
+    setVistaDeCapa(null);
     setTeclaEditada({ pos: tecla.pos, lado });
   };
 
@@ -259,58 +267,120 @@ export default function App({ tecladoInicial }: Props) {
     };
   }, []);
 
+  // Con cuenta (o comprobándola, con la copia del teclado en pantalla) o en la demo
+  const conCuenta = !tecladoInicial && cuenta.sesion !== "cerrada";
+  const demo = !tecladoInicial && cuenta.sesion === "cerrada";
+
+  // Las opciones del menú de ajustes (⚙). Mientras se edita no aparece: manda «Listo»
+  const menu: OpcionMenu[] = [];
+  if (conCuenta && cuenta.usuario && !modoEdicion) {
+    if (mio) menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+    menu.push(
+      { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
+      {
+        texto: "Salir",
+        alElegir: () => {
+          // Al salir vuelve la pantalla de ingreso
+          salirDeEdicion();
+          setVerDemo(false);
+          void cuenta.salir();
+        },
+      },
+    );
+  }
+  if (demo) {
+    menu.push(
+      {
+        texto:
+          cuenta.paso === "conectando" ? "Conectando…" : cuenta.paso === "continuar" ? "Continuar con Google" : "Entrar con Google",
+        mantenerAbierto: true,
+        alElegir: cuenta.entrar,
+      },
+      // Vuelve a la pantalla de ingreso
+      { texto: "Atrás", alElegir: () => setVerDemo(false) },
+    );
+  }
+
+  if (ingreso) {
+    return (
+      <Ingreso
+        paso={cuenta.paso}
+        error={cuenta.error}
+        onPrecargar={cuenta.precargar}
+        onEntrar={cuenta.entrar}
+        onDemo={() => setVerDemo(true)}
+      />
+    );
+  }
+
+  // La tecla en edición: toda naranja si está marcada como de capa, sin naranja si no
+  const deCapaElegida = teclaEditada
+    ? (vistaDeCapa ?? teclasParaDibujar(capaActual).find((t) => t.pos === teclaEditada.pos)?.deCapa)
+    : undefined;
+
+  // Los botones de capa; al editar, también editar la capa (✎), agregar una (＋) y «Listo»
+  // (sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
+  // no gastar otra línea en el móvil
+  const botonesDeCapa = (
+    <div className="layer-buttons" data-capas={teclado.orden.length + (modoEdicion ? 3 : 0)}>
+      {teclado.orden.map((id) => (
+        <button
+          key={id}
+          className={id === capa ? "layer-btn active" : "layer-btn"}
+          data-layer={id}
+          aria-pressed={id === capa}
+          aria-label={`Capa ${teclado.capas[id].largo || teclado.capas[id].corto}`}
+          onClick={() => setCapa(id)}
+        >
+          {teclado.capas[id].corto}
+        </button>
+      ))}
+      {modoEdicion && mio && (
+        <>
+          <button
+            type="button"
+            className="boton-icono"
+            aria-label={`Editar la capa ${capaActual.corto}`}
+            title={`Editar la capa ${capaActual.corto}`}
+            onClick={() => {
+              setTeclaEditada(null);
+              setCapaEnEdicion(true);
+            }}
+          >
+            ✎
+          </button>
+          {puedeAgregarCapa(mio) && (
+            <button type="button" className="boton-icono" aria-label="Agregar una capa" title="Agregar una capa" onClick={agregar}>
+              ＋
+            </button>
+          )}
+          <button
+            type="button"
+            className="boton-principal"
+            title="Salir de edición"
+            onClick={salirDeEdicion}
+          >
+            Listo
+          </button>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <>
       {/* Agrupa nombre y botones sin cambiar el diseño (display: contents en style.css) */}
-      {modoEdicion && mio && (
-        <BarraEdicion
-          key={mio.nombre}
-          nombre={mio.nombre}
-          apilado={apilado}
-          onNombre={(n) => guardar(cambiarNombre(mio, n))}
-          onBorrarCuenta={() => setConfirmarBorrado(true)}
-          onListo={salirDeEdicion}
-        />
-      )}
-
       <header className="cabecera">
-        <h1>{nombreVisible(teclado)}</h1>
-
-        <div className="layer-buttons" data-capas={teclado.orden.length + (modoEdicion ? 2 : 0)}>
-          {teclado.orden.map((id) => (
-            <button
-              key={id}
-              className={id === capa ? "layer-btn active" : "layer-btn"}
-              data-layer={id}
-              aria-pressed={id === capa}
-              aria-label={`Capa ${teclado.capas[id].largo || teclado.capas[id].corto}`}
-              onClick={() => setCapa(id)}
-            >
-              {teclado.capas[id].corto}
-            </button>
-          ))}
-          {modoEdicion && mio && (
-            <>
-              <button
-                type="button"
-                className="layer-btn"
-                aria-label={`Editar la capa ${capaActual.corto}`}
-                title={`Editar la capa ${capaActual.corto}`}
-                onClick={() => {
-                  setTeclaEditada(null);
-                  setCapaEnEdicion(true);
-                }}
-              >
-                ✎
-              </button>
-              {puedeAgregarCapa(mio) && (
-                <button type="button" className="layer-btn" aria-label="Agregar una capa" title="Agregar una capa" onClick={agregar}>
-                  ＋
-                </button>
-              )}
-            </>
+        <h1>
+          {/* Editando, el nombre se escribe en el propio título: «Corne [Rey] ZMK» */}
+          {modoEdicion && mio ? (
+            <TituloEditable key={mio.nombre} nombre={mio.nombre} apilado={apilado} onNombre={(n) => guardar(cambiarNombre(mio, n))} />
+          ) : (
+            nombreVisible(teclado)
           )}
-        </div>
+        </h1>
+
+        {botonesDeCapa}
       </header>
 
       <div className={invertido ? "keyboard-container invertido" : "keyboard-container"}>
@@ -325,6 +395,7 @@ export default function App({ tecladoInicial }: Props) {
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "izquierdo") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
+          deCapaElegida={deCapaElegida}
         />
         <Bloque
           id="right-side"
@@ -337,6 +408,7 @@ export default function App({ tecladoInicial }: Props) {
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "derecho") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
+          deCapaElegida={deCapaElegida}
         />
         {/* Solo se ve con las mitades apiladas: en el hueco entre las dos (style.css) */}
         <button
@@ -351,47 +423,22 @@ export default function App({ tecladoInicial }: Props) {
         </button>
       </div>
 
+      {menu.length > 0 && (
+        // Al entrar o salir cambian las opciones: el menú vuelve a empezar cerrado
+        <MenuAjustes key={cuenta.sesion} opciones={menu} onAbrir={demo ? cuenta.precargar : undefined} />
+      )}
+
       <footer className="firma">
-        {/* Entrar / Salir: no aparece con datos fijos (la prueba visual) */}
-        {!tecladoInicial && (
+        © 2026 Corne ZMK Visualizer
+        {/* El nombre del autor, solo en la demo (y con datos fijos, la prueba visual) */}
+        {!conCuenta && (
           <>
-            {cuenta.usuario ? (
-              <>
-                {mio && !modoEdicion && (
-                  <>
-                    <button type="button" className="enlace" onClick={() => setEditando(true)}>
-                      Editar
-                    </button>
-                    {" · "}
-                  </>
-                )}
-                <button type="button" className="enlace" onClick={cuenta.salir}>
-                  Salir
-                </button>
-              </>
-            ) : cuenta.paso === "conectando" ? (
-              <span>Conectando…</span>
-            ) : (
-              <button
-                type="button"
-                className="enlace"
-                title="Entra con Google para configurar tu teclado"
-                // Firebase empieza a descargarse en cuanto se muestra la intención de entrar
-                onPointerEnter={cuenta.precargar}
-                onFocus={cuenta.precargar}
-                onTouchStart={cuenta.precargar}
-                onClick={cuenta.entrar}
-              >
-                {cuenta.paso === "continuar" ? "Continuar con Google" : "Entrar"}
-              </button>
-            )}
             {" · "}
+            <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">
+              Hernando Rey
+            </a>
           </>
         )}
-        © 2026 CorneRey · Desarrollado por{" "}
-        <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">
-          Hernando Rey
-        </a>
         {(aviso || cuenta.error) && (
           <span className="firma-error" role="alert">
             {aviso || cuenta.error}
@@ -418,13 +465,15 @@ export default function App({ tecladoInicial }: Props) {
       {modoEdicion && mio && teclaEditada && (
         <EditorTecla
           key={`${capa}-${teclaEditada.pos}`}
-          nombreCapa={nombreCapa}
+          // Solo el nombre de la capa, sin «Capa» delante
+          nombreCapa={capaActual.largo || capaActual.corto}
           tecla={teclasParaDibujar(capaActual).find((t) => t.pos === teclaEditada.pos)!}
           lado={teclaEditada.lado}
           apilado={apilado}
           onGuardar={(t) => {
             if (guardar(editarTecla(mio, capa, teclaEditada.pos, t))) setTeclaEditada(null);
           }}
+          onDeCapa={setVistaDeCapa}
           onIntercambiar={() => {
             setIntercambiando(teclaEditada.pos);
             setTeclaEditada(null);
@@ -437,10 +486,10 @@ export default function App({ tecladoInicial }: Props) {
         <EditorCapa
           key={capa}
           capa={capaActual}
+          numero={mio.orden.indexOf(capa)}
           esBase={capa === "base"}
           puedeIzquierda={mio.orden.indexOf(capa) > 1}
           puedeDerecha={capa !== "base" && mio.orden.indexOf(capa) < mio.orden.length - 1}
-          apilado={apilado}
           onGuardar={(nombres) => {
             if (guardar(renombrarCapa(mio, capa, nombres))) setCapaEnEdicion(false);
           }}
@@ -473,13 +522,13 @@ export default function App({ tecladoInicial }: Props) {
             await cuenta.borrarCuenta();
             setConfirmarBorrado(false);
             salirDeEdicion();
+            setVerDemo(false);
           }}
           onCancelar={() => setConfirmarBorrado(false)}
         />
       )}
 
       <Modal estado={modal} ref={modalRef} />
-      <Bienvenida />
     </>
   );
 }

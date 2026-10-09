@@ -115,7 +115,7 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
     await assertFails(crearConCambio((t) => (t.capas.base.corto = "DEMASIADO")));
     await assertFails(crearConCambio((t) => (t.capas.base.corto = "")));
     await assertFails(crearConCambio((t) => (t.capas.base.largo = "x".repeat(25))));
-    await assertFails(crearConCambio((t) => (t.nombre = "x".repeat(41))));
+    await assertFails(crearConCambio((t) => (t.nombre = "x".repeat(13))));
   });
 
   it("rechaza campos de más y ajustes desconocidos", async () => {

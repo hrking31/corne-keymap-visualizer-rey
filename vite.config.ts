@@ -40,7 +40,9 @@ export default defineConfig({
         scope: "/",
         display: "standalone",
         orientation: "any",
-        background_color: "#3A3F44",
+        // La pantalla de carga de Android (ícono sobre este color): el naranja del ícono
+        // y de la pantalla de ingreso
+        background_color: "#d97706",
         theme_color: "#3A3F44",
         categories: ["productivity", "utilities"],
         icons: [

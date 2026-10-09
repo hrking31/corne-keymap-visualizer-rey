@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useVentanaEditor } from "./useVentanaEditor";
 import type { TeclaConfig, TeclaDibujo } from "../../teclados/tipos";
 import { LIMITES } from "../../teclados/validar";
 
@@ -9,14 +10,19 @@ type Props = {
   lado: "izquierdo" | "derecho";
   apilado: boolean;
   onGuardar: (t: TeclaConfig) => void;
+  // Al marcar o desmarcar «Tecla de capa»: el teclado lo muestra al momento
+  onDeCapa: (deCapa: boolean) => void;
   onIntercambiar: () => void;
   onCerrar: () => void;
 };
 
-// Editar una tecla: su texto, su descripción y si es de capa (naranja). En PC es un panel
-// flotante y, al tocar otra tecla, pasa a esa; en el móvil, una pantalla completa.
+// Editar una tecla: su texto, su descripción y si es de capa (naranja). Ventana flotante
+// centrada sobre la mitad contraria a la tecla, en el PC y en el móvil, como el recuadro
+// con la descripción (en el PC, al tocar otra tecla pasa a esa).
 export default function EditorTecla(props: Props) {
-  const { nombreCapa, tecla, lado, apilado, onGuardar, onIntercambiar, onCerrar } = props;
+  const { nombreCapa, tecla, lado, apilado, onGuardar, onDeCapa, onIntercambiar, onCerrar } = props;
+  // Centrada sobre la mitad contraria a la tecla; tocar fuera la cierra, igual que la ✕ y Escape
+  const ventana = useVentanaEditor<HTMLElement>(onCerrar, lado === "izquierdo" ? "right-side" : "left-side");
   const [texto, setTexto] = useState(tecla.texto);
   const [descripcion, setDescripcion] = useState(tecla.descripcion);
   const [deCapa, setDeCapa] = useState(tecla.deCapa);
@@ -29,9 +35,10 @@ export default function EditorTecla(props: Props) {
         onGuardar({ texto, descripcion, deCapa });
       }}
     >
-      <div className="flex items-baseline justify-between gap-2 text-xs font-bold tracking-wider text-gris uppercase">
-        <span>{nombreCapa}</span>
-        <span>Key {tecla.pos}</span>
+      <div className="flex items-baseline gap-2 text-xs font-bold tracking-wider uppercase">
+        <span className="text-naranja-claro">{nombreCapa}</span>
+        <span className="text-naranja-claro" aria-hidden="true">·</span>
+        <span className="text-naranja-claro">Key {tecla.pos}</span>
       </div>
       <label className="flex flex-col gap-1 text-sm font-bold text-hueso">
         Texto
@@ -44,8 +51,11 @@ export default function EditorTecla(props: Props) {
           onChange={(e) => setDescripcion(e.target.value)} />
       </label>
       <label className="flex items-center gap-2 text-sm text-texto">
-        <input type="checkbox" checked={deCapa} onChange={(e) => setDeCapa(e.target.checked)} />
-        Tecla de capa (se ve en naranja)
+        <input type="checkbox" checked={deCapa} onChange={(e) => {
+          setDeCapa(e.target.checked);
+          onDeCapa(e.target.checked);
+        }} />
+        Tecla de capa
       </label>
       <div className="flex flex-wrap justify-between gap-2">
         <button type="button" className="layer-btn" onClick={onIntercambiar}>
@@ -58,22 +68,10 @@ export default function EditorTecla(props: Props) {
     </form>
   );
 
-  if (apilado) {
-    return (
-      <section className="fixed inset-0 z-50 flex flex-col gap-4 overflow-y-auto bg-fondo p-4 text-left" aria-label={`Editar Key ${tecla.pos}`}>
-        <button type="button" className="layer-btn self-start" onClick={onCerrar}>
-          ← Teclado
-        </button>
-        {contenido}
-      </section>
-    );
-  }
-
   return (
     <aside
-      className={`fixed top-28 z-40 box-border w-[320px] rounded-md border border-borde bg-panel p-4 text-left shadow-xl ${
-        lado === "izquierdo" ? "right-4" : "left-4"
-      }`}
+      ref={ventana}
+      className={`fixed z-40 box-border w-[min(340px,calc(100vw-32px))] rounded-md border border-borde bg-panel p-4 text-left shadow-xl`}
       aria-label={`Editar Key ${tecla.pos}`}
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >

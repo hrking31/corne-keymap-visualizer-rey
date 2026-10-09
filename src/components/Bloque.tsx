@@ -15,12 +15,15 @@ type Props = {
   alElegir?: (tecla: TeclaDibujo) => void;
   // La tecla que se está editando o intercambiando, resaltada
   elegida?: number | null;
+  // Mientras se edita: si la elegida está marcada como tecla de capa (toda naranja) o no
+  // (sin naranja), aunque todavía no se haya guardado
+  deCapaElegida?: boolean;
 };
 
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, deCapaElegida } = props;
   const editando = Boolean(alElegir);
   const filas = dividirFilas(teclas, espejo);
 
@@ -31,7 +34,14 @@ export default function Bloque(props: Props) {
         // capa, como la versión vanilla. Si las reutilizara, el borde y el color
         // harían la transición de 0.2s del CSS (p. ej. al volverse naranja).
         const key = `${capa}-${i}`;
-        const clases = tecla.deCapa ? "key key-naranja" : "key";
+        const vistaPrevia = elegida === tecla.pos && deCapaElegida !== undefined;
+        const clases = vistaPrevia
+          ? deCapaElegida
+            ? "key key-capa-editando"
+            : "key"
+          : tecla.deCapa
+            ? "key key-naranja"
+            : "key";
         const texto = tecla.texto.trim();
 
         // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»

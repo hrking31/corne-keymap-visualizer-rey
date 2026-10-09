@@ -6,7 +6,8 @@ export const LIMITES = {
   capas: 10,
   corto: 6,
   largo: 24,
-  nombre: 40,
+  // Va en medio del título («Corne Rey ZMK»): corto, para que quepa en una línea
+  nombre: 12,
   texto: 12,
   descripcion: 300,
 } as const;

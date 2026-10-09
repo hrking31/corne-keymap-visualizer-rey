@@ -22,8 +22,12 @@ function mensajeDe(e: unknown): string {
 // «Continuar con Google» (ya descargado, falta el clic que abre la ventana)
 export type PasoEntrada = "entrar" | "conectando" | "continuar";
 
+// "comprobando": había una sesión guardada en el teléfono y Firebase aún no lo confirma
+export type EstadoSesion = "comprobando" | "abierta" | "cerrada";
+
 export type Cuenta = {
   usuario: Usuario | null;
+  sesion: EstadoSesion;
   // El teclado del usuario; null si no hay sesión o aún no lo ha configurado
   teclado: TecladoConfig | null;
   // true cuando ya se sabe si el usuario tiene teclado (llegó de Firestore o de su caché)
@@ -43,6 +47,9 @@ export type Cuenta = {
 export function useCuenta(habilitada: boolean): Cuenta {
   const [conectar, setConectar] = useState(() => habilitada && haySesion());
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [sesion, setSesion] = useState<EstadoSesion>(() =>
+    habilitada && haySesion() ? "comprobando" : "cerrada",
+  );
   // Mientras Firebase carga, se muestra la copia guardada en el teléfono: abre al instante
   const [teclado, setTeclado] = useState<TecladoConfig | null>(() =>
     habilitada && haySesion() ? leerCopia() : null,
@@ -78,6 +85,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
           dejarTeclado();
           dejarTeclado = () => {};
           setUsuario(u);
+          setSesion(u ? "abierta" : "cerrada");
           marcarSesion(Boolean(u));
           setTecladoCargado(false);
           if (!u) {
@@ -152,5 +160,5 @@ export function useCuenta(habilitada: boolean): Cuenta {
     }
   };
 
-  return { usuario, teclado, tecladoCargado, error, paso, precargar, entrar, salir, guardar, borrarCuenta };
+  return { usuario, sesion, teclado, tecladoCargado, error, paso, precargar, entrar, salir, guardar, borrarCuenta };
 }

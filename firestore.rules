@@ -18,7 +18,7 @@ service cloud.firestore {
     function tecladoValido(t) {
       return t.keys().hasAll(['nombre', 'ajustes', 'orden', 'capas'])
         && t.keys().hasOnly(['nombre', 'ajustes', 'orden', 'capas', 'actualizado'])
-        && t.nombre is string && t.nombre.size() <= 40
+        && t.nombre is string && t.nombre.size() <= 12
         && ajustesValidos(t.ajustes)
         // Entre 1 y 10 capas, y la primera es siempre Base (la capa 0 de ZMK)
         && t.orden is list && t.orden.size() >= 1 && t.orden.size() <= 10

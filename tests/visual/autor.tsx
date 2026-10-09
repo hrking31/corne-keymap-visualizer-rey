@@ -9,8 +9,9 @@ import "../../src/style.css";
 
 const teclado = {
   ...desdeKeymap(keymap, { distribucion: "dvorak", idioma: "es-LA", so: "windows" }),
-  // El mismo título que la versión original
-  nombre: "Corne ZMK Visualizer",
+  // «Corne Visualizer ZMK»: las mismas letras que el título original («Corne ZMK
+  // Visualizer»), así que con letra de ancho fijo mide lo mismo
+  nombre: "Visualizer",
 };
 
 createRoot(document.getElementById("root")!).render(<App tecladoInicial={teclado} />);

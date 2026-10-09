@@ -43,5 +43,5 @@ export function desdeKeymap(keymap: Keymap, ajustes: TecladoConfig["ajustes"]): 
     }
     capas[id.toLowerCase()] = config;
   }
-  return { nombre: "Corne Rey", ajustes, orden: Object.keys(keymap).map((id) => id.toLowerCase()), capas };
+  return { nombre: "Rey", ajustes, orden: Object.keys(keymap).map((id) => id.toLowerCase()), capas };
 }

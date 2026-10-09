@@ -717,12 +717,11 @@ h1,
   }
 }
 
-/* ===== BIENVENIDA (2026-10-07, pedida por el autor) =====
-   Al abrir la app: el teclado con los LED en efecto Swirl (la animación va dentro del
-   SVG), acostado en todas las pantallas.
-   Está en index.html (se ve mientras carga la app) y Bienvenida.tsx la quita tras
-   1,8 s como mínimo; se desvanece en 0,4s (SALIDA_MS). */
-.bienvenida {
+/* ===== PANTALLA DE INGRESO (2026-10-09, pedida por el autor) =====
+   Sin sesión, la app muestra solo esto (Ingreso.tsx): el teclado con los LED en efecto
+   Swirl (la animación va dentro del SVG), el título, «Entrar con Google» y «Ver demo».
+   Antes era una bienvenida de 1,8 s en index.html; el autor la quitó. */
+.ingreso {
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -733,36 +732,20 @@ h1,
   gap: clamp(12px, 3vmin, 32px);
   /* El naranja del ícono, con el mismo degradado */
   background: radial-gradient(circle at 50% 45%, #f59e0b, #b45309 75%);
-  /* Reserva abajo el alto de la firma: el teclado y el título se centran en el resto */
+  /* Reserva abajo el alto de la firma: el resto se centra en lo que queda */
   box-sizing: border-box;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
-  transition: opacity 0.4s ease;
 }
 
-.bienvenida.saliendo {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Sin animaciones si el sistema lo pide: la bienvenida ni se muestra */
-@media (prefers-reduced-motion: reduce) {
-  .bienvenida {
-    display: none;
-  }
-}
-
-.bienvenida img {
+/* 575 × 441. En vertical, casi todo el ancho de la pantalla */
+.ingreso-teclado {
   display: block;
+  width: min(92vw, 760px);
   height: auto;
 }
 
-/* 575 × 441, con aire alrededor. Deja sitio para el título */
-.bienvenida-teclado {
-  width: min(80vw, 760px, calc(62vh * 1.3));
-}
-
 /* Oscuro sobre el naranja, como el teclado del ícono */
-.bienvenida-titulo {
+.ingreso-titulo {
   margin: 0;
   color: #1a1915;
   font-weight: bold;
@@ -771,8 +754,78 @@ h1,
   letter-spacing: 0.08em;
 }
 
+.ingreso-botones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.ingreso-entrar {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 6px;
+  background: #1a1915;
+  color: #e6e2d3;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: background 0.2s ease;
+}
+
+.ingreso-entrar:hover,
+.ingreso-entrar:focus-visible {
+  background: #2a2824;
+}
+
+.ingreso-entrar:focus-visible,
+.ingreso-demo:focus-visible {
+  outline: 2px solid #1a1915;
+  outline-offset: 3px;
+}
+
+.ingreso-entrar:disabled {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+/* La «G» sobre un círculo blanco, como piden las pautas de Google */
+.ingreso-entrar svg {
+  width: 22px;
+  height: 22px;
+  padding: 3px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.ingreso-demo {
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: #1a1915;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ingreso-error {
+  max-width: 300px;
+  margin: 0;
+  color: #1a1915;
+  font-size: 13px;
+  text-align: center;
+}
+
 /* Firma pegada al borde de abajo (respeta la barra del sistema en el móvil) */
-.bienvenida-pie {
+.ingreso-pie {
   position: absolute;
   left: 0;
   right: 0;
@@ -783,14 +836,48 @@ h1,
   line-height: 1.4;
 }
 
-.bienvenida-pie p {
+.ingreso-pie p {
   margin: 0;
 }
 
-/* En vertical, más ancho: casi todo el ancho de la pantalla */
-@media (max-aspect-ratio: 6/5) {
-  .bienvenida .bienvenida-teclado {
-    width: min(92vw, 760px);
+/* Pantallas anchas: el teclado deja sitio debajo al título, los botones y la firma
+   (sin el último término, a 900 × 520 quedaba a 2px del borde) */
+@media (min-aspect-ratio: 6/5) {
+  .ingreso-teclado {
+    width: min(80vw, 760px, calc(62vh * 1.3), calc((100vh - 260px) * 1.3));
+  }
+}
+
+/* Móvil horizontal (poco alto): el teclado a la izquierda; título y botones a la derecha */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ingreso {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      "teclado titulo"
+      "teclado botones";
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    column-gap: clamp(16px, 5vw, 48px);
+    row-gap: 16px;
+  }
+
+  .ingreso-teclado {
+    grid-area: teclado;
+    width: min(48vw, calc((100vh - 72px) * 1.3));
+  }
+
+  .ingreso-titulo {
+    grid-area: titulo;
+    align-self: end;
+    max-width: 40vw;
+    text-align: center;
+  }
+
+  .ingreso-botones {
+    grid-area: botones;
+    align-self: start;
   }
 }
 
@@ -878,29 +965,9 @@ h1,
 }
 
 /* ===== CUENTA (Fase 2.3) =====
-   «Entrar» / «Salir» en la línea de la firma: un botón con el aspecto de su enlace. */
-.firma .enlace {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-decoration: underline;
-  text-decoration-color: #4a453c;
-  text-underline-offset: 2px;
-  cursor: pointer;
-  outline: none;
-  transition: color 0.2s;
-}
+   Entrar, Salir y Editar están en el menú de ajustes (editor.css). */
 
-.firma .enlace:hover,
-.firma .enlace:focus-visible {
-  color: #ff9d2e;
-  text-decoration-color: #d97706;
-}
-
-/* Un error al entrar, en la misma línea y en naranja */
+/* Un error al entrar o al guardar, debajo de la firma y en naranja */
 .firma-error {
   display: block;
   color: #ff9d2e;

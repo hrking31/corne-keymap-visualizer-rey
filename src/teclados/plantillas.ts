@@ -41,11 +41,13 @@ export function crearTeclado(ajustes: Ajustes, nombre = ""): TecladoConfig {
   return { nombre, ajustes, orden: ["base"], capas: { base: crearBase(ajustes) } };
 }
 
-// Lo que se ve arriba en la app: el nombre que puso el usuario o, si no puso ninguno
-// (o no tiene cuenta), «Corne ZMK»
+// El título de arriba en la app: «Corne ZMK», con el nombre que puso el usuario en medio
+// («Rey» → «Corne Rey ZMK»). Sin nombre (o sin cuenta), solo «Corne ZMK»
 export const NOMBRE_POR_DEFECTO = "Corne ZMK";
-export const nombreVisible = (teclado: Pick<TecladoConfig, "nombre">) =>
-  teclado.nombre.trim() || NOMBRE_POR_DEFECTO;
+export function nombreVisible(teclado: Pick<TecladoConfig, "nombre">) {
+  const nombre = teclado.nombre.trim();
+  return nombre ? `Corne ${nombre} ZMK` : NOMBRE_POR_DEFECTO;
+}
 
 // Ajustes de la Base de ejemplo para un visitante: QWERTY en el idioma y el sistema de su
 // navegador (español de España solo si lo dice; cualquier otro español, Latinoamérica).

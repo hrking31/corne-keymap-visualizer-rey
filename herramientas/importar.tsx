@@ -14,7 +14,7 @@ import "../src/editor.css";
 // La configuración del autor: Dvorak adaptado al español, en Windows
 const miTeclado: TecladoConfig = {
   ...desdeKeymap(keymap, { distribucion: "dvorak", idioma: "es-LA", so: "windows" }),
-  nombre: "Corne ZMK Rey",
+  nombre: "Rey",
 };
 
 function Importar() {
