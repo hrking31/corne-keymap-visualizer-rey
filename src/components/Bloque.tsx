@@ -42,6 +42,8 @@ export default function Bloque(props: Props) {
           : tecla.deCapa
             ? "key key-naranja"
             : "key";
+        // Importada de un &trans: hace lo de la capa de abajo, con el texto en gris
+        const claseHeredada = tecla.heredada && !vistaPrevia ? " key-heredada" : "";
         const texto = tecla.texto.trim();
 
         // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»
@@ -49,7 +51,7 @@ export default function Bloque(props: Props) {
           <button
             key={key}
             type="button"
-            className={clases}
+            className={clases + claseHeredada}
             aria-label={`${texto || `Key ${tecla.pos}`}, ${nombreCapa}`}
             aria-describedby={editando ? undefined : "info-modal"}
             data-elegida={elegida === tecla.pos || undefined}

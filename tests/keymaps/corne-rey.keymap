@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+//para activar funciones en el teclado
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/rgb.h>
+#include <dt-bindings/zmk/outputs.h>
+#include "macros.dtsi"
+#include "combos.dtsi"
+
+//numero de luces del teclado
+&led_strip {
+    chain-length = <27>;
+};
+
+//se definen nombres a las capas
+#define DEF 0
+#define NUM 1
+#define SYM 2
+#define NAV 3
+#define LED 4
+#define FUN 5
+
+/ {
+    behaviors {
+        ht_comb: hold_tap_combos {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            bindings = <&kp>, <&kp>;
+        };
+    };
+};
+
+ / {
+        keymap {
+                compatible = "zmk,keymap"; 
+
+                   default_layer {
+            label = "DEF";
+
+                        bindings = < 
+   &kp  ESC     &kp  DOT    &kp  COMMA   &kp  SEMI    &kp  P     &kp  Y                &kp  F     &kp  G     &kp  C   &kp  H   &kp  L   &kp  BSPC
+   &kp  LALT    &kp  A      &kp  O       &kp  E       &kp  U     &kp  I                &kp  D     &kp  R     &kp  T   &kp  N   &kp  S   &kp  DEL
+   &kp  LCTRL   &kp  LBKT   &kp  Q       &kp  J       &kp  K     &kp  X                &kp  B     &kp  M     &kp  W   &kp  V   &kp  Z   &kp  TAB
+                                         &kp  LSHFT   &mo  NUM   &kp  SPACE            &kp  RET   &mo  SYM   &kp  RGUI 
+                        >;
+                };
+
+                 number_layer {
+            label = "NUM";
+
+                        bindings = <
+   &trans     &kp  N1      &kp N2      &kp N3                 &kp N4      &kp N5               &kp N6     &kp N7      &kp N8      &kp N9      &kp N0         &trans
+   &kp LEFT   &kp LC(B)    &kp LC(E)   &kp HOME               &mcr_up     &kp LC(Z)            &kp UP     &kp LC(C)   &kp LC(V)   &kp LC(X)   &kp LC(BSLH)   &trans
+   &kp RIGHT  &mcr_focoa   &kp LC(A)   &kp END                &mcr_down   &kp LC(Y)            &kp DOWN   &kp LC(J)   &mcr_file   &mcr_git    &mcr_ext       &ht_comb LA(V) LA(Q)
+                                       &ht_comb LA(B) LC(N)   &trans      &trans               &trans     &mo NAV     &mo FUN 
+                        >;
+                };
+
+               symbol_layer {
+            label = "SYM";
+
+                        bindings = <
+   &none   &kp PLUS   &kp AT           &kp HASH    &kp DLLR    &kp PRCNT            &kp PSCRN   &mcr_arroba    &kp MINUS    &kp LBKT        &kp EXCL    &trans
+   &none   &kp DQT    &kp APOSTROPHE   &kp ASTRK   &kp GRAVE   &kp EQUAL            &kp UNDER   &kp CARET      &kp LPAR     &kp BSLH        &kp PIPE    &trans
+   &none   &kp RBKT   &kp SLASH        &kp RBRC    &kp AMPS    &kp RPAR             &kp NUBS    &kp LS(NUBS)   &mcr_barra   &kp LS(SLASH)   &kp TILDE   &none
+                                       &none       &mo LED     &trans               &trans      &trans         &none
+                        >;
+                };
+
+                 navigate_layer {
+            label = "NAV";
+
+                        bindings = < 
+   &kp LA(T)   &mcr_left       &mcr_selleft            &kp LA(N)   &kp LA(W)      &kp LA(E)                &ht_comb LA(H) LA(L)   &mcr_esmo1      &mcr_esmo2   &mcr_selright   &mcr_right     &kp LC(D)
+   &kp PG_UP   &kp LC(PG_DN)   &kp LS(LEFT)            &mcr_maxi   &kp LA(S)      &kp LA(D)                &ht_comb LA(K) LA(J)   &mcr_esmo3      &mcr_esmo4   &kp LS(RIGHT)   &kp LS(UP)     &mcr_open
+   &kp PG_DN   &kp LC(DOT)     &ht_comb LA(Y) LA(X)    &kp LA(M)   &kp LA(LEFT)   &kp LA(RIGHT)            &kp LA(SLASH)          &kp LA(RBKT)    &mcr_incre   &mcr_decre      &kp LS(DOWN)   &mcr_close
+                                                       &mcr_venl   &trans         &trans                   &trans                 &trans          &mcr_venr
+                        >;
+                };
+
+                 led_layer {
+            label = "LED";
+
+                        bindings = <
+   &none   &none   &rgb_ug RGB_SPD   &rgb_ug RGB_EFR   &mcr_escrt1   &mcr_escrt2            &mcr_escrt5   &mcr_escrt8   &rgb_ug RGB_EFF   &rgb_ug RGB_SPI     &none   &none
+   &none   &none   &rgb_ug RGB_SAD   &rgb_ug RGB_BRD   &none         &mcr_escrt3            &mcr_escrt6   &none         &rgb_ug RGB_BRI   &rgb_ug RGB_SAI     &none   &none
+   &none   &none   &rgb_ug RGB_TOG   &rgb_ug RGB_HUD   &none         &mcr_escrt4            &mcr_escrt7   &none         &rgb_ug RGB_HUI   &none               &none   &none
+                                     &none             &trans        &none                  &none         &trans        &none
+                        >;
+                };
+
+                 function_layer {
+            label = "FUN";
+
+                        bindings = <
+   &kp F1        &kp F2         &kp F3         &kp F4         &kp F5         &kp F6                  &kp F7       &kp F8     &kp F9         &kp F10        &kp F11      &kp F12
+   &bt BT_CLR    &bt BT_SEL 0   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3   &bt BT_SEL 4            &kp C_PREV   &kp C_PP   &kp C_VOL_UP   &kp C_VOL_DN   &kp C_NEXT   &kp C_MUTE  
+   &mcr_resetk   &mcr_reset     &kp LA(I)      &none          &none          &none                   &none        &none      &none          &none          &none        &out OUT_TOG
+                                               &none          &trans         &none                   &none        &none      &trans
+                        >;
+                };
+        };
+};
+
+
+
+
+
+

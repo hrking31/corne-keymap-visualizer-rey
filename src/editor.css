@@ -412,3 +412,9 @@ input[type="radio"] {
   padding: 6px 12px;
   font-size: 12px;
 }
+
+/* Tecla importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y su
+   texto se ve en gris para distinguirla de las que tienen función propia en esta capa */
+.key.key-heredada {
+  color: var(--color-gris);
+}

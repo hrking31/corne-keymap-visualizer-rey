@@ -21,6 +21,9 @@ import MenuAjustes, { type OpcionMenu } from "./components/MenuAjustes";
 import { useCuenta } from "./firebase/useCuenta";
 import Asistente from "./components/editor/Asistente";
 import TituloEditable from "./components/editor/TituloEditable";
+import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
+import { leerKeymap } from "./keymap/leer";
+import { importarKeymap } from "./keymap/importar";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
@@ -101,6 +104,9 @@ export default function App({ tecladoInicial }: Props) {
   const [capaEnEdicion, setCapaEnEdicion] = useState(false);
   const [intercambiando, setIntercambiando] = useState<number | null>(null);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
+  // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
+  const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
+  const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -159,6 +165,20 @@ export default function App({ tecladoInicial }: Props) {
       setCapa(id);
       setTeclaEditada(null);
       setCapaEnEdicion(true);
+    }
+  };
+
+  // Lee el .keymap elegido (y los archivos que lo acompañen, como macros.dtsi) y muestra el
+  // resumen. Nada se guarda hasta pulsar «Aplicar»
+  const leerArchivos = async (archivos: FileList | null) => {
+    if (!archivos?.length || !mio) return;
+    const nombres = [...archivos].map((a) => a.name);
+    try {
+      const textos = await Promise.all([...archivos].map((a) => a.text()));
+      const { teclado: nuevo, resumen } = importarKeymap(leerKeymap(textos), mio);
+      setImportacion({ archivos: nombres, resumen, teclado: nuevo });
+    } catch (e) {
+      setImportacion({ archivos: nombres, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -274,7 +294,11 @@ export default function App({ tecladoInicial }: Props) {
   // Las opciones del menú de ajustes (⚙). Mientras se edita no aparece: manda «Listo»
   const menu: OpcionMenu[] = [];
   if (conCuenta && cuenta.usuario && !modoEdicion) {
-    if (mio) menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+    if (mio) {
+      menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+      // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
+      menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
+    }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
       {
@@ -514,6 +538,35 @@ export default function App({ tecladoInicial }: Props) {
             Cancelar
           </button>
         </div>
+      )}
+
+      {/* El selector de archivos del menú «Importar .keymap»: no se ve */}
+      {mio && (
+        <input
+          ref={setSelectorKeymap}
+          type="file"
+          accept=".keymap,.dtsi,.h"
+          multiple
+          hidden
+          onChange={(e) => {
+            void leerArchivos(e.target.files);
+            // Así se puede volver a elegir el mismo archivo después de cambiarlo
+            e.target.value = "";
+          }}
+        />
+      )}
+
+      {importacion && (
+        <ImportarKeymap
+          importacion={importacion}
+          onAplicar={() => {
+            if (importacion.teclado && guardar(importacion.teclado)) {
+              setCapa("base");
+              setImportacion(null);
+            }
+          }}
+          onCerrar={() => setImportacion(null)}
+        />
       )}
 
       {confirmarBorrado && (
