@@ -888,6 +888,15 @@ h1,
   margin: 0;
 }
 
+/* Móvil vertical: sobraba espacio abajo. Los botones bajan un poco (8 % del alto) y
+   «Ver demo» se separa más de «Inicia sesión con Google» (pedido del autor) */
+@media (max-aspect-ratio: 6/5) {
+  .ingreso-botones {
+    gap: 20px;
+    margin-top: 8vh;
+  }
+}
+
 /* Pantallas anchas: el teclado deja sitio debajo al título, los botones y la firma
    (sin el último término, a 900 × 520 quedaba a 2px del borde) */
 @media (min-aspect-ratio: 6/5) {
