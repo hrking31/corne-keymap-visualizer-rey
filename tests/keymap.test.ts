@@ -4,7 +4,6 @@
 import { describe, expect, it } from "vitest";
 import oficial from "./keymaps/zmk-corne.keymap?raw";
 import rey from "./keymaps/corne-rey.keymap?raw";
-import reyMacros from "./keymaps/corne-rey-macros.dtsi?raw";
 import { keymap as dataAutor } from "../src/data";
 import { desdeKeymap } from "../src/teclados/convertir";
 import { crearTeclado } from "../src/teclados/plantillas";
@@ -17,13 +16,13 @@ import { textoDeCodigo } from "../src/keymap/codigos";
 const ingles: Ajustes = { distribucion: "qwerty", idioma: "en-US", so: "windows" };
 const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows" };
 
-const importar = (textos: string[], ajustes: Ajustes, actual?: TecladoConfig) =>
-  importarKeymap(leerKeymap(textos), actual ?? crearTeclado(ajustes));
+const importar = (archivo: string, ajustes: Ajustes, actual?: TecladoConfig) =>
+  importarKeymap(leerKeymap(archivo), actual ?? crearTeclado(ajustes));
 
 const texto = (t: TecladoConfig, capa: number, pos: number) => t.capas[t.orden[capa]].teclas[pos]?.texto ?? "";
 
 describe("keymap oficial del Corne (ZMK)", () => {
-  const { teclado, resumen } = importar([oficial], ingles);
+  const { teclado, resumen } = importar(oficial, ingles);
 
   it("lee sus 3 capas de 42 teclas, con sus nombres", () => {
     expect(resumen.capas).toEqual(["BASE", "LOWER", "RAISE"]);
@@ -55,12 +54,14 @@ describe("keymap oficial del Corne (ZMK)", () => {
 });
 
 describe("keymap del autor (español latino, Windows)", () => {
-  const { teclado, resumen } = importar([rey, reyMacros], latino);
+  // Solo el .keymap: sus macros están en otro archivo y aun así se reconocen como propias
+  const { teclado, resumen } = importar(rey, latino);
 
-  it("lee sus 6 capas y reconoce todo, macros incluidas", () => {
+  it("lee sus 6 capas y reconoce todo, con sus macros como comportamientos propios", () => {
     expect(resumen.capas).toEqual(["BASE", "NUM", "SYM", "NAV", "LED", "FUN"]);
     expect(resumen.desconocidos).toEqual([]);
-    expect(resumen.macros).toContain("mcr_git");
+    expect(resumen.propios).toContain("mcr_git");
+    expect(texto(teclado, 1, 33)).toBe("GIT");
     expect(validarTeclado(teclado)).toEqual([]);
   });
 
@@ -69,7 +70,7 @@ describe("keymap del autor (español latino, Windows)", () => {
 
   it("cada &kp se ve igual que en la configuración que el autor escribió a mano", () => {
     const aMano = desdeKeymap(dataAutor, latino);
-    const leido = leerKeymap([rey, reyMacros]);
+    const leido = leerKeymap(rey);
     const distintas: string[] = [];
     leido.capas.forEach((capa, i) =>
       capa.bindings.forEach((b, pos) => {
@@ -107,7 +108,7 @@ describe("casos raros (un keymap inventado)", () => {
         ${capa("nav_layer", "&trans &kp LEFT &caps_word &mo 0 &out OUT_TOG &rgb_ug RGB_TOG", 6)}
       };
     };`;
-  const { teclado, resumen } = importar([archivo], latino);
+  const { teclado, resumen } = importar(archivo, latino);
 
   it("entiende los comportamientos estándar, los #define y las plantillas", () => {
     expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "SPC/NAV", deCapa: true });
@@ -120,13 +121,13 @@ describe("casos raros (un keymap inventado)", () => {
     expect(texto(teclado, 0, 6)).toBe("HOLA");
     expect(texto(teclado, 0, 9)).toBe("CTRL+SHIFT+Z");
     expect(texto(teclado, 0, 10)).toBe("@");
-    expect(resumen.macros).toEqual(["mcr_hola"]);
+    expect(resumen.propios).toEqual(["mcr_hola", "foo"]);
   });
 
-  it("lo que no reconoce lo muestra tal cual y lo avisa, sin inventar", () => {
-    expect(texto(teclado, 0, 7)).toBe("foo 3");
+  it("un comportamiento que no es de ZMK es propio del usuario; lo mal escrito se avisa", () => {
+    expect(texto(teclado, 0, 7)).toBe("FOO 3");
     expect(texto(teclado, 0, 8)).toBe("NOEXISTE");
-    expect(resumen.desconocidos.map((d) => d.original)).toEqual(["&foo 3", "&kp NOEXISTE"]);
+    expect(resumen.desconocidos.map((d) => d.original)).toEqual(["&kp NOEXISTE"]);
   });
 
   it("la capa de abajo de una &trans es la que la activa", () => {
@@ -137,10 +138,10 @@ describe("casos raros (un keymap inventado)", () => {
 
   it("solo admite el Corne de 42 teclas y hasta 10 capas", () => {
     const corto = `/ { keymap { compatible = "zmk,keymap"; a { bindings = <&kp A &kp B>; }; }; };`;
-    expect(() => importar([corto], latino)).toThrow(ErrorKeymap);
-    expect(() => importar(["no es un keymap"], latino)).toThrow(ErrorKeymap);
+    expect(() => importar(corto, latino)).toThrow(ErrorKeymap);
+    expect(() => importar("no es un keymap", latino)).toThrow(ErrorKeymap);
     const once = Array.from({ length: 11 }, (_, i) => capa(`c${i}`, "&kp A", 1)).join("\n");
-    expect(() => importar([`/ { keymap { compatible = "zmk,keymap"; ${once} }; };`], latino)).toThrow(/10/);
+    expect(() => importar(`/ { keymap { compatible = "zmk,keymap"; ${once} }; };`, latino)).toThrow(/10/);
   });
 });
 
@@ -150,7 +151,7 @@ describe("volver a importar", () => {
     actual.capas.base.teclas[0] = { texto: "X", descripcion: "Mi tabulador", deCapa: false };
     actual.orden.push("a", "b", "c", "d");
     for (const id of ["a", "b", "c", "d"]) actual.capas[id] = { corto: id.toUpperCase(), largo: "", teclas: {} };
-    const { teclado, resumen } = importarKeymap(leerKeymap([oficial]), actual);
+    const { teclado, resumen } = importarKeymap(leerKeymap(oficial), actual);
     expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "TAB", descripcion: "Mi tabulador" });
     expect(teclado.orden).toEqual(["base", "a", "b"]);
     expect(resumen.quitadas).toEqual(["C", "D"]);

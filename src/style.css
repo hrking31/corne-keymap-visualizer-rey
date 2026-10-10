@@ -12,29 +12,6 @@ body {
   text-align: center;
 }
 
-/* Barra superior */
-.top-bar {
-  position: absolute;
-  top: 16px;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-/* Título */
-.title {
-  margin: 0;
-  color: #e6e2d3; /* color hueso */
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: clamp(20px, 3vw, 32px);
-  font-weight: 600;
-}
-
 /* Contenedor de botones */
 .layer-buttons {
   display: flex;
@@ -320,9 +297,6 @@ button.key {
     --key-gap: clamp(7px, 1.2vw, 8px);
   }
 
-  .title {
-    font-size: clamp(16px, 5vw, 20px);
-  }
 
   .layer-buttons {
     gap: 8px;
@@ -335,10 +309,6 @@ button.key {
     border-radius: 16px;
   }
 
-  .top-bar {
-    gap: 6px;
-    top: 10px;
-  }
 
   .keyboard-container {
     padding: 8px;
@@ -390,19 +360,7 @@ button.key {
 /* Ajuste para móviles en horizontal */
 @media (max-width: 915px) and (orientation: landscape) and (max-height: 500px) {
 
-  .top-bar {
-    position: relative; 
-    top: 0;
-    margin-top: 2px;
-    flex-direction: row; 
-    justify-content: center;
-    gap: 5px;
-  }
 
-  .title {
-    font-size: 12px; 
-    margin: 0;
-  }
 
   .layer-buttons {
     gap: 10px;

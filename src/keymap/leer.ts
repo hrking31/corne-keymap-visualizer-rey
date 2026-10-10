@@ -13,13 +13,13 @@ export type Binding = {
   original: string; // tal como estaba escrito, para mostrarlo si no se reconoce
 };
 
-export type CapaLeida = {
+type CapaLeida = {
   nodo: string; // «default_layer»
   nombre: string; // display-name o label, o el nombre del nodo
   bindings: Binding[];
 };
 
-export type ComportamientoPropio = {
+type ComportamientoPropio = {
   tipo: string; // «macro», «hold-tap», «tap-dance», «mod-morph»…
   // Los comportamientos que usa por dentro (hold-tap: [mantener, tocar]; mod-morph y
   // tap-dance: cada opción completa, con sus parámetros)
@@ -270,19 +270,11 @@ function leerBindings(valor: string): Binding[] {
 
 // ---------- Lectura ----------
 
-// `textos`: el .keymap y, si se quieren, los archivos que incluye (macros.dtsi…), en
-// cualquier orden. Lanza ErrorKeymap si no encuentra un keymap de ZMK.
-export function leerKeymap(textos: string[]): KeymapLeido {
-  const definiciones = new Map<string, Definicion>();
-  const codigos: string[] = [];
-  for (const texto of textos) {
-    const { codigo, definiciones: defs } = separarDirectivas(quitarComentarios(texto));
-    defs.forEach((d, n) => definiciones.set(n, d));
-    codigos.push(codigo);
-  }
-
+// Lee el texto de un .keymap. Lanza ErrorKeymap si no encuentra un keymap de ZMK.
+export function leerKeymap(texto: string): KeymapLeido {
+  const { codigo, definiciones } = separarDirectivas(quitarComentarios(texto));
   const raiz: Nodo = { nombre: "", propiedades: {}, hijos: [] };
-  for (const codigo of codigos) leerBloque(expandir(codigo, definiciones), 0, raiz);
+  leerBloque(expandir(codigo, definiciones), 0, raiz);
 
   let keymap: Nodo | undefined;
   const propios: Record<string, ComportamientoPropio> = {};
@@ -294,7 +286,7 @@ export function leerKeymap(textos: string[]): KeymapLeido {
       propios[n.etiqueta] = { tipo, bindings: leerBindings(n.propiedades.bindings ?? "") };
     }
   });
-  if (!keymap) throw new ErrorKeymap('No se encontró el keymap (el nodo con compatible = "zmk,keymap").');
+  if (!keymap) throw new ErrorKeymap('No es un .keymap de ZMK: no tiene el nodo con compatible = "zmk,keymap".');
 
   const capas = keymap.hijos
     .filter((n) => n.propiedades.bindings !== undefined)

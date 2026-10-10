@@ -2,8 +2,8 @@ import type { ResumenImportacion } from "../../keymap/importar";
 import { useVentanaEditor } from "./useVentanaEditor";
 
 export type Importacion =
-  | { archivos: string[]; resumen: ResumenImportacion; error?: undefined }
-  | { archivos: string[]; error: string; resumen?: undefined };
+  | { archivo: string; resumen: ResumenImportacion; error?: undefined }
+  | { archivo: string; error: string; resumen?: undefined };
 
 type Props = {
   importacion: Importacion;
@@ -12,11 +12,12 @@ type Props = {
 };
 
 // El resumen de un .keymap leído, antes de aplicarlo al teclado: qué capas trae, qué
-// macros hay que describir, qué no se reconoció y qué capas se quitarían. Nada cambia
+// comportamientos propios (macros…) hay que describir, qué no se reconoció y qué capas se
+// quitarían. Nada cambia
 // hasta pulsar «Aplicar». Si el archivo no se pudo leer, explica por qué.
 export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
-  const { archivos, error } = importacion;
+  const { archivo, error } = importacion;
   const resumen = importacion.error === undefined ? importacion.resumen : null;
   const sinPrefijo = (macro: string) => macro.replace(/^(mcr|macro|m)_/i, "");
 
@@ -33,7 +34,7 @@ export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Pro
       </button>
       <div className="flex flex-col gap-3">
         <h2 className="m-0 text-base text-naranja-claro uppercase">Importar keymap</h2>
-        <p className="m-0 text-xs break-all text-gris">{archivos.join(" · ")}</p>
+        <p className="m-0 text-xs break-all text-gris">{archivo}</p>
 
         {!resumen ? (
           <p className="m-0 text-naranja-claro" role="alert">{error}</p>
@@ -45,11 +46,11 @@ export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Pro
               <strong className="text-hueso">{resumen.teclas} teclas</strong> con función.
             </p>
 
-            {resumen.macros.length > 0 && (
+            {resumen.propios.length > 0 && (
               <p className="m-0">
-                <strong className="text-hueso">{resumen.macros.length} macros.</strong> Se muestran con su nombre;
-                escribe qué hace cada una al editar su tecla.
-                <span className="mt-1 block text-xs text-gris">{resumen.macros.map(sinPrefijo).join(", ")}</span>
+                <strong className="text-hueso">{resumen.propios.length} comportamientos propios</strong> (macros…). Se
+                muestran con su nombre; escribe qué hace cada uno al editar su tecla.
+                <span className="mt-1 block text-xs text-gris">{resumen.propios.map(sinPrefijo).join(", ")}</span>
               </p>
             )}
 

@@ -1,7 +1,10 @@
 // Convierte un .keymap leído en el teclado de la app (TecladoConfig), listo para guardar.
 // - Cada capa del archivo es una capa de la app, en el mismo orden (la primera, Base).
-// - El texto de cada tecla sale de lo que hace (&kp A → «A»); lo que no se reconoce se
-//   muestra tal cual y se avisa en el resumen: nunca se inventa.
+// - El texto de cada tecla sale de lo que hace (&kp A → «A»). Solo se importa el .keymap:
+//   un comportamiento que no es de ZMK (&mcr_git) es uno propio del usuario, definido en
+//   otro archivo; se muestra con su nombre («GIT») y el usuario escribe qué hace. Lo que
+//   está mal escrito (un código de tecla que no existe) se muestra tal cual y se avisa:
+//   nunca se inventa.
 // - Las descripciones que el usuario ya escribió se conservan, tecla por tecla.
 // - &trans muestra el texto de la capa desde la que se llega a esa (la que tiene el &mo,
 //   &lt… que la activa; si no hay, Base), marcado como heredado (gris). Es lo que hace
@@ -12,14 +15,14 @@ import { textoDeCodigo } from "./codigos";
 import { ErrorKeymap, type Binding, type KeymapLeido } from "./leer";
 
 // Solo el Corne de 42 teclas, el único que dibuja la app
-export const TECLAS_POR_CAPA = 42;
+const TECLAS_POR_CAPA = 42;
 
-type Traducida = { texto: string; deCapa: boolean; heredada?: boolean; desconocido?: boolean; macro?: string };
+type Traducida = { texto: string; deCapa: boolean; heredada?: boolean; desconocido?: boolean; propio?: string };
 
 export type ResumenImportacion = {
   capas: string[]; // nombres cortos, en orden
   teclas: number; // teclas con algo que mostrar
-  macros: string[]; // macros del usuario: su descripción se escribe en el editor
+  propios: string[]; // comportamientos del usuario (macros…): qué hacen se escribe en el editor
   desconocidos: { capa: string; pos: number; original: string }[];
   quitadas: string[]; // capas que tenía la app y el archivo ya no trae
 };
@@ -59,6 +62,10 @@ const OPCIONES: Record<string, Record<string, string>> = {
   "&mmv": { MOVE_UP: "MOUSE ↑", MOVE_DOWN: "MOUSE ↓", MOVE_LEFT: "MOUSE ←", MOVE_RIGHT: "MOUSE →" },
   "&msc": { SCRL_UP: "SCROLL ↑", SCRL_DOWN: "SCROLL ↓", SCRL_LEFT: "SCROLL ←", SCRL_RIGHT: "SCROLL →" },
 };
+
+// Los comportamientos de serie de ZMK que se traducen arriba (un &algo que no está aquí
+// ni en SIMPLES ni en OPCIONES es uno propio del usuario)
+const DE_ZMK = new Set(["&kp", "&none", "&trans", "&mo", "&to", "&tog", "&sl", "&lt", "&mt", "&sk", "&kt", "&bt"]);
 
 // Comportamientos sin parámetros
 const SIMPLES: Record<string, string> = {
@@ -101,14 +108,10 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
   const opcion = OPCIONES[b.comportamiento]?.[p1 ?? ""];
   if (opcion) return { texto: opcion, deCapa: false };
 
-  // Comportamientos que define el propio archivo
+  // Comportamientos que el .keymap define dentro (tocar/mantener…) y que se pueden traducir
   const nombre = b.comportamiento.replace(/^&/, "");
   const propio = ctx.propios[nombre];
   if (propio && profundidad < 3) {
-    if (propio.tipo === "macro") {
-      // «mcr_git» → «GIT»: el nombre sin el prefijo habitual. Qué hace, lo escribe el usuario
-      return { texto: nombre.replace(/^(mcr|macro|m)_/i, "").toUpperCase(), deCapa: false, macro: nombre };
-    }
     if (propio.tipo === "hold-tap" && propio.bindings.length >= 2) {
       // Como &mt y &lt: «tocar/mantener»
       const mantener = traducir({ ...propio.bindings[0], parametros: [p1 ?? ""] }, ctx, profundidad + 1);
@@ -120,8 +123,14 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
       return { texto: opciones.map((o) => o.texto).join("/"), deCapa: opciones.some((o) => o.deCapa) };
     }
   }
-  // Desconocido: tal cual, sin «&»
-  return { texto: b.original.replace(/^&/, ""), deCapa: false, desconocido: true };
+  // Uno de ZMK con una opción que no se conoce (mal escrita, o de una versión nueva): tal cual
+  if (DE_ZMK.has(b.comportamiento) || SIMPLES[b.comportamiento] || OPCIONES[b.comportamiento]) {
+    return { texto: b.original.replace(/^&/, ""), deCapa: false, desconocido: true };
+  }
+  // Uno propio del usuario (una macro, casi siempre): su nombre sin el prefijo habitual,
+  // «mcr_git» → «GIT», con sus parámetros si los lleva. Qué hace, lo escribe el usuario
+  const visible = [nombre.replace(/^(mcr|macro|m)_/i, "").toUpperCase(), ...b.parametros].join(" ");
+  return { texto: visible, deCapa: false, propio: nombre };
 }
 
 // El nombre corto de una capa: la primera es siempre BASE; las demás, su nombre del archivo
@@ -171,7 +180,7 @@ export function importarKeymap(
     orden.push(id);
   }
 
-  const resumen: ResumenImportacion = { capas: cortos, teclas: 0, macros: [], desconocidos: [], quitadas: [] };
+  const resumen: ResumenImportacion = { capas: cortos, teclas: 0, propios: [], desconocidos: [], quitadas: [] };
   // El texto final de cada tecla, ya resuelto, para que &trans lo copie de la capa de abajo
   const textos: string[][] = [];
   const capas: Record<string, CapaConfig> = {};
@@ -187,7 +196,7 @@ export function importarKeymap(
     fila.forEach((t, pos) => {
       const texto = textos[i][pos];
       if (t.desconocido) resumen.desconocidos.push({ capa: cortos[i], pos, original: c.bindings[pos].original });
-      if (t.macro && !resumen.macros.includes(t.macro)) resumen.macros.push(t.macro);
+      if (t.propio && !resumen.propios.includes(t.propio)) resumen.propios.push(t.propio);
 
       const descripcion = anterior?.teclas[pos]?.descripcion ?? "";
       const tecla: TeclaConfig = { texto: recortar(texto), descripcion, deCapa: t.deCapa };

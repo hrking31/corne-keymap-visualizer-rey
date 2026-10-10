@@ -23,7 +23,7 @@ function mensajeDe(e: unknown): string {
 export type PasoEntrada = "entrar" | "conectando" | "continuar";
 
 // "comprobando": había una sesión guardada en el teléfono y Firebase aún no lo confirma
-export type EstadoSesion = "comprobando" | "abierta" | "cerrada";
+type EstadoSesion = "comprobando" | "abierta" | "cerrada";
 
 export type Cuenta = {
   usuario: Usuario | null;
