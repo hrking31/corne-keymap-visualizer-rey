@@ -43,7 +43,7 @@ export function crearTeclado(ajustes: Ajustes, nombre = ""): TecladoConfig {
 
 // El título de arriba en la app: «Corne ZMK», con el nombre que puso el usuario en medio
 // («Rey» → «Corne Rey ZMK»). Sin nombre (o sin cuenta), solo «Corne ZMK»
-export const NOMBRE_POR_DEFECTO = "Corne ZMK";
+const NOMBRE_POR_DEFECTO = "Corne ZMK";
 export function nombreVisible(teclado: Pick<TecladoConfig, "nombre">) {
   const nombre = teclado.nombre.trim();
   return nombre ? `Corne ${nombre} ZMK` : NOMBRE_POR_DEFECTO;

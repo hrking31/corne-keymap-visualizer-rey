@@ -13,7 +13,7 @@ import {
   puedeAgregarCapa,
   renombrarCapa,
 } from "./teclados/editar";
-import { validarTeclado } from "./teclados/validar";
+import { LIMITES, validarTeclado } from "./teclados/validar";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 import Ingreso from "./components/Ingreso";
@@ -21,6 +21,9 @@ import MenuAjustes, { type OpcionMenu } from "./components/MenuAjustes";
 import { useCuenta } from "./firebase/useCuenta";
 import Asistente from "./components/editor/Asistente";
 import TituloEditable from "./components/editor/TituloEditable";
+import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
+import { leerKeymap } from "./keymap/leer";
+import { importarKeymap } from "./keymap/importar";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
@@ -101,6 +104,55 @@ export default function App({ tecladoInicial }: Props) {
   const [capaEnEdicion, setCapaEnEdicion] = useState(false);
   const [intercambiando, setIntercambiando] = useState<number | null>(null);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
+  // Un aviso breve (p. ej. «Máximo 10 capas») justo debajo de lo que se tocó, donde se
+  // está mirando; se va solo a los 3 s
+  const [nota, setNota] = useState<{ texto: string; x: number; y: number } | null>(null);
+  // La fila de botones de capa: al editar con muchas capas se reparte en columnas (abajo)
+  const filaCapas = useRef<HTMLDivElement>(null);
+  const notaRef = useRef<HTMLDivElement>(null);
+  const temporizadorNota = useRef<number | undefined>(undefined);
+  const notificar = (texto: string, junto: Element) => {
+    const caja = junto.getBoundingClientRect();
+    setNota({ texto, x: caja.left + caja.width / 2, y: caja.bottom + 8 });
+    window.clearTimeout(temporizadorNota.current);
+    temporizadorNota.current = window.setTimeout(() => setNota(null), 3000);
+  };
+  // Editando con más de 6 capas, si la fila es una cuadrícula (teclado apilado, editor.css):
+  // tantas columnas como quepan con los nombres reales, de 6 a 3. Así nombres cortos caben
+  // 6 + 6 hasta en un móvil, y los largos bajan a 5 o 4 sin salirse de la pantalla
+  const muchasCapas = modoEdicion && teclado.orden.length > 6;
+  const nombresCapas = teclado.orden.map((id) => teclado.capas[id].corto).join("|");
+  useLayoutEffect(() => {
+    const fila = filaCapas.current;
+    if (!fila || !muchasCapas) return;
+    const ajustar = () => {
+      fila.style.gridTemplateColumns = "";
+      if (getComputedStyle(fila).display !== "grid") return;
+      for (const columnas of [6, 5, 4, 3]) {
+        fila.style.gridTemplateColumns = `repeat(${columnas}, auto)`;
+        if (fila.scrollWidth <= fila.clientWidth) break;
+      }
+    };
+    ajustar();
+    window.addEventListener("resize", ajustar);
+    return () => {
+      window.removeEventListener("resize", ajustar);
+      fila.style.gridTemplateColumns = "";
+    };
+  }, [muchasCapas, nombresCapas]);
+
+  // Centrado bajo lo tocado, pero sin salirse de la pantalla por los lados
+  useLayoutEffect(() => {
+    const el = notaRef.current;
+    if (!el || !nota) return;
+    const margen = 8;
+    const izquierda = nota.x - el.offsetWidth / 2;
+    el.style.left = Math.min(Math.max(izquierda, margen), window.innerWidth - el.offsetWidth - margen) + "px";
+    el.style.top = nota.y + "px";
+  }, [nota]);
+  // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
+  const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
+  const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -159,6 +211,17 @@ export default function App({ tecladoInicial }: Props) {
       setCapa(id);
       setTeclaEditada(null);
       setCapaEnEdicion(true);
+    }
+  };
+
+  // Lee el .keymap elegido y muestra el resumen. Nada se guarda hasta pulsar «Aplicar»
+  const leerArchivo = async (archivo: File | undefined) => {
+    if (!archivo || !mio) return;
+    try {
+      const { teclado: nuevo, resumen } = importarKeymap(leerKeymap(await archivo.text()), mio);
+      setImportacion({ archivo: archivo.name, resumen, teclado: nuevo });
+    } catch (e) {
+      setImportacion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -236,7 +299,7 @@ export default function App({ tecladoInicial }: Props) {
       visible: true,
       borde: movil ? (mitadAbajo.current ? "from-bottom" : "from-top") : "",
       capa: nombreCapa,
-      titulo: tecla.texto,
+      titulo: tecla.texto.replace("\n", " / "),
       desc: `Key ${tecla.pos}`,
       extra: tecla.descripcion,
       extraDisplay: tecla.descripcion ? "block" : "none",
@@ -274,7 +337,11 @@ export default function App({ tecladoInicial }: Props) {
   // Las opciones del menú de ajustes (⚙). Mientras se edita no aparece: manda «Listo»
   const menu: OpcionMenu[] = [];
   if (conCuenta && cuenta.usuario && !modoEdicion) {
-    if (mio) menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+    if (mio) {
+      menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+      // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
+      menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
+    }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
       {
@@ -322,7 +389,13 @@ export default function App({ tecladoInicial }: Props) {
   // (sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
   // no gastar otra línea en el móvil
   const botonesDeCapa = (
-    <div className="layer-buttons" data-capas={teclado.orden.length + (modoEdicion ? 3 : 0)}>
+    <div
+      ref={filaCapas}
+      // Editando con más de 6 capas: dos filas de 6 (editor.css). data-capas cuenta las
+      // casillas: las capas, ✎＋ (una sola) y «Listo»
+      className={modoEdicion && teclado.orden.length > 6 ? "layer-buttons editando-muchas" : "layer-buttons"}
+      data-capas={teclado.orden.length + (modoEdicion ? 2 : 0)}
+    >
       {teclado.orden.map((id) => (
         <button
           key={id}
@@ -337,6 +410,8 @@ export default function App({ tecladoInicial }: Props) {
       ))}
       {modoEdicion && mio && (
         <>
+          {/* ✎ y ＋ comparten una casilla */}
+          <span className="par-edicion">
           <button
             type="button"
             className="boton-icono"
@@ -349,11 +424,21 @@ export default function App({ tecladoInicial }: Props) {
           >
             ✎
           </button>
-          {puedeAgregarCapa(mio) && (
-            <button type="button" className="boton-icono" aria-label="Agregar una capa" title="Agregar una capa" onClick={agregar}>
-              ＋
-            </button>
-          )}
+          {/* Con el máximo de capas no desaparece: se apaga y dice por qué */}
+          <button
+            type="button"
+            className="boton-icono"
+            // Apagado pero pulsable: al tocarlo con el máximo, avisa por qué no se puede
+            aria-disabled={!puedeAgregarCapa(mio)}
+            aria-label={puedeAgregarCapa(mio) ? "Agregar una capa" : `Máximo ${LIMITES.capas} capas`}
+            title={puedeAgregarCapa(mio) ? "Agregar una capa" : `Máximo ${LIMITES.capas} capas`}
+            onClick={(e) =>
+              puedeAgregarCapa(mio) ? agregar() : notificar(`Máximo ${LIMITES.capas} capas`, e.currentTarget)
+            }
+          >
+            ＋
+          </button>
+          </span>
           <button
             type="button"
             className="boton-principal"
@@ -454,6 +539,11 @@ export default function App({ tecladoInicial }: Props) {
           guardando={creando}
           onAjustes={setAjustesAsistente}
           onNombre={setNombreAsistente}
+          onCancelar={() => {
+            // Sin teclado creado no hay nada que guardar: vuelve a la pantalla de ingreso
+            setVerDemo(false);
+            void cuenta.salir();
+          }}
           onCrear={async () => {
             setCreando(true);
             await cuenta.guardar(crearTeclado(ajustesAsistente, nombreAsistente.trim()));
@@ -514,6 +604,44 @@ export default function App({ tecladoInicial }: Props) {
             Cancelar
           </button>
         </div>
+      )}
+
+      {nota && (
+        <div
+          ref={notaRef}
+          className="fixed z-50 w-max max-w-[calc(100vw-16px)] rounded-md border border-naranja bg-panel px-4 py-2 text-sm text-hueso shadow-xl"
+          role="status"
+        >
+          {nota.texto}
+        </div>
+      )}
+
+      {/* El selector de archivos del menú «Importar .keymap»: no se ve */}
+      {mio && (
+        <input
+          ref={setSelectorKeymap}
+          type="file"
+          accept=".keymap"
+          hidden
+          onChange={(e) => {
+            void leerArchivo(e.target.files?.[0]);
+            // Así se puede volver a elegir el mismo archivo después de cambiarlo
+            e.target.value = "";
+          }}
+        />
+      )}
+
+      {importacion && (
+        <ImportarKeymap
+          importacion={importacion}
+          onAplicar={() => {
+            if (importacion.teclado && guardar(importacion.teclado)) {
+              setCapa("base");
+              setImportacion(null);
+            }
+          }}
+          onCerrar={() => setImportacion(null)}
+        />
       )}
 
       {confirmarBorrado && (

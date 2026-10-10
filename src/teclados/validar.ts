@@ -8,7 +8,8 @@ export const LIMITES = {
   largo: 24,
   // Va en medio del título («Corne Rey ZMK»): corto, para que quepa en una línea
   nombre: 12,
-  texto: 12,
+  // Hasta dos líneas de 12 (tocar arriba, mantener abajo: «CTRL+N» / «ALT+B»)
+  texto: 25,
   descripcion: 300,
 } as const;
 

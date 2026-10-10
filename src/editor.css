@@ -406,3 +406,76 @@ input[type="radio"] {
   opacity: 0.3;
   cursor: default;
 }
+
+/* Botón principal más pequeño, para avisos de una línea («Hay una versión nueva») */
+.boton-principal.boton-compacto {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Tecla importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y su
+   texto se ve en gris para distinguirla de las que tienen función propia en esta capa */
+.key.key-heredada {
+  color: var(--color-gris);
+}
+
+/* ✎ y ＋ en una sola casilla de la fila de capas */
+.par-edicion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+/* Editando con más de 6 capas, con el teclado apilado (la misma condición que apila las
+   mitades en style.css): dos filas de 6. Arriba seis capas; abajo el resto, ✎＋ y «Listo»
+   (pedido del autor). Va después de style.css, así que manda sobre sus filas de 4 o 5
+   para 7–10 casillas, que no contaban con las 11 o 12 de la edición. Seis por fila miden
+   unos 550px (medido con 10 capas): desde 560px */
+@media (max-aspect-ratio: 6/5) and (min-width: 560px) {
+  .layer-buttons.editando-muchas {
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+    justify-content: center;
+  }
+}
+
+/* Más estrecho, seis se salían por el borde: filas de cinco (unos 455px; en el móvil, con
+   los botones en píldora, todavía menos) */
+@media (max-width: 559px) {
+  .layer-buttons.editando-muchas {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    justify-content: center;
+  }
+}
+
+/* Con las mitades lado a lado va en una fila; si no cabe, lo que sobra baja de línea en
+   vez de salirse de la pantalla */
+@media (min-aspect-ratio: 6/5) {
+  .layer-buttons.editando-muchas {
+    flex-wrap: wrap;
+  }
+}
+
+/* ＋ con el máximo de capas: apagado, sin el naranja al pasar por encima (sigue siendo
+   pulsable para avisar por qué no agrega) */
+.boton-icono[aria-disabled="true"] {
+  opacity: 0.35;
+  cursor: default;
+  color: var(--color-gris);
+}
+
+/* Móviles de menos de 440px: con nombres de 6 letras, cinco píldoras por fila se salían
+   (medido con 10 capas); filas de cuatro */
+@media (max-width: 439px) {
+  .layer-buttons.editando-muchas {
+    grid-template-columns: repeat(4, auto);
+  }
+}
+
+/* Teclas de dos acciones: el texto trae un salto de línea (tocar arriba, mantener abajo).
+   pre-line solo respeta ese salto; el resto del texto se ve igual que siempre */
+.key {
+  white-space: pre-line;
+}

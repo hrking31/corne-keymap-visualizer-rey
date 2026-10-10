@@ -15,6 +15,8 @@ type Props = {
   onAjustes: (a: Ajustes) => void;
   onNombre: (n: string) => void;
   onCrear: () => void;
+  // Salir sin crear el teclado (cierra la sesión y vuelve a la pantalla de ingreso)
+  onCancelar: () => void;
 };
 
 // Las opciones de cada pregunta, con su texto
@@ -57,7 +59,7 @@ function VistaPrevia({ ajustes }: { ajustes: Ajustes }) {
 // «Configura tu teclado»: la primera vez que un usuario entra y no tiene teclado. Cada
 // elección se ve al momento en el teclado (o en la vista previa, en el móvil).
 export default function Asistente(props: Props) {
-  const { ajustes, nombre, apilado, guardando, onAjustes, onNombre, onCrear } = props;
+  const { ajustes, nombre, apilado, guardando, onAjustes, onNombre, onCrear, onCancelar } = props;
   const [paso, setPaso] = useState(0);
 
   const preguntas = [
@@ -91,8 +93,9 @@ export default function Asistente(props: Props) {
         <VistaPrevia ajustes={ajustes} />
         {preguntas[paso]}
         <div className="mt-auto flex justify-between gap-3">
-          <button type="button" className="layer-btn" disabled={paso === 0} onClick={() => setPaso(paso - 1)}>
-            Atrás
+          {/* En el primer paso no hay a dónde volver: «Cancelar» sale del asistente */}
+          <button type="button" className="layer-btn" onClick={() => (paso === 0 ? onCancelar() : setPaso(paso - 1))}>
+            {paso === 0 ? "Cancelar" : "Atrás"}
           </button>
           {ultimo ? crear : (
             <button type="button" className="boton-principal" onClick={() => setPaso(paso + 1)}>
@@ -117,7 +120,12 @@ export default function Asistente(props: Props) {
         {preguntas[1]}
         {preguntas[2]}
       </div>
-      <div className="flex justify-end">{crear}</div>
+      <div className="flex justify-between gap-3">
+        <button type="button" className="layer-btn" onClick={onCancelar}>
+          Cancelar
+        </button>
+        {crear}
+      </div>
     </aside>
   );
 }

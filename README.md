@@ -81,12 +81,15 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
 **La forma fácil:** abre la [demo](https://corne-rey.web.app/). En el celular, usa «Añadir a
 pantalla de inicio» y queda instalada como una app que funciona sin conexión.
 
-1. Sin cuenta ves una capa Base de ejemplo (QWERTY, en el idioma de tu navegador).
-2. Pulsa **Entrar** (abajo) y entra con Google. La primera vez, el asistente te pregunta cómo es
-   tu teclado y crea tu capa Base.
-3. Pulsa **Editar**: ＋ agrega una capa, ✎ le cambia el nombre (o la mueve o la borra) y al
-   tocar una tecla escribes qué hace. ⇄ intercambia dos teclas.
-4. Desde la misma pantalla puedes **borrar tu cuenta** y todos tus datos.
+1. Al abrir ves la pantalla de ingreso. **Ver demo** muestra una capa Base de ejemplo (QWERTY, en
+   el idioma de tu navegador) sin necesidad de cuenta.
+2. **Inicia sesión con Google**. La primera vez, el asistente te pregunta cómo es tu teclado y crea
+   tu capa Base. Las siguientes veces la app abre directo en tu teclado.
+3. En el menú **⚙** (arriba a la derecha), **Editar**: el nombre del teclado se escribe en el propio
+   título («Corne Rey ZMK»), ＋ agrega una capa, ✎ le cambia el nombre (o la mueve o la borra) y al
+   tocar una tecla escribes qué hace. ⇄ intercambia dos teclas. **Listo** sale de la edición; cada
+   cambio ya se guardó al hacerlo.
+4. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos.
 
 **En local** (necesita Node.js 20.19 o superior):
 

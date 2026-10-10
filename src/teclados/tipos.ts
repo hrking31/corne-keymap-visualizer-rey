@@ -8,6 +8,9 @@ export type TeclaConfig = {
   texto: string; // lo que se ve en la tecla y es el título del panel
   descripcion: string; // el recuadro naranja del panel
   deCapa: boolean; // tecla que cambia de capa: se pinta en naranja
+  // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
+  // su texto en gris. Al editarla a mano deja de serlo
+  heredada?: boolean;
 };
 
 export type CapaConfig = {
