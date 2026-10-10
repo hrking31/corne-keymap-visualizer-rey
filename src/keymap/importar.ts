@@ -34,7 +34,16 @@ type Contexto = {
   propios: KeymapLeido["propios"];
 };
 
-const recortar = (texto: string) => texto.slice(0, LIMITES.texto);
+// Cada línea, como mucho 12 letras (una tecla de dos acciones lleva dos líneas)
+const recortar = (texto: string) =>
+  texto
+    .split("\n")
+    .map((linea) => linea.slice(0, 12))
+    .join("\n")
+    .slice(0, LIMITES.texto);
+
+// Tocar arriba y mantener abajo, en dos líneas («CTRL+N» / «ALT+B»)
+const dosLineas = (tocar: string, mantener: string) => `${tocar}\n${mantener}`;
 
 // Una tecla: el código con sus modificadores, traducido al idioma y sistema del usuario
 function tecla(codigo: string | undefined, ctx: Contexto): Traducida {
@@ -88,9 +97,9 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
     case "&sl":
       return { texto: capa(p1, ctx), deCapa: true };
     case "&lt":
-      return { texto: `${tecla(p2, ctx).texto}/${capa(p1, ctx)}`, deCapa: true };
+      return { texto: dosLineas(tecla(p2, ctx).texto, capa(p1, ctx)), deCapa: true };
     case "&mt":
-      return { texto: `${tecla(p2, ctx).texto}/${tecla(p1, ctx).texto}`, deCapa: false };
+      return { texto: dosLineas(tecla(p2, ctx).texto, tecla(p1, ctx).texto), deCapa: false };
     case "&sk":
       return { texto: `SK ${tecla(p1, ctx).texto}`, deCapa: false };
     case "&kt":
@@ -113,10 +122,10 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
   const propio = ctx.propios[nombre];
   if (propio && profundidad < 3) {
     if (propio.tipo === "hold-tap" && propio.bindings.length >= 2) {
-      // Como &mt y &lt: «tocar/mantener»
+      // Como &mt y &lt: tocar arriba, mantener abajo
       const mantener = traducir({ ...propio.bindings[0], parametros: [p1 ?? ""] }, ctx, profundidad + 1);
       const tocar = traducir({ ...propio.bindings[1], parametros: [p2 ?? ""] }, ctx, profundidad + 1);
-      return { texto: `${tocar.texto}/${mantener.texto}`, deCapa: mantener.deCapa || tocar.deCapa };
+      return { texto: dosLineas(tocar.texto, mantener.texto), deCapa: mantener.deCapa || tocar.deCapa };
     }
     if ((propio.tipo === "mod-morph" || propio.tipo === "tap-dance") && propio.bindings.length) {
       const opciones = propio.bindings.slice(0, 2).map((x) => traducir(x, ctx, profundidad + 1));

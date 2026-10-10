@@ -62,6 +62,8 @@ describe("keymap del autor (español latino, Windows)", () => {
     expect(resumen.desconocidos).toEqual([]);
     expect(resumen.propios).toContain("mcr_git");
     expect(texto(teclado, 1, 33)).toBe("GIT");
+    // &ht_comb LA(B) LC(N): tocar Ctrl+N arriba, mantener Alt+B abajo
+    expect(texto(teclado, 1, 36)).toBe("CTRL+N\nALT+B");
     expect(validarTeclado(teclado)).toEqual([]);
   });
 
@@ -111,10 +113,11 @@ describe("casos raros (un keymap inventado)", () => {
   const { teclado, resumen } = importar(archivo, latino);
 
   it("entiende los comportamientos estándar, los #define y las plantillas", () => {
-    expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "SPC/NAV", deCapa: true });
-    expect(texto(teclado, 0, 1)).toBe("A/SHIFT");
+    // Dos acciones: tocar arriba, mantener abajo
+    expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "SPC\nNAV", deCapa: true });
+    expect(texto(teclado, 0, 1)).toBe("A\nSHIFT");
     expect(texto(teclado, 0, 2)).toBe("SK SHIFT");
-    expect(texto(teclado, 0, 3)).toBe("S/CTRL");
+    expect(texto(teclado, 0, 3)).toBe("S\nCTRL");
     expect(texto(teclado, 0, 4)).toBe("Q");
     // Español latino: la tecla SEMI escribe «Ñ»
     expect(texto(teclado, 0, 5)).toBe(",/Ñ");
@@ -131,7 +134,7 @@ describe("casos raros (un keymap inventado)", () => {
   });
 
   it("la capa de abajo de una &trans es la que la activa", () => {
-    expect(teclado.capas[teclado.orden[1]].teclas[0]).toMatchObject({ texto: "SPC/NAV", heredada: true });
+    expect(teclado.capas[teclado.orden[1]].teclas[0]).toMatchObject({ texto: "SPC\nNAV", heredada: true });
     expect(texto(teclado, 1, 2)).toBe("CAPS W");
     expect(texto(teclado, 1, 4)).toBe("USB/BT");
   });

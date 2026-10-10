@@ -42,8 +42,9 @@ export default function EditorTecla(props: Props) {
       </div>
       <label className="flex flex-col gap-1 text-sm font-bold text-hueso">
         Texto
-        <input className="campo" value={texto} maxLength={LIMITES.texto} autoFocus={!apilado}
-          onChange={(e) => setTexto(e.target.value)} />
+        {/* Hasta dos líneas: tocar arriba y mantener abajo, como las del .keymap */}
+        <textarea className="campo resize-none" rows={2} value={texto} maxLength={LIMITES.texto} autoFocus={!apilado}
+          onChange={(e) => setTexto(e.target.value.split("\n").slice(0, 2).join("\n"))} />
       </label>
       <label className="flex flex-col gap-1 text-sm font-bold text-hueso">
         Descripción

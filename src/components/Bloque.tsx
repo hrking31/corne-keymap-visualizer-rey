@@ -44,7 +44,7 @@ export default function Bloque(props: Props) {
             : "key";
         // Importada de un &trans: hace lo de la capa de abajo, con el texto en gris
         const claseHeredada = tecla.heredada && !vistaPrevia ? " key-heredada" : "";
-        const texto = tecla.texto.trim();
+        const texto = tecla.texto.trim().replace("\n", " / ");
 
         // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»
         return (

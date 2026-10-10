@@ -299,7 +299,7 @@ export default function App({ tecladoInicial }: Props) {
       visible: true,
       borde: movil ? (mitadAbajo.current ? "from-bottom" : "from-top") : "",
       capa: nombreCapa,
-      titulo: tecla.texto,
+      titulo: tecla.texto.replace("\n", " / "),
       desc: `Key ${tecla.pos}`,
       extra: tecla.descripcion,
       extraDisplay: tecla.descripcion ? "block" : "none",

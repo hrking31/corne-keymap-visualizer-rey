@@ -473,3 +473,9 @@ input[type="radio"] {
     grid-template-columns: repeat(4, auto);
   }
 }
+
+/* Teclas de dos acciones: el texto trae un salto de línea (tocar arriba, mantener abajo).
+   pre-line solo respeta ese salto; el resto del texto se ve igual que siempre */
+.key {
+  white-space: pre-line;
+}
