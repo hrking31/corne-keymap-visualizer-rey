@@ -43,7 +43,8 @@ export default defineConfig({
         // La pantalla de carga de Android (ícono sobre este color): el tono del borde del
         // ícono, para que el círculo en que Android lo recorta casi no se note
         background_color: "#cd700a",
-        theme_color: "#3A3F44",
+        // La barra de arriba del teléfono: el fondo de la app (igual que en index.html)
+        theme_color: "#1c1b17",
         categories: ["productivity", "utilities"],
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png" },
