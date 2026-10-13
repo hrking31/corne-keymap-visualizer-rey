@@ -960,6 +960,14 @@ h1,
   text-decoration-color: #d97706;
 }
 
+/* Logo de GitHub de la firma: del alto de la letra, para no cambiar el alto de la línea */
+.firma-github svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+}
+
 /* ===== CABECERA CON HASTA 10 CAPAS (Fase 2, aprobado por el autor) =====
    La cabecera agrupa el nombre del teclado y los botones de capa, pero no cambia nada
    (display: contents): el nombre arriba y los botones debajo, como siempre, también en

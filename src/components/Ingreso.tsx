@@ -60,8 +60,7 @@ export default function Ingreso({ paso, error, onPrecargar, onEntrar, onDemo }: 
 
       <footer className="ingreso-pie">
         <p>© 2026 Corne ZMK Visualizer</p>
-        {/* Espacio que no se parte: la taza nunca queda sola en otra línea */}
-        <p>Desarrollado por Hernando Rey — Hecho con amor y café{"\u00a0"}☕</p>
+        <p>Desarrollado por Hernando Rey — Hecho con amor y café</p>
       </footer>
     </main>
   );

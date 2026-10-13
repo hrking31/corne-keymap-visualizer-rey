@@ -23,6 +23,7 @@ habrá que actualizarla a propósito, nunca para que la prueba pase.
 | 2026-10-07 | **Placa bajo cada mitad** con el contorno que dibujó el autor (Excalidraw, v3) y el acrílico de la OLED; hueco entre mitades y tamaño de tecla recalculados para que quepan las placas. `style.css` copiado de `src/` | `style.css` |
 | 2026-10-07 | Placa lisa (la fibra de carbono queda guardada como variante `.carbono`, desactivada); botón ⇅ para el orden de las mitades al apilar y pantalla de bienvenida. Ni el botón (posición absoluta, solo apilado) ni la bienvenida mueven nada de lo que mide la prueba. `style.css` copiado de `src/` | `style.css` |
 | 2026-10-07 | Firma al pie en una línea («© 2026 CorneRey · Desarrollado por Hernando Rey», con enlace a su web): le quita ~22px de alto al teclado | `index.html`, `style.css` |
+| 2026-10-13 | Erratas en 13 descripciones (solo texto, mismas correcciones que en `src/data.ts`): «crea saltos», «presionada», «área», «está», «Desapila», «la ventana» | `data.js` |
 
 Cambios de comportamiento que la prueba no mide y por eso no se copiaron: la posición del
 panel (fijo sobre la mitad contraria fuera del móvil vertical, debajo de los botones de capa)

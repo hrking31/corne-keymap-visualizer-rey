@@ -81,7 +81,7 @@ export const keymap: Keymap = {
       label: "ENT",
       desc: "Key 39",
       extra:
-        "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
+        "Confirma una acción, ejecuta comandos, inicia un proceso o crea saltos de línea en texto",
     },
     { label: "SYM", desc: "Key 40", extra: "Cambia a la capa SYM (SÍMBOLOS)" },
     { label: "WIN", desc: "Key 41", extra: "Tecla windows" },
@@ -232,7 +232,7 @@ export const keymap: Keymap = {
       label: "ENT",
       desc: "Key 39",
       extra:
-        "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
+        "Confirma una acción, ejecuta comandos, inicia un proceso o crea saltos de línea en texto",
     },
     {
       label: "NAV",
@@ -281,7 +281,7 @@ export const keymap: Keymap = {
       label: "LED",
       desc: "Key 37",
       extra:
-        "Cambia a la capa LED (luces RGB), debe de estar en capa SYM para funcionar y mantener precionada la tecla SYM",
+        "Cambia a la capa LED (luces RGB), debe de estar en capa SYM para funcionar y mantener presionada la tecla SYM",
     },
     { label: "SPC", desc: "Key 38", extra: "Tecla de espacio" },
 
@@ -312,7 +312,7 @@ export const keymap: Keymap = {
       label: "ENT",
       desc: "Key 39",
       extra:
-        "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
+        "Confirma una acción, ejecuta comandos, inicia un proceso o crea saltos de línea en texto",
     },
     {
       label: "SYM",
@@ -338,7 +338,7 @@ export const keymap: Keymap = {
       label: "WIN DIV",
       desc: "Key 1",
       extra:
-        "Mueve la ventana enfocada a la izquierda dividiendo en dos el area de trabajo en VSC(si la ventana del código esta en la parte derecha, la mueve a la parte izquierda, si esta en la parte izquierda, la mueve a la parte derecha)",
+        "Mueve la ventana enfocada a la izquierda dividiendo en dos el área de trabajo en VSC(si la ventana del código está en la parte derecha, la mueve a la parte izquierda, si está en la parte izquierda, la mueve a la parte derecha)",
     },
     {
       label: "SEL PAL",
@@ -349,7 +349,7 @@ export const keymap: Keymap = {
       label: "DES WIN",
       desc: "Key 3",
       extra:
-        "Des apila ventanas en KOMOREBI (si hay ventanas apiladas, las separa en ventanas individuales)",
+        "Desapila ventanas en KOMOREBI (si hay ventanas apiladas, las separa en ventanas individuales)",
     },
     {
       label: "FOC MON L",
@@ -420,7 +420,7 @@ export const keymap: Keymap = {
       label: "[MAX]",
       desc: "Key 27",
       extra:
-        "Maximiza la ventanas enfocada en KOMOREBI (Pantalla Completa), (no usar con ventanas en pila)",
+        "Maximiza la ventana enfocada en KOMOREBI (Pantalla Completa), (no usar con ventanas en pila)",
     },
     {
       label: "APILA L",
@@ -471,7 +471,7 @@ export const keymap: Keymap = {
       label: "WIN DIV",
       desc: "Key 10",
       extra:
-        "Mueve la ventana enfocada a la derecha dividiendo en dos el area de trabajo en VSC(si la ventana del código esta en la parte derecha, la mueve a la parte izquierda, si esta en la parte izquierda, la mueve a la parte derecha)",
+        "Mueve la ventana enfocada a la derecha dividiendo en dos el área de trabajo en VSC(si la ventana del código está en la parte derecha, la mueve a la parte izquierda, si está en la parte izquierda, la mueve a la parte derecha)",
     },
     {
       label: "SEL MULT",
@@ -514,22 +514,22 @@ export const keymap: Keymap = {
     {
       label: "WIN X -",
       desc: "Key 30",
-      extra: "Disminuye el tamaño de la ventanas de KOMOREBI (en el eje x)",
+      extra: "Disminuye el tamaño de la ventana de KOMOREBI (en el eje x)",
     },
     {
       label: "WIN X +",
       desc: "Key 31",
-      extra: "Aumenta el tamaño de la ventanas de KOMOREBI (en el eje x)",
+      extra: "Aumenta el tamaño de la ventana de KOMOREBI (en el eje x)",
     },
     {
       label: "WIN Y +",
       desc: "Key 32",
-      extra: "Aumenta el tamaño de la ventanas de KOMOREBI (en el eje y)",
+      extra: "Aumenta el tamaño de la ventana de KOMOREBI (en el eje y)",
     },
     {
       label: "WIN Y -",
       desc: "Key 33",
-      extra: "Disminuye el tamaño de la ventanas de KOMOREBI (en el eje y)",
+      extra: "Disminuye el tamaño de la ventana de KOMOREBI (en el eje y)",
     },
     {
       label: "LINE DOW",
@@ -546,7 +546,7 @@ export const keymap: Keymap = {
       label: "ENT",
       desc: "Key 39",
       extra:
-        "Confirma una acción, ejecuta comandos, inicia un proceso o crear saltos de línea en texto",
+        "Confirma una acción, ejecuta comandos, inicia un proceso o crea saltos de línea en texto",
     },
     { label: "NAV", desc: "Key 40", clase: "key-naranja" },
     {
