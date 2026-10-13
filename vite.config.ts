@@ -40,10 +40,12 @@ export default defineConfig({
         scope: "/",
         display: "standalone",
         orientation: "any",
-        // La pantalla de carga de Android (ícono sobre este color): el tono del borde del
-        // ícono, para que el círculo en que Android lo recorta casi no se note
-        background_color: "#cd700a",
-        // La barra de arriba del teléfono: el fondo de la app (igual que en index.html)
+        // Los dos, el oscuro del fondo de la app (pedido del autor: barras y pantalla de carga
+        // oscuras en toda la app, también en la pantalla de ingreso). Android pinta con ellos
+        // la barra de arriba (hora, batería) y la de abajo (atrás, inicio, recientes); cuál usa
+        // para la de abajo depende de la versión de Chrome, así que van iguales.
+        // background_color es además el fondo de la pantalla de carga (antes naranja, #cd700a)
+        background_color: "#1c1b17",
         theme_color: "#1c1b17",
         categories: ["productivity", "utilities"],
         icons: [
