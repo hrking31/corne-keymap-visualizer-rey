@@ -6,6 +6,7 @@ import { envioDeCodigo } from "../src/keymap/codigos";
 import { importarKeymap } from "../src/keymap/importar";
 import { leerKeymap } from "../src/keymap/leer";
 import { acierta, empezar, esSoloModificador, objetivos, responder, type Objetivo, type Pulsacion } from "../src/practica/practica";
+import { pantallaOled, pantallasDePractica, tamanoDeLetra } from "../src/practica/pantalla";
 import { editarTecla } from "../src/teclados/editar";
 import { crearTeclado } from "../src/teclados/plantillas";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
@@ -31,10 +32,10 @@ const teclado: TecladoConfig = {
       largo: "",
       teclas: {
         0: tecla("Ñ", { envia: "SEMI" }),
-        1: tecla("COPY", { envia: "LC(C)" }),
-        2: tecla("WIN+E", { envia: "LG(E)" }), // la tecla Windows es del sistema
-        3: tecla("CTRL+W", { envia: "LC(W)" }), // cerraría la pestaña
-        4: tecla("SHIFT", { envia: "LSHFT" }), // un modificador solo
+        1: tecla("ENT", { envia: "RET" }),
+        2: tecla("WIN+E", { envia: "LG(E)" }), // un atajo con la tecla Windows
+        3: tecla("CTRL+C", { envia: "LC(C)" }), // un atajo: se practican teclas, no atajos
+        4: tecla("SHIFT", { envia: "LSHFT" }), // un modificador solo: también se practica
         5: tecla("NAV", { deCapa: true }),
         6: tecla("A\nNAV", { deCapa: true, envia: "A" }), // tocar A, mantener capa NAV
         7: tecla("GIT"), // una macro: la app no sabe qué envía
@@ -42,6 +43,12 @@ const teclado: TecladoConfig = {
         9: tecla("´"), // escrita a mano: acento que espera a la vocal
         10: tecla("VOL+", { envia: "C_VOL_UP" }),
         11: tecla("?", { sinReconocer: "&kp NOEXISTE" }),
+        12: tecla("F11", { envia: "F11" }), // fuera de la lista: solo F1–F10
+        13: tecla("SHIFT+LEFT", { envia: "LS(LEFT)" }), // una flecha con modificador ya es un atajo
+        14: tecla("ALT+D", { envia: "LA(D)" }),
+        15: tecla("!", { envia: "EXCL" }), // un símbolo con shift sigue siendo un carácter
+        16: tecla("@", { envia: "RA(Q)" }), // y con AltGr
+        17: tecla("WIN", { envia: "LGUI" }), // la tecla Windows es del sistema
       },
     },
     capa1: {
@@ -50,7 +57,7 @@ const teclado: TecladoConfig = {
       teclas: {
         0: tecla("Ñ", { envia: "SEMI", heredada: true }),
         1: tecla("INIT", { envia: "HOME" }),
-        2: tecla("COPIAR", { envia: "LC(C)" }), // lo mismo que base 1
+        2: tecla("INTRO", { envia: "RET" }), // lo mismo que base 1
       },
     },
   },
@@ -86,8 +93,13 @@ describe("qué teclas se pueden practicar", () => {
   const lista = objetivos(teclado);
   const textos = lista.map((o) => o.texto);
 
-  it("entran las que envían una tecla y las escritas a mano de un carácter", () => {
-    expect(textos).toEqual(["Ñ", "COPY", "A", "x", "INIT"]);
+  it("entran los caracteres, las de editar y moverse, los modificadores solos y las escritas a mano de un carácter", () => {
+    expect(textos).toEqual(["Ñ", "ENT", "SHIFT", "A", "x", "!", "@", "INIT"]);
+    expect(lista.find((o) => o.texto === "SHIFT")?.espera).toEqual({ tipo: "modificador", code: "ShiftLeft" });
+  });
+
+  it("los atajos quedan fuera: nada con Ctrl, Alt o la tecla Windows, ni teclas con nombre con shift", () => {
+    for (const fuera of ["WIN+E", "CTRL+C", "ALT+D", "SHIFT+LEFT", "F11", "WIN"]) expect(textos).not.toContain(fuera);
   });
 
   it("de una tecla de dos acciones se practica la de tocar", () => {
@@ -96,7 +108,7 @@ describe("qué teclas se pueden practicar", () => {
   });
 
   it("dos teclas que envían lo mismo son un solo objetivo, con sus dos lugares", () => {
-    expect(lista.find((o) => o.texto === "COPY")?.lugares).toEqual([
+    expect(lista.find((o) => o.texto === "ENT")?.lugares).toEqual([
       { capa: "base", pos: 1 },
       { capa: "capa1", pos: 2 },
     ]);
@@ -123,13 +135,21 @@ describe("qué teclas se pueden practicar", () => {
     const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
     expect(validarTeclado(suyo)).toEqual([]);
     const suyos = objetivos(suyo);
-    expect(suyos.length).toBeGreaterThan(60);
     // &kp SEMI se ve «Ñ» en español y se reconoce por la tecla física, no por la letra
     expect(suyos.find((o) => o.texto === "Ñ")?.espera).toEqual({ tipo: "tecla", envio: envioDeCodigo("SEMI") });
-    expect(suyos.some((o) => o.texto === "HOME")).toBe(true);
+    // Aparte de letras, números y símbolos, solo estas (la lista que pidió el autor)
+    const conNombre = suyos.map((o) => o.texto).filter((t) => [...t].length > 1);
+    expect(conNombre.sort()).toEqual(
+      [
+        "ESC", "BSPC", "DEL", "TAB", "SPC", "ENT", "LEFT", "RIGHT", "UP", "DOWN", "HOME", "END", "PG UP", "PG DN",
+        "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
+        "ALT", "CTRL", "SHIFT",
+      ].sort(),
+    );
+    expect(suyos.length - conNombre.length).toBe(66); // sus letras, números y símbolos
     for (const o of suyos) {
-      expect(o.espera.tipo).toBe("tecla");
-      if (o.espera.tipo === "tecla") expect(o.espera.envio.gui).toBe(false);
+      expect(o.espera.tipo).not.toBe("caracter");
+      if (o.espera.tipo === "tecla") expect(o.espera.envio).toMatchObject({ ctrl: false, alt: false, gui: false });
     }
   });
 });
@@ -145,11 +165,15 @@ describe("si una pulsación acierta", () => {
     expect(acierta(objetivo("Ñ"), pulsar("Ñ", "Semicolon", { shift: true }))).toBe(false);
   });
 
-  it("los atajos piden sus modificadores exactos", () => {
-    expect(acierta(objetivo("COPY"), pulsar("c", "KeyC", { ctrl: true }))).toBe(true);
-    expect(acierta(objetivo("COPY"), pulsar("c", "KeyC"))).toBe(false);
-    expect(acierta(objetivo("COPY"), pulsar("C", "KeyC", { ctrl: true, shift: true }))).toBe(false);
-    expect(acierta(objetivo("COPY"), pulsar("c", "KeyC", { ctrl: true, meta: true }))).toBe(false);
+  it("los modificadores tienen que ser exactos", () => {
+    // Un símbolo con shift pide el shift
+    expect(acierta(objetivo("!"), pulsar("!", "Digit1", { shift: true }))).toBe(true);
+    expect(acierta(objetivo("!"), pulsar("1", "Digit1"))).toBe(false);
+    // Una tecla suelta no vale si llega con Ctrl, Alt o la tecla Windows
+    expect(acierta(objetivo("ENT"), pulsar("Enter", "Enter"))).toBe(true);
+    expect(acierta(objetivo("ENT"), pulsar("Enter", "Enter", { ctrl: true }))).toBe(false);
+    expect(acierta(objetivo("ENT"), pulsar("Enter", "Enter", { alt: true }))).toBe(false);
+    expect(acierta(objetivo("ENT"), pulsar("Enter", "Enter", { meta: true }))).toBe(false);
   });
 
   it("AltGr llega como AltGraph, como Alt o como Ctrl + Alt (Windows)", () => {
@@ -176,12 +200,15 @@ describe("si una pulsación acierta", () => {
 });
 
 describe("la sesión de práctica", () => {
-  const lista = objetivos(teclado); // Ñ, COPY, A, x, INIT
+  const lista = objetivos(teclado); // Ñ, ENT, SHIFT, A, x, !, @, INIT
   const bien: Record<string, Pulsacion> = {
     Ñ: pulsar("ñ", "Semicolon"),
-    COPY: pulsar("c", "KeyC", { ctrl: true }),
+    ENT: pulsar("Enter", "Enter"),
+    SHIFT: pulsar("Shift", "ShiftLeft", { shift: true }),
     A: pulsar("a", "KeyA"),
     x: pulsar("x", "KeyX"),
+    "!": pulsar("!", "Digit1", { shift: true }),
+    "@": pulsar("@", "KeyQ", { ctrl: true, alt: true, altGr: true }),
     INIT: pulsar("Home", "Home"),
   };
   const mal = pulsar("0", "Digit0");
@@ -220,6 +247,25 @@ describe("la sesión de práctica", () => {
     expect(practica).toBe(inicio);
   });
 
+  it("un modificador solo cuenta como respuesta únicamente cuando se pide uno", () => {
+    const shift = lista.findIndex((o) => o.texto === "SHIFT");
+    const pidiendoShift = { ...empezar(lista, () => 0)!, actual: shift };
+    // Acierta con su tecla…
+    expect(responder(pidiendoShift, bien.SHIFT, () => 0).resultado).toBe("acierto");
+    // …y falla con otro modificador o con cualquier otra tecla
+    expect(responder(pidiendoShift, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("fallo");
+    expect(responder(pidiendoShift, bien.A).resultado).toBe("fallo");
+    // Pidiendo otra cosa, el mismo Shift se ignora
+    expect(responder(empezar(lista, () => 0)!, bien.SHIFT).resultado).toBe("ignorada");
+  });
+
+  it("pidiendo AltGr, el Ctrl que Windows envía delante no cuenta como fallo", () => {
+    const altGr: Objetivo = { clave: "m:AltRight", texto: "ALTGR", lugares: [], espera: { tipo: "modificador", code: "AltRight" } };
+    const sesion = empezar([altGr, ...lista], () => 0)!;
+    expect(responder(sesion, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("ignorada");
+    expect(responder(sesion, pulsar("AltGraph", "AltRight", { ctrl: true, alt: true }), () => 0).resultado).toBe("acierto");
+  });
+
   it("una tecla fallada vuelve después de tres preguntas", () => {
     let p = empezar(lista, () => 0)!; // Ñ
     p = responder(p, mal).practica;
@@ -244,6 +290,52 @@ describe("la sesión de práctica", () => {
       expect(pedida(p)).not.toBe(antes);
     }
     expect(p.aciertos).toBe(200);
+  });
+});
+
+describe("el marcador en las pantallas del teclado", () => {
+  const svg = (valor: string) => decodeURIComponent(valor.replace(/^url\("data:image\/svg\+xml,/, "").replace(/"\)$/, ""));
+  const CHULO = "M38 23 L43 28 L53 16";
+  const EQUIS = "M40 16.5 L51 27.5 M51 16.5 L40 27.5";
+
+  it("aciertos en la izquierda y fallos en la derecha, con el ✓ de conectado", () => {
+    const { izquierda, derecha } = pantallasDePractica(12, 3, true);
+    expect(izquierda).toMatch(/^url\("data:image\/svg\+xml,[^"]+"\)$/);
+    // El número va separado de la palabra más que un espacio, que a ese tamaño no se veía
+    expect(svg(izquierda)).toContain('>ACIERTOS<tspan dx="0.6em">12</tspan><');
+    expect(svg(derecha)).toContain('>FALLOS<tspan dx="0.6em">3</tspan><');
+    expect(svg(izquierda)).toContain(CHULO);
+    expect(svg(izquierda)).not.toContain(EQUIS);
+  });
+
+  it("sin teclado todavía: el aviso en las dos y una ✗ en lugar del ✓", () => {
+    const { izquierda, derecha } = pantallasDePractica(0, 0, false);
+    for (const pantalla of [izquierda, derecha]) {
+      expect(svg(pantalla)).toContain(">CONECTA TU<");
+      expect(svg(pantalla)).toContain(">TECLADO<");
+      expect(svg(pantalla)).toContain(EQUIS);
+      expect(svg(pantalla)).not.toContain(CHULO);
+    }
+  });
+
+  it("la letra es la del «100%» de la batería; en móviles se agranda para que se lea, sin salirse", () => {
+    const bateria = 16 * 0.7 * 0.7; // 7,84
+    for (const tecla of [62, 80, 100]) expect(tamanoDeLetra(tecla, 1)).toBeCloseTo(bateria, 2);
+    // Móvil: la tecla mide ~34px y la letra sube hasta unos 8px (8 × 60 / 34 unidades)
+    expect(tamanoDeLetra(34, 1)).toBeCloseTo(14.12, 2);
+    // Nunca más de lo que cabe: 18 en una línea, 16 en dos
+    expect(tamanoDeLetra(20, 1)).toBe(18);
+    expect(tamanoDeLetra(20, 2)).toBe(16);
+    // Sin medida (no debería pasar), la de la batería
+    expect(tamanoDeLetra(0, 1)).toBeCloseTo(bateria, 2);
+    expect(svg(pantallasDePractica(1, 0, true, 80).izquierda)).toContain('font-size="7.84"');
+    expect(svg(pantallasDePractica(1, 0, true, 34).izquierda)).toContain('font-size="14.12"');
+  });
+
+  it("la izquierda va volteada, como su imagen de siempre, y ninguna lleva estilos en línea (CSP)", () => {
+    expect(svg(pantallaOled("left", ["X"], true))).toContain('transform="translate(56 0) scale(-1 1) matrix(0 -1 1 0 0 150)"');
+    expect(svg(pantallaOled("right", ["X"], true))).toContain('transform="matrix(0 -1 1 0 0 150)"');
+    expect(svg(pantallaOled("right", ["X"], true))).not.toMatch(/style=|<style/);
   });
 });
 

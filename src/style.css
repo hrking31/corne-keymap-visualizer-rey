@@ -133,9 +133,11 @@ button.key {
   appearance: none;
 }
 
-/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) y al encenderse en la
+   práctica (la tecla acertada, o la correcta tras un fallo) */
 .key:hover,
-.key:focus-visible {
+.key:focus-visible,
+.key.key-encendida {
   --scale: 1.12;
   background: #3d3a33;
   border-color: #d97706;

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { dividirFilas } from "../teclado";
 import type { TeclaDibujo } from "../teclados/tipos";
 
@@ -18,17 +19,23 @@ type Props = {
   // Mientras se edita: si la elegida está marcada como tecla de capa (toda naranja) o no
   // (sin naranja), aunque todavía no se haya guardado
   deCapaElegida?: boolean;
+  // Práctica: las teclas encendidas (la que se acaba de acertar, o la correcta tras un fallo)
+  encendidas?: number[];
+  // Práctica: lo que muestra la pantalla OLED de esta mitad (una imagen para el CSS, con el
+  // marcador). Sin ella, la pantalla de siempre
+  pantalla?: string;
 };
 
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, deCapaElegida } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, deCapaElegida, encendidas, pantalla } = props;
   const editando = Boolean(alElegir);
   const filas = dividirFilas(teclas, espejo);
 
   return (
-    <div className={`split ${lado}`} id={id}>
+    // --oled la usa editor.css para la pantalla mientras se practica
+    <div className={`split ${lado}`} id={id} style={pantalla ? ({ "--oled": pantalla } as CSSProperties) : undefined}>
       {filas.flat().map((tecla, i) => {
         // La capa va en la key para que React cree teclas nuevas al cambiar de
         // capa, como la versión vanilla. Si las reutilizara, el borde y el color
@@ -46,7 +53,8 @@ export default function Bloque(props: Props) {
         // con algo que no se reconoció: borde punteado y «?»
         const claseHeredada =
           (tecla.heredada && !vistaPrevia ? " key-heredada" : "") +
-          (tecla.sinReconocer && !vistaPrevia ? " key-sin-reconocer" : "");
+          (tecla.sinReconocer && !vistaPrevia ? " key-sin-reconocer" : "") +
+          (encendidas?.includes(tecla.pos) ? " key-encendida" : "");
         const texto =
           tecla.sinReconocer && !vistaPrevia ? "Sin reconocer" : tecla.texto.trim().replace("\n", " / ");
 

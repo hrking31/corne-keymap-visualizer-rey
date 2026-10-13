@@ -192,6 +192,18 @@ const FISICAS: Record<string, string> = {
   KP_EQUAL: "NumpadEqual", KP_COMMA: "NumpadComma", KP_NLCK: "NumLock",
 };
 
+// Un modificador solo («LSHFT»): la tecla física que anuncia. null si no lo es, si lleva
+// otro modificador encima, o si es la tecla Windows / Cmd, que se queda el sistema
+const MODIFICADORES_FISICOS: Record<string, string> = {
+  LSHFT: "ShiftLeft", RSHFT: "ShiftRight", LCTRL: "ControlLeft", RCTRL: "ControlRight",
+  LALT: "AltLeft", RALT: "AltRight",
+};
+
+export function modificadorDeCodigo(codigo: string): string | null {
+  const { mods, tecla } = separar(codigo);
+  return mods.length ? null : (MODIFICADORES_FISICOS[tecla] ?? null);
+}
+
 // Lo que el teclado envía al tocar una tecla, tal como lo ve el navegador
 export type Envio = {
   code: string; // KeyboardEvent.code

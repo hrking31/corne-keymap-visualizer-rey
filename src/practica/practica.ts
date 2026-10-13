@@ -1,7 +1,7 @@
 // Práctica de memoria muscular: la app pide una tecla y el usuario la pulsa en su teclado
 // físico, sin mirarlo. Aquí va solo la lógica (qué teclas se pueden practicar, si una
 // pulsación acierta y cuál es la siguiente pregunta); la pantalla va aparte.
-import { envioDeCodigo, type Envio } from "../keymap/codigos";
+import { envioDeCodigo, modificadorDeCodigo, type Envio } from "../keymap/codigos";
 import type { Idioma, TecladoConfig } from "../teclados/tipos";
 
 // Lo que se lee de un evento de teclado del navegador (KeyboardEvent)
@@ -15,31 +15,39 @@ export type Pulsacion = {
   altGr: boolean; // getModifierState("AltGraph")
 };
 
-// Cómo se sabe que se pulsó: por la tecla física que envía (si se conoce su código de ZMK)
-// o, en una tecla escrita a mano, por el carácter que escribe
-type Espera = { tipo: "tecla"; envio: Envio } | { tipo: "caracter"; caracter: string };
+// Cómo se sabe que se pulsó: por la tecla física que envía (si se conoce su código de ZMK);
+// si es un modificador solo (Shift, Ctrl, Alt), por esa tecla; y en una tecla escrita a
+// mano, por el carácter que escribe
+type Espera =
+  | { tipo: "tecla"; envio: Envio }
+  | { tipo: "modificador"; code: string }
+  | { tipo: "caracter"; caracter: string };
 
 export type Objetivo = {
   clave: string; // identifica lo que hay que pulsar: dos teclas que envían lo mismo son un solo objetivo
-  texto: string; // lo que se pide en pantalla: «Ñ», «CTRL+C», «INIT»
+  texto: string; // lo que se pide en pantalla: «Ñ», «ENT», «INIT»
   espera: Espera;
   lugares: { capa: string; pos: number }[]; // dónde está, para encenderla
 };
 
 // ---------- Qué teclas se pueden practicar ----------
 
-// Teclas que el navegador o el sistema se quedan, o que cambian un estado del equipo
-const NUNCA = new Set(["F11", "F12", "PrintScreen", "ScrollLock", "Pause", "CapsLock", "NumLock", "ContextMenu"]);
-// Atajos que el navegador no deja interceptar: abrirían o cerrarían pestañas y ventanas
-const CON_CTRL = new Set(["KeyN", "KeyT", "KeyW", "Tab", "PageUp", "PageDown", "F4", "Escape"]);
-const CON_ALT = new Set(["Tab", "F4", "Escape", "Space"]);
+// Teclas que escriben un carácter: letras, números y símbolos. Con Shift o AltGr escriben
+// otro carácter (shift + 1 → «!»), así que siguen contando
+const DE_CARACTER =
+  /^(Key[A-Z]|Digit[0-9]|Numpad([0-9]|Add|Subtract|Multiply|Divide|Decimal|Equal|Comma)|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Backquote|Comma|Period|Slash|IntlBackslash)$/;
+// Las demás que se practican (lista del autor): editar, moverse y F1–F10. Sueltas, sin modificadores
+const CON_NOMBRE = new Set([
+  "Escape", "Backspace", "Delete", "Tab", "Space", "Enter",
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown",
+  "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
+]);
 
-function reservada(e: Envio): boolean {
-  if (e.gui || NUNCA.has(e.code)) return true; // todo lo de la tecla Windows es del sistema
-  if (e.ctrl && e.alt && e.code === "Delete") return true;
-  if (e.ctrl && !e.alt && CON_CTRL.has(e.code)) return true;
-  if (e.alt && !e.ctrl && CON_ALT.has(e.code)) return true;
-  return false;
+// Se practican teclas, no atajos: nada con Ctrl, Alt o la tecla Windows
+function sePractica(e: Envio): boolean {
+  if (e.ctrl || e.alt || e.gui) return false;
+  if (DE_CARACTER.test(e.code)) return true;
+  return !e.shift && !e.altGr && CON_NOMBRE.has(e.code);
 }
 
 // Acentos que en un teclado en español esperan a la vocal: el navegador no dice cuál se
@@ -64,13 +72,16 @@ export function objetivos(teclado: TecladoConfig): Objetivo[] {
       let espera: Espera | null = null;
       if (tecla.envia) {
         const envio = envioDeCodigo(tecla.envia);
-        if (envio && !reservada(envio)) espera = { tipo: "tecla", envio };
+        const modificador = modificadorDeCodigo(tecla.envia);
+        if (envio && sePractica(envio)) espera = { tipo: "tecla", envio };
+        else if (modificador) espera = { tipo: "modificador", code: modificador };
       } else if (!tecla.deCapa && [...tecla.texto.trim()].length === 1 && !MUERTAS[teclado.ajustes.idioma].includes(texto)) {
         espera = { tipo: "caracter", caracter: texto.toLocaleUpperCase() };
       }
       if (!espera) continue;
 
-      const clave = espera.tipo === "tecla" ? claveDeEnvio(espera.envio) : `c:${espera.caracter}`;
+      const clave =
+        espera.tipo === "tecla" ? claveDeEnvio(espera.envio) : espera.tipo === "modificador" ? `m:${espera.code}` : `c:${espera.caracter}`;
       const lugar = { capa, pos: Number(pos) };
       const repetido = porClave.get(clave);
       if (repetido) repetido.lugares.push(lugar);
@@ -88,11 +99,13 @@ export function objetivos(teclado: TecladoConfig): Objetivo[] {
 
 const MODIFICADORES = new Set(["Shift", "Control", "Alt", "AltGraph", "Meta", "OS", "Fn", "Hyper", "Super"]);
 
-// Pulsar solo un modificador (el Shift antes de un símbolo) no es todavía una respuesta
+// Pulsar solo un modificador (el Shift antes de un símbolo) no es todavía una respuesta,
+// salvo que lo que se pida sea precisamente un modificador
 export const esSoloModificador = (p: Pulsacion) => MODIFICADORES.has(p.key);
 
 export function acierta(objetivo: Objetivo, p: Pulsacion): boolean {
   if (p.meta) return false;
+  if (objetivo.espera.tipo === "modificador") return p.code === objetivo.espera.code;
   if (objetivo.espera.tipo === "caracter") {
     // Ctrl y Alt juntos son AltGr en Windows; uno solo es un atajo, no escribir el carácter
     if (p.ctrl !== p.alt) return false;
@@ -146,7 +159,13 @@ export function responder(
   pulsacion: Pulsacion,
   azar: () => number = Math.random,
 ): { practica: Practica; resultado: Resultado } {
-  if (esSoloModificador(pulsacion)) return { practica: p, resultado: "ignorada" };
+  const { espera } = p.objetivos[p.actual];
+  if (esSoloModificador(pulsacion)) {
+    // De camino a otra tecla (shift + 1 para «!») un modificador no acierta ni falla
+    if (espera.tipo !== "modificador") return { practica: p, resultado: "ignorada" };
+    // En Windows, AltGr llega precedido de un Ctrl izquierdo que nadie pulsó
+    if (espera.code === "AltRight" && pulsacion.code === "ControlLeft") return { practica: p, resultado: "ignorada" };
+  }
   if (!acierta(p.objetivos[p.actual], pulsacion)) {
     return { practica: p.fallado ? p : { ...p, fallado: true, fallos: p.fallos + 1 }, resultado: "fallo" };
   }
