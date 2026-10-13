@@ -479,3 +479,22 @@ input[type="radio"] {
 .key {
   white-space: pre-line;
 }
+
+/* Tecla importada con algo que no se reconoció (mal escrito en el .keymap): borde punteado
+   naranja y un «?» en la esquina, hasta que se corrija el .keymap o se edite a mano */
+.key.key-sin-reconocer {
+  position: relative;
+  border-style: dashed;
+  border-color: var(--color-naranja);
+}
+
+.key.key-sin-reconocer::after {
+  content: "?";
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  color: var(--color-naranja-claro);
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1;
+}

@@ -24,6 +24,8 @@ import TituloEditable from "./components/editor/TituloEditable";
 import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
+import RestaurarCopia, { type Restauracion } from "./components/editor/RestaurarCopia";
+import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
@@ -57,6 +59,9 @@ const guardarInvertido = (invertido: boolean) => {
     // Sin almacenamiento solo se pierde el recuerdo; el botón sigue funcionando
   }
 };
+
+const avisoSinReconocer = (original: string) =>
+  `No se reconoció «${original}». Revisa tu .keymap o escribe aquí qué hace.`;
 
 const MODAL_INICIAL: EstadoModal = {
   visible: false,
@@ -153,6 +158,9 @@ export default function App({ tecladoInicial }: Props) {
   // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
+  // Restaurar una copia de seguridad: el resumen y el teclado leído, hasta aplicar o cancelar
+  const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
+  const [selectorRespaldo, setSelectorRespaldo] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -211,6 +219,28 @@ export default function App({ tecladoInicial }: Props) {
       setCapa(id);
       setTeclaEditada(null);
       setCapaEnEdicion(true);
+    }
+  };
+
+  // Descarga el teclado como un archivo .json (se genera aquí, sin pasar por ningún servidor)
+  const descargarRespaldo = (actual: TecladoConfig) => {
+    const contenido = JSON.stringify(crearRespaldo(actual), null, 2);
+    const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = nombreDeArchivo(actual);
+    enlace.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  // Lee una copia de seguridad y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
+  const leerArchivoRespaldo = async (archivo: File | undefined) => {
+    if (!archivo) return;
+    try {
+      const { teclado: copia, fecha } = leerRespaldo(await archivo.text());
+      setRestauracion({ archivo: archivo.name, teclado: copia, fecha });
+    } catch (e) {
+      setRestauracion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -301,8 +331,9 @@ export default function App({ tecladoInicial }: Props) {
       capa: nombreCapa,
       titulo: tecla.texto.replace("\n", " / "),
       desc: `Key ${tecla.pos}`,
-      extra: tecla.descripcion,
-      extraDisplay: tecla.descripcion ? "block" : "none",
+      // Si no se reconoció al importar y aún no tiene descripción, el panel lo explica
+      extra: tecla.descripcion || (tecla.sinReconocer ? avisoSinReconocer(tecla.sinReconocer) : ""),
+      extraDisplay: tecla.descripcion || tecla.sinReconocer ? "block" : "none",
     });
   };
 
@@ -341,6 +372,8 @@ export default function App({ tecladoInicial }: Props) {
       menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
+      menu.push({ texto: "Descargar copia", alElegir: () => descargarRespaldo(mio) });
+      menu.push({ texto: "Restaurar copia", alElegir: () => selectorRespaldo?.click() });
     }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
@@ -628,6 +661,36 @@ export default function App({ tecladoInicial }: Props) {
             // Así se puede volver a elegir el mismo archivo después de cambiarlo
             e.target.value = "";
           }}
+        />
+      )}
+
+      {/* El selector de archivos del menú «Restaurar copia»: no se ve */}
+      {mio && (
+        <input
+          ref={setSelectorRespaldo}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => {
+            void leerArchivoRespaldo(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      )}
+
+      {restauracion && (
+        <RestaurarCopia
+          restauracion={restauracion}
+          onAplicar={() => {
+            if (!mio || !restauracion.teclado) return;
+            // Por si acaso: antes de reemplazarlo, una copia del teclado actual
+            descargarRespaldo(mio);
+            if (guardar(restauracion.teclado)) {
+              setCapa("base");
+              setRestauracion(null);
+            }
+          }}
+          onCerrar={() => setRestauracion(null)}
         />
       )}
 

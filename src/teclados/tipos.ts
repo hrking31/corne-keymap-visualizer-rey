@@ -11,6 +11,9 @@ export type TeclaConfig = {
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo
   heredada?: boolean;
+  // Importada de un .keymap con algo que no se reconoce (mal escrito, p. ej. «&kp NOEXISTE»):
+  // el binding original. La tecla se marca hasta que se corrija el .keymap o se edite a mano
+  sinReconocer?: string;
 };
 
 export type CapaConfig = {
