@@ -1,10 +1,5 @@
-import { useEffect } from "react";
 import type { PasoEntrada } from "../firebase/useCuenta";
 import teclado from "../assets/bienvenida.svg";
-
-// El naranja del borde de esta pantalla (el final del degradado de .ingreso), para que la
-// barra de arriba del teléfono se funda con ella
-const NARANJA_BARRA = "#b45309";
 
 type Props = {
   paso: PasoEntrada;
@@ -18,17 +13,6 @@ type Props = {
 // Google o pide ver la demo (el teclado de ejemplo). La mano izquierda del Corne con los
 // LED en el efecto Swirl de ZMK (la animación va dentro del SVG).
 export default function Ingreso({ paso, error, onPrecargar, onEntrar, onDemo }: Props) {
-  // La barra de arriba del teléfono (hora, batería) es naranja solo mientras se ve esta
-  // pantalla; al salir vuelve al oscuro del resto de la app (index.html)
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    const anterior = meta?.getAttribute("content");
-    meta?.setAttribute("content", NARANJA_BARRA);
-    return () => {
-      if (anterior) meta?.setAttribute("content", anterior);
-    };
-  }, []);
-
   return (
     <main className="ingreso">
       <img className="ingreso-teclado" src={teclado} alt="" />
