@@ -47,7 +47,8 @@ export default function Bloque(props: Props) {
         const claseHeredada =
           (tecla.heredada && !vistaPrevia ? " key-heredada" : "") +
           (tecla.sinReconocer && !vistaPrevia ? " key-sin-reconocer" : "");
-        const texto = tecla.texto.trim().replace("\n", " / ");
+        const texto =
+          tecla.sinReconocer && !vistaPrevia ? "Sin reconocer" : tecla.texto.trim().replace("\n", " / ");
 
         // Todas las teclas abren el panel, también las vacías: muestran la capa y su «Key N»
         return (
@@ -68,7 +69,8 @@ export default function Bloque(props: Props) {
             // Toque en el móvil, o Enter/Espacio con teclado
             onClick={() => (alElegir ? alElegir(tecla) : onMostrar(tecla))}
           >
-            {tecla.texto}
+            {/* Sin reconocer: solo un «?», que llama la atención; el panel dice qué falló */}
+            {tecla.sinReconocer && !vistaPrevia ? "?" : tecla.texto}
           </button>
         );
       })}

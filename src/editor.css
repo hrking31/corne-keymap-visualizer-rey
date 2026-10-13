@@ -481,20 +481,12 @@ input[type="radio"] {
 }
 
 /* Tecla importada con algo que no se reconoció (mal escrito en el .keymap): borde punteado
-   naranja y un «?» en la esquina, hasta que se corrija el .keymap o se edite a mano */
+   naranja y, en vez de su texto, un «?» grande, hasta que se corrija el .keymap o se edite
+   a mano. Lo que traía el .keymap se ve en el panel */
 .key.key-sin-reconocer {
-  position: relative;
   border-style: dashed;
   border-color: var(--color-naranja);
-}
-
-.key.key-sin-reconocer::after {
-  content: "?";
-  position: absolute;
-  top: 1px;
-  right: 3px;
   color: var(--color-naranja-claro);
-  font-size: 10px;
+  font-size: 1.6em;
   font-weight: bold;
-  line-height: 1;
 }
