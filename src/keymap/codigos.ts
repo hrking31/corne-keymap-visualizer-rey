@@ -171,3 +171,57 @@ export function textoDeCodigo(
   const texto = largo.length <= 12 ? largo : [...nombres.map((n) => n.slice(0, 1)), base].join("+");
   return { texto, conocido: true };
 }
+
+// ---------- Lo que recibe el navegador ----------
+
+// La tecla física que anuncia cada código, con el nombre que le da el navegador
+// (KeyboardEvent.code). No depende del idioma del sistema: SEMI es siempre «Semicolon»,
+// escriba «;» o «Ñ».
+const FISICAS: Record<string, string> = {
+  N1: "Digit1", N2: "Digit2", N3: "Digit3", N4: "Digit4", N5: "Digit5",
+  N6: "Digit6", N7: "Digit7", N8: "Digit8", N9: "Digit9", N0: "Digit0",
+  MINUS: "Minus", EQUAL: "Equal", LBKT: "BracketLeft", RBKT: "BracketRight",
+  BSLH: "Backslash", NUHS: "Backslash", SEMI: "Semicolon", SQT: "Quote", GRAVE: "Backquote",
+  COMMA: "Comma", DOT: "Period", FSLH: "Slash", NUBS: "IntlBackslash",
+  RET: "Enter", ESC: "Escape", BSPC: "Backspace", TAB: "Tab", SPACE: "Space", DEL: "Delete",
+  INS: "Insert", HOME: "Home", END: "End", PG_UP: "PageUp", PG_DN: "PageDown",
+  LEFT: "ArrowLeft", RIGHT: "ArrowRight", UP: "ArrowUp", DOWN: "ArrowDown",
+  CAPS: "CapsLock", PSCRN: "PrintScreen", SLCK: "ScrollLock", PAUSE: "Pause", K_APP: "ContextMenu",
+  KP_PLUS: "NumpadAdd", KP_MINUS: "NumpadSubtract", KP_MULTIPLY: "NumpadMultiply",
+  KP_DIVIDE: "NumpadDivide", KP_DOT: "NumpadDecimal", KP_ENTER: "NumpadEnter",
+  KP_EQUAL: "NumpadEqual", KP_COMMA: "NumpadComma", KP_NLCK: "NumLock",
+};
+
+// Lo que el teclado envía al tocar una tecla, tal como lo ve el navegador
+export type Envio = {
+  code: string; // KeyboardEvent.code
+  ctrl: boolean;
+  shift: boolean;
+  alt: boolean;
+  altGr: boolean;
+  gui: boolean; // la tecla Windows / Cmd / Super
+};
+
+// El envío de un código de ZMK con sus modificadores («LC(C)» → KeyC con Ctrl). null si no
+// es una tecla que llegue así al navegador: un modificador solo, multimedia, o un código
+// que no se conoce.
+export function envioDeCodigo(codigo: string): Envio | null {
+  const { mods, tecla } = separar(codigo);
+  // Los símbolos con nombre propio son otra tecla con shift (EXCL = shift + N1)
+  const conShift = CON_SHIFT[tecla];
+  const base = conShift ?? tecla;
+  let code: string | undefined = FISICAS[base];
+  if (!code && /^[A-Z]$/.test(base)) code = `Key${base}`;
+  if (!code && /^F([1-9]|1[0-9]|2[0-4])$/.test(base)) code = base;
+  const kp = /^KP_N([0-9])$/.exec(base);
+  if (!code && kp) code = `Numpad${kp[1]}`;
+  if (!code) return null;
+  return {
+    code,
+    ctrl: mods.includes("CTRL"),
+    shift: mods.includes("SHIFT") || conShift !== undefined,
+    alt: mods.includes("ALT"),
+    altGr: mods.includes("ALTGR"),
+    gui: mods.includes("GUI"),
+  };
+}

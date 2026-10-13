@@ -145,7 +145,8 @@ describe("casos raros (un keymap inventado)", () => {
   it("la marca se quita al corregir el .keymap y volver a importar", () => {
     const corregido = archivo.replace("&kp NOEXISTE", "&kp B");
     const otra = importarKeymap(leerKeymap(corregido), teclado).teclado;
-    expect(otra.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "", deCapa: false });
+    // Sin la marca, y con lo que envía (lo usa la práctica)
+    expect(otra.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "", deCapa: false, envia: "B" });
   });
 
   it("la capa de abajo de una &trans es la que la activa", () => {

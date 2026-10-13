@@ -2,7 +2,7 @@
 // restaurar después. Al leerlo se revisa todo y solo se conservan los campos conocidos:
 // un archivo editado a mano o de otra app no puede meter datos raros en la cuenta.
 import { DISTRIBUCIONES, IDIOMAS, SISTEMAS } from "./distribuciones";
-import { validarTeclado } from "./validar";
+import { LIMITES, validarTeclado } from "./validar";
 import type { CapaConfig, TeclaConfig, TecladoConfig } from "./tipos";
 
 const FORMATO = "corne-zmk-visualizer";
@@ -48,6 +48,7 @@ function leerTecla(v: unknown, donde: string): TeclaConfig {
   };
   if (v.heredada === true) tecla.heredada = true;
   if (typeof v.sinReconocer === "string") tecla.sinReconocer = v.sinReconocer;
+  if (typeof v.envia === "string" && v.envia && v.envia.length <= LIMITES.envia) tecla.envia = v.envia;
   return tecla;
 }
 
