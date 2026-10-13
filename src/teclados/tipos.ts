@@ -11,6 +11,14 @@ export type TeclaConfig = {
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo
   heredada?: boolean;
+  // Importada de un .keymap con algo que no se reconoce (mal escrito, p. ej. «&kp NOEXISTE»):
+  // el binding original. La tecla se marca hasta que se corrija el .keymap o se edite a mano
+  sinReconocer?: string;
+  // Importada de un .keymap: el código de ZMK que envía al tocarla («A», «LC(C)», «HOME»).
+  // Lo usa la práctica para saber si se pulsó. No cambia al editar el texto a mano («INIT»
+  // sigue enviando HOME), solo al volver a importar. Las teclas de plantilla y las escritas
+  // a mano no lo llevan: se reconocen por su texto, si es un carácter
+  envia?: string;
 };
 
 export type CapaConfig = {

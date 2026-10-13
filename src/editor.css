@@ -106,6 +106,19 @@ dialog.confirmar::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
 
+/* Practicando, el ratón no enciende las teclas: solo se enciende la acertada o la correcta
+   (que usan el mismo aspecto que el hover y se confundirían) */
+.practicando .key {
+  pointer-events: none;
+}
+
+/* Practicando, la pantalla de cada mitad la dibuja la app (practica/pantalla.ts): la de
+   siempre más el marcador. Llega en --oled, puesta en cada .split; el tamaño y la posición
+   son los de style.css */
+.keyboard-container.practicando .split::after {
+  background-image: var(--oled);
+}
+
 /* La tecla que se está editando o intercambiando, resaltada en naranja */
 .key[data-elegida] {
   border-color: var(--color-naranja);
@@ -478,4 +491,15 @@ input[type="radio"] {
    pre-line solo respeta ese salto; el resto del texto se ve igual que siempre */
 .key {
   white-space: pre-line;
+}
+
+/* Tecla importada con algo que no se reconoció (mal escrito en el .keymap): borde punteado
+   naranja y, en vez de su texto, un «?» grande, hasta que se corrija el .keymap o se edite
+   a mano. Lo que traía el .keymap se ve en el panel */
+.key.key-sin-reconocer {
+  border-style: dashed;
+  border-color: var(--color-naranja);
+  color: var(--color-naranja-claro);
+  font-size: 1.6em;
+  font-weight: bold;
 }

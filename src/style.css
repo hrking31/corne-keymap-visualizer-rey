@@ -133,9 +133,11 @@ button.key {
   appearance: none;
 }
 
-/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) */
+/* Hover, y el mismo aspecto al llegar con Tab (foco por teclado) y al encenderse en la
+   práctica (la tecla acertada, o la correcta tras un fallo) */
 .key:hover,
-.key:focus-visible {
+.key:focus-visible,
+.key.key-encendida {
   --scale: 1.12;
   background: #3d3a33;
   border-color: #d97706;
@@ -958,6 +960,14 @@ h1,
 .firma a:focus-visible {
   color: #ff9d2e;
   text-decoration-color: #d97706;
+}
+
+/* Logo de GitHub de la firma: del alto de la letra, para no cambiar el alto de la línea */
+.firma-github svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
 }
 
 /* ===== CABECERA CON HASTA 10 CAPAS (Fase 2, aprobado por el autor) =====

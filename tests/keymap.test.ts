@@ -131,6 +131,22 @@ describe("casos raros (un keymap inventado)", () => {
     expect(texto(teclado, 0, 7)).toBe("FOO 3");
     expect(texto(teclado, 0, 8)).toBe("NOEXISTE");
     expect(resumen.desconocidos.map((d) => d.original)).toEqual(["&kp NOEXISTE"]);
+    // La tecla queda marcada con lo que traía el .keymap
+    expect(teclado.capas.base.teclas[8]).toMatchObject({ texto: "NOEXISTE", sinReconocer: "&kp NOEXISTE" });
+  });
+
+  it("también avisa si lo mal escrito va dentro de una tecla de dos acciones", () => {
+    const malo = `/ { keymap { compatible = "zmk,keymap"; b { bindings = <&mt LSHFT NOEXISTE ${"&none ".repeat(41)}>; }; }; };`;
+    const r = importar(malo, latino);
+    expect(r.resumen.desconocidos.map((d) => d.original)).toEqual(["&mt LSHFT NOEXISTE"]);
+    expect(r.teclado.capas.base.teclas[0].sinReconocer).toBe("&mt LSHFT NOEXISTE");
+  });
+
+  it("la marca se quita al corregir el .keymap y volver a importar", () => {
+    const corregido = archivo.replace("&kp NOEXISTE", "&kp B");
+    const otra = importarKeymap(leerKeymap(corregido), teclado).teclado;
+    // Sin la marca, y con lo que envía (lo usa la práctica)
+    expect(otra.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "", deCapa: false, envia: "B" });
   });
 
   it("la capa de abajo de una &trans es la que la activa", () => {

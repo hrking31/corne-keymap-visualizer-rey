@@ -11,6 +11,8 @@ export const LIMITES = {
   // Hasta dos líneas de 12 (tocar arriba, mantener abajo: «CTRL+N» / «ALT+B»)
   texto: 25,
   descripcion: 300,
+  // El código de ZMK de una tecla, con sus modificadores («LC(LS(LA(DELETE)))»)
+  envia: 40,
 } as const;
 
 // Devuelve los problemas encontrados (vacío si el teclado es válido)
@@ -39,6 +41,7 @@ export function validarTeclado(t: TecladoConfig): string[] {
       if (!Number.isInteger(n) || n < 0 || n > 41) problemas.push(`Capa ${capa.corto}: posición ${pos} no existe`);
       largo(tecla.texto, LIMITES.texto, `Capa ${capa.corto}, tecla ${pos}, texto`);
       largo(tecla.descripcion, LIMITES.descripcion, `Capa ${capa.corto}, tecla ${pos}, descripción`);
+      if (tecla.envia) largo(tecla.envia, LIMITES.envia, `Capa ${capa.corto}, tecla ${pos}, código`);
     }
   }
   return problemas;

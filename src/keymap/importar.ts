@@ -17,7 +17,14 @@ import { ErrorKeymap, type Binding, type KeymapLeido } from "./leer";
 // Solo el Corne de 42 teclas, el único que dibuja la app
 const TECLAS_POR_CAPA = 42;
 
-type Traducida = { texto: string; deCapa: boolean; heredada?: boolean; desconocido?: boolean; propio?: string };
+type Traducida = {
+  texto: string;
+  deCapa: boolean;
+  heredada?: boolean;
+  desconocido?: boolean;
+  propio?: string;
+  envia?: string; // el código de ZMK que envía al tocarla, si es una tecla (&kp, o el tocar de &mt, &lt…)
+};
 
 export type ResumenImportacion = {
   capas: string[]; // nombres cortos, en orden
@@ -49,7 +56,8 @@ const dosLineas = (tocar: string, mantener: string) => `${tocar}\n${mantener}`;
 function tecla(codigo: string | undefined, ctx: Contexto): Traducida {
   if (!codigo) return { texto: "", deCapa: false, desconocido: true };
   const { texto, conocido } = textoDeCodigo(codigo, ctx.idioma, ctx.so);
-  return { texto, deCapa: false, desconocido: !conocido };
+  const envia = codigo.replace(/\s+/g, "");
+  return { texto, deCapa: false, desconocido: !conocido, envia: conocido && envia.length <= LIMITES.envia ? envia : undefined };
 }
 
 const capa = (parametro: string | undefined, ctx: Contexto) => {
@@ -96,14 +104,24 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
     case "&tog":
     case "&sl":
       return { texto: capa(p1, ctx), deCapa: true };
-    case "&lt":
-      return { texto: dosLineas(tecla(p2, ctx).texto, capa(p1, ctx)), deCapa: true };
-    case "&mt":
-      return { texto: dosLineas(tecla(p2, ctx).texto, tecla(p1, ctx).texto), deCapa: false };
+    case "&lt": {
+      const tocar = tecla(p2, ctx);
+      return { texto: dosLineas(tocar.texto, capa(p1, ctx)), deCapa: true, desconocido: tocar.desconocido, envia: tocar.envia };
+    }
+    case "&mt": {
+      const [tocar, mantener] = [tecla(p2, ctx), tecla(p1, ctx)];
+      return {
+        texto: dosLineas(tocar.texto, mantener.texto),
+        deCapa: false,
+        desconocido: tocar.desconocido || mantener.desconocido,
+        envia: tocar.envia,
+      };
+    }
     case "&sk":
-      return { texto: `SK ${tecla(p1, ctx).texto}`, deCapa: false };
-    case "&kt":
-      return { texto: `TOG ${tecla(p1, ctx).texto}`, deCapa: false };
+    case "&kt": {
+      const t = tecla(p1, ctx);
+      return { texto: `${b.comportamiento === "&sk" ? "SK" : "TOG"} ${t.texto}`, deCapa: false, desconocido: t.desconocido };
+    }
     case "&bt": {
       const n = Number(p2);
       if (p1 === "BT_SEL") return { texto: `BT${n + 1}`, deCapa: false };
@@ -125,11 +143,20 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
       // Como &mt y &lt: tocar arriba, mantener abajo
       const mantener = traducir({ ...propio.bindings[0], parametros: [p1 ?? ""] }, ctx, profundidad + 1);
       const tocar = traducir({ ...propio.bindings[1], parametros: [p2 ?? ""] }, ctx, profundidad + 1);
-      return { texto: dosLineas(tocar.texto, mantener.texto), deCapa: mantener.deCapa || tocar.deCapa };
+      return {
+        texto: dosLineas(tocar.texto, mantener.texto),
+        deCapa: mantener.deCapa || tocar.deCapa,
+        desconocido: tocar.desconocido || mantener.desconocido,
+        envia: tocar.envia,
+      };
     }
     if ((propio.tipo === "mod-morph" || propio.tipo === "tap-dance") && propio.bindings.length) {
       const opciones = propio.bindings.slice(0, 2).map((x) => traducir(x, ctx, profundidad + 1));
-      return { texto: opciones.map((o) => o.texto).join("/"), deCapa: opciones.some((o) => o.deCapa) };
+      return {
+        texto: opciones.map((o) => o.texto).join("/"),
+        deCapa: opciones.some((o) => o.deCapa),
+        desconocido: opciones.some((o) => o.desconocido),
+      };
     }
   }
   // Uno de ZMK con una opción que no se conoce (mal escrita, o de una versión nueva): tal cual
@@ -210,6 +237,9 @@ export function importarKeymap(
       const descripcion = anterior?.teclas[pos]?.descripcion ?? "";
       const tecla: TeclaConfig = { texto: recortar(texto), descripcion, deCapa: t.deCapa };
       if (t.heredada) tecla.heredada = true;
+      // Queda marcada en el teclado hasta que se corrija el .keymap o se edite a mano
+      if (t.desconocido) tecla.sinReconocer = c.bindings[pos].original;
+      else if (t.envia) tecla.envia = t.envia;
       if (!tecla.texto && !tecla.descripcion && !tecla.deCapa) return;
       if (tecla.texto) resumen.teclas++;
       teclas[pos] = tecla;

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { dividirBloques } from "./teclado";
 import { teclasParaDibujar } from "./teclados/convertir";
 import { ajustesDelNavegador, crearTeclado, nombreVisible } from "./teclados/plantillas";
@@ -24,10 +24,14 @@ import TituloEditable from "./components/editor/TituloEditable";
 import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
+import RestaurarCopia, { type Restauracion } from "./components/editor/RestaurarCopia";
+import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
 import { useApilado } from "./components/editor/useApilado";
+import { empezar, objetivos, responder, type Objetivo, type Practica } from "./practica/practica";
+import { pantallasDePractica } from "./practica/pantalla";
 
 // Sin cuenta se ve una capa Base de ejemplo: QWERTY en el idioma y el sistema del navegador
 const tecladoDeEjemplo = () =>
@@ -56,6 +60,24 @@ const guardarInvertido = (invertido: boolean) => {
   } catch {
     // Sin almacenamiento solo se pierde el recuerdo; el botón sigue funcionando
   }
+};
+
+const avisoSinReconocer = (original: string) =>
+  `No se reconoció «${original}». Revisa tu .keymap o escribe aquí qué hace.`;
+
+// Práctica: cuánto se queda encendida la tecla acertada antes de pasar a la siguiente
+const DESTELLO_MS = 350;
+
+// Lo que mide una tecla en px (el ancho de una columna de la cuadrícula): de eso depende
+// el tamaño de la letra del marcador. Cambia con la ventana
+const medirTecla = () => {
+  const mitad = document.getElementById("right-side");
+  return mitad ? parseFloat(getComputedStyle(mitad).gridTemplateColumns) || 0 : 0;
+};
+const sinMedir = () => 0;
+const alCambiarLaVentana = (avisar: () => void) => {
+  window.addEventListener("resize", avisar);
+  return () => window.removeEventListener("resize", avisar);
 };
 
 const MODAL_INICIAL: EstadoModal = {
@@ -153,6 +175,9 @@ export default function App({ tecladoInicial }: Props) {
   // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
+  // Restaurar una copia de seguridad: el resumen y el teclado leído, hasta aplicar o cancelar
+  const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
+  const [selectorRespaldo, setSelectorRespaldo] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -164,6 +189,14 @@ export default function App({ tecladoInicial }: Props) {
   const mitadAbajo = useRef(false);
   // Apilado: false = izquierda arriba (como siempre), true = derecha arriba
   const [invertido, setInvertido] = useState(leerInvertido);
+
+  // Práctica (memoria muscular): la app pide una tecla y se pulsa en el teclado físico.
+  // null = no se está practicando
+  const [practica, setPractica] = useState<Practica | null>(null);
+  // La tecla recién acertada, encendida un instante antes de pasar a la siguiente
+  const [destello, setDestello] = useState<Objetivo["lugares"] | null>(null);
+  // Ya llegó alguna pulsación: hay un teclado conectado (el navegador no lo sabe de otro modo)
+  const [tecladoVisto, setTecladoVisto] = useState(false);
 
   const capaActual = teclado.capas[capa];
   // En el panel: «Capa» y el nombre largo («Capa Navegación»)
@@ -211,6 +244,28 @@ export default function App({ tecladoInicial }: Props) {
       setCapa(id);
       setTeclaEditada(null);
       setCapaEnEdicion(true);
+    }
+  };
+
+  // Descarga el teclado como un archivo .json (se genera aquí, sin pasar por ningún servidor)
+  const descargarRespaldo = (actual: TecladoConfig) => {
+    const contenido = JSON.stringify(crearRespaldo(actual), null, 2);
+    const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = nombreDeArchivo(actual);
+    enlace.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  // Lee una copia de seguridad y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
+  const leerArchivoRespaldo = async (archivo: File | undefined) => {
+    if (!archivo) return;
+    try {
+      const { teclado: copia, fecha } = leerRespaldo(await archivo.text());
+      setRestauracion({ archivo: archivo.name, teclado: copia, fecha });
+    } catch (e) {
+      setRestauracion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -291,6 +346,8 @@ export default function App({ tecladoInicial }: Props) {
 
   // Una tecla sin texto también abre el panel: muestra la capa y su «Key N»
   const mostrar = (tecla: TeclaDibujo, lado: Lado) => {
+    // Practicando se mira el teclado de la pantalla, no las descripciones
+    if (practica) return;
     ladoActual.current = lado;
     mitadAbajo.current = estaAbajo(lado);
     const movil = esMovilVertical();
@@ -301,8 +358,9 @@ export default function App({ tecladoInicial }: Props) {
       capa: nombreCapa,
       titulo: tecla.texto.replace("\n", " / "),
       desc: `Key ${tecla.pos}`,
-      extra: tecla.descripcion,
-      extraDisplay: tecla.descripcion ? "block" : "none",
+      // Si no se reconoció al importar y aún no tiene descripción, el panel lo explica
+      extra: tecla.descripcion || (tecla.sinReconocer ? avisoSinReconocer(tecla.sinReconocer) : ""),
+      extraDisplay: tecla.descripcion || tecla.sinReconocer ? "block" : "none",
     });
   };
 
@@ -330,17 +388,105 @@ export default function App({ tecladoInicial }: Props) {
     };
   }, []);
 
+  const empezarPractica = () => {
+    const nueva = empezar(objetivos(teclado));
+    if (!nueva) {
+      setAviso("Este teclado no tiene teclas que se puedan practicar.");
+      return;
+    }
+    ocultar();
+    setAviso("");
+    // El foco vuelve a la página: las pulsaciones no deben activar un botón
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setTecladoVisto(false);
+    setPractica(nueva);
+    setCapa(nueva.objetivos[nueva.actual].lugares[0].capa);
+  };
+
+  const terminarPractica = () => {
+    setDestello(null);
+    setPractica(null);
+  };
+
+  // Practicando, todas las pulsaciones son respuestas: no hacen lo de siempre en el navegador
+  // (Tab no mueve el foco, F5 no recarga…). El menú ⚙ queda libre para poder salir
+  useEffect(() => {
+    if (!practica) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.target instanceof Element && e.target.closest(".menu-ajustes")) return;
+      e.preventDefault();
+      setTecladoVisto(true);
+      if (e.repeat || e.isComposing) return;
+      const { practica: nueva, resultado } = responder(practica, {
+        key: e.key,
+        code: e.code,
+        ctrl: e.ctrlKey,
+        shift: e.shiftKey,
+        alt: e.altKey,
+        meta: e.metaKey,
+        altGr: e.getModifierState("AltGraph"),
+      });
+      if (resultado === "ignorada") return;
+
+      // Acierto o fallo, se muestra dónde está la tecla que se pedía
+      const pedida = practica.objetivos[practica.actual];
+      setPractica(nueva);
+      setCapa(pedida.lugares[0].capa);
+      // Acierto: la tecla se enciende un instante. Fallo: la correcta queda encendida (fallado)
+      setDestello(resultado === "acierto" ? pedida.lugares : null);
+    };
+    // Al soltar Alt, Windows activa el menú del navegador: tampoco
+    const alSoltar = (e: KeyboardEvent) => {
+      if (!(e.target instanceof Element && e.target.closest(".menu-ajustes"))) e.preventDefault();
+    };
+    document.addEventListener("keydown", alPulsar, true);
+    document.addEventListener("keyup", alSoltar, true);
+    return () => {
+      document.removeEventListener("keydown", alPulsar, true);
+      document.removeEventListener("keyup", alSoltar, true);
+    };
+  }, [practica]);
+
+  // La tecla acertada se apaga sola y la pantalla pasa a la capa de la siguiente pregunta
+  useEffect(() => {
+    if (!destello || !practica) return;
+    const capaSiguiente = practica.objetivos[practica.actual].lugares[0].capa;
+    const temporizador = window.setTimeout(() => {
+      setDestello(null);
+      setCapa(capaSiguiente);
+    }, DESTELLO_MS);
+    return () => window.clearTimeout(temporizador);
+  }, [destello, practica]);
+
+  // Las teclas encendidas de la capa que se ve: la recién acertada o, tras un fallo, la correcta
+  const encendidas = practica
+    ? (destello ?? (practica.fallado ? practica.objetivos[practica.actual].lugares : []))
+        .filter((lugar) => lugar.capa === capa)
+        .map((lugar) => lugar.pos)
+    : undefined;
+  // El marcador va en las pantallas del teclado: aciertos en la izquierda, fallos en la derecha
+  const tamanoTecla = useSyncExternalStore(alCambiarLaVentana, practica ? medirTecla : sinMedir);
+  const pantallas = practica
+    ? pantallasDePractica(practica.aciertos, practica.fallos, tecladoVisto, tamanoTecla)
+    : undefined;
+
   // Con cuenta (o comprobándola, con la copia del teclado en pantalla) o en la demo
   const conCuenta = !tecladoInicial && cuenta.sesion !== "cerrada";
   const demo = !tecladoInicial && cuenta.sesion === "cerrada";
 
-  // Las opciones del menú de ajustes (⚙). Mientras se edita no aparece: manda «Listo»
+  // Las opciones del menú de ajustes (⚙). Mientras se edita no aparece: manda «Listo».
+  // Practicando solo queda la de salir de la práctica
   const menu: OpcionMenu[] = [];
-  if (conCuenta && cuenta.usuario && !modoEdicion) {
+  if (practica) {
+    menu.push({ texto: "Salir de la práctica", alElegir: terminarPractica });
+  } else if (conCuenta && cuenta.usuario && !modoEdicion) {
     if (mio) {
       menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
+      menu.push({ texto: "Practicar", alElegir: empezarPractica });
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
+      menu.push({ texto: "Descargar copia", alElegir: () => descargarRespaldo(mio) });
+      menu.push({ texto: "Restaurar copia", alElegir: () => selectorRespaldo?.click() });
     }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
@@ -355,7 +501,7 @@ export default function App({ tecladoInicial }: Props) {
       },
     );
   }
-  if (demo) {
+  if (demo && !practica) {
     menu.push(
       {
         texto:
@@ -363,6 +509,7 @@ export default function App({ tecladoInicial }: Props) {
         mantenerAbierto: true,
         alElegir: cuenta.entrar,
       },
+      { texto: "Practicar", alElegir: empezarPractica },
       // Vuelve a la pantalla de ingreso
       { texto: "Atrás", alElegir: () => setVerDemo(false) },
     );
@@ -456,9 +603,12 @@ export default function App({ tecladoInicial }: Props) {
     <>
       {/* Agrupa nombre y botones sin cambiar el diseño (display: contents en style.css) */}
       <header className="cabecera">
-        <h1>
-          {/* Editando, el nombre se escribe en el propio título: «Corne [Rey] ZMK» */}
-          {modoEdicion && mio ? (
+        <h1 aria-live={practica ? "polite" : undefined}>
+          {/* Practicando, el título es la pregunta. Editando, el nombre se escribe en el
+              propio título: «Corne [Rey] ZMK» */}
+          {practica ? (
+            `Pulsa: ${practica.objetivos[practica.actual].texto}`
+          ) : modoEdicion && mio ? (
             <TituloEditable key={mio.nombre} nombre={mio.nombre} apilado={apilado} onNombre={(n) => guardar(cambiarNombre(mio, n))} />
           ) : (
             nombreVisible(teclado)
@@ -468,7 +618,7 @@ export default function App({ tecladoInicial }: Props) {
         {botonesDeCapa}
       </header>
 
-      <div className={invertido ? "keyboard-container invertido" : "keyboard-container"}>
+      <div className={"keyboard-container" + (invertido ? " invertido" : "") + (practica ? " practicando" : "")}>
         <Bloque
           id="left-side"
           lado="left"
@@ -481,6 +631,8 @@ export default function App({ tecladoInicial }: Props) {
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "izquierdo") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
           deCapaElegida={deCapaElegida}
+          encendidas={encendidas}
+          pantalla={pantallas?.izquierda}
         />
         <Bloque
           id="right-side"
@@ -494,6 +646,8 @@ export default function App({ tecladoInicial }: Props) {
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "derecho") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
           deCapaElegida={deCapaElegida}
+          encendidas={encendidas}
+          pantalla={pantallas?.derecha}
         />
         {/* Solo se ve con las mitades apiladas: en el hueco entre las dos (style.css) */}
         <button
@@ -510,7 +664,19 @@ export default function App({ tecladoInicial }: Props) {
 
       {menu.length > 0 && (
         // Al entrar o salir cambian las opciones: el menú vuelve a empezar cerrado
-        <MenuAjustes key={cuenta.sesion} opciones={menu} onAbrir={demo ? cuenta.precargar : undefined} />
+        <MenuAjustes
+          key={`${cuenta.sesion}-${practica ? "practica" : "normal"}`}
+          opciones={menu}
+          onAbrir={demo && !practica ? cuenta.precargar : undefined}
+        />
+      )}
+
+      {/* El marcador de la práctica se ve en las pantallas del teclado, que son imágenes:
+          aquí va el mismo dato como texto, para quien usa un lector de pantalla */}
+      {practica && (
+        <p className="sr-only">
+          {tecladoVisto ? `Aciertos ${practica.aciertos}, fallos ${practica.fallos}` : "Conecta tu teclado y pulsa la tecla que se pide"}
+        </p>
       )}
 
       <footer className="firma">
@@ -521,6 +687,20 @@ export default function App({ tecladoInicial }: Props) {
             {" · "}
             <a href="https://hernandorey-31.web.app/" target="_blank" rel="noopener noreferrer">
               Hernando Rey
+            </a>
+            {" · "}
+            {/* El código de la app: el logo de GitHub, sin texto (el pie no tiene sitio) */}
+            <a
+              className="firma-github"
+              href="https://github.com/hrking31/corne-keymap-visualizer-rey"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Código en GitHub"
+              title="Código en GitHub"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+              </svg>
             </a>
           </>
         )}
@@ -628,6 +808,36 @@ export default function App({ tecladoInicial }: Props) {
             // Así se puede volver a elegir el mismo archivo después de cambiarlo
             e.target.value = "";
           }}
+        />
+      )}
+
+      {/* El selector de archivos del menú «Restaurar copia»: no se ve */}
+      {mio && (
+        <input
+          ref={setSelectorRespaldo}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => {
+            void leerArchivoRespaldo(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      )}
+
+      {restauracion && (
+        <RestaurarCopia
+          restauracion={restauracion}
+          onAplicar={() => {
+            if (!mio || !restauracion.teclado) return;
+            // Por si acaso: antes de reemplazarlo, una copia del teclado actual
+            descargarRespaldo(mio);
+            if (guardar(restauracion.teclado)) {
+              setCapa("base");
+              setRestauracion(null);
+            }
+          }}
+          onCerrar={() => setRestauracion(null)}
         />
       )}
 

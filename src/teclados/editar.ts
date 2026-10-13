@@ -49,7 +49,11 @@ const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.
 // Cambia una tecla. Si queda vacía se quita (así una capa en blanco no guarda 42 teclas vacías)
 export function editarTecla(t: TecladoConfig, capa: string, pos: number, tecla: TeclaConfig): TecladoConfig {
   const nuevo = copiar(t);
-  const limpia = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim(), deCapa: tecla.deCapa };
+  const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim(), deCapa: tecla.deCapa };
+  // Lo que envía una tecla importada no depende de cómo se llame ni de su descripción: se
+  // conserva hasta que se vuelva a importar el .keymap
+  const envia = nuevo.capas[capa].teclas[pos]?.envia;
+  if (envia) limpia.envia = envia;
   if (vacia(limpia)) delete nuevo.capas[capa].teclas[pos];
   else nuevo.capas[capa].teclas[pos] = limpia;
   return nuevo;

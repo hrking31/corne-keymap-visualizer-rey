@@ -68,6 +68,13 @@ describe("teclas", () => {
     expect(t.capas.base.teclas[0]).toBeUndefined();
   });
 
+  it("editar a mano una tecla importada le quita las marcas (gris, sin reconocer)", () => {
+    const t = nuevo();
+    t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", deCapa: false, heredada: true, sinReconocer: "&kp NOEXISTE" };
+    const editado = editarTecla(t, "base", 8, { texto: "B", descripcion: "Mi B", deCapa: false });
+    expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B", deCapa: false });
+  });
+
   it("intercambia dos teclas con todo su contenido", () => {
     const t = intercambiarTeclas(nuevo(), "base", 1, 37);
     expect(t.capas.base.teclas[1]).toMatchObject({ texto: "LOWER", deCapa: true });
