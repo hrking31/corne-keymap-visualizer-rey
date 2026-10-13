@@ -47,6 +47,11 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
   macOS o Linux) y después agrega hasta **10 capas** y edita cada tecla: texto, descripción y si
   cambia de capa
 - ✅ Su teclado se guarda en la nube y se abre **también sin conexión**, en el PC y en el celular
+- ✅ **Importa el `.keymap` de tu firmware**: la app lee el archivo de ZMK y crea tus capas con el
+  texto de cada tecla; a ti solo te queda escribir qué significa cada una
+- ✅ **Modo práctica** para la memoria muscular: la app pide una tecla, la pulsas en tu teclado
+  sin mirarlo y las pantallas del Corne llevan la cuenta de aciertos y fallos
+- ✅ **Copia de seguridad**: descarga tu teclado como un archivo y restáuralo cuando quieras
 - ✅ La geometría real del Corne: columnas escalonadas y pulgares en abanico
 - ✅ **Placa con el contorno de mi teclado** y la pantalla OLED mostrando su estado, como en el real
 - ✅ Panel con la descripción de cada tecla, con **ratón, teclado (Tab, Enter, Escape) o dedo**
@@ -89,7 +94,19 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    título («Corne Rey ZMK»), ＋ agrega una capa, ✎ le cambia el nombre (o la mueve o la borra) y al
    tocar una tecla escribes qué hace. ⇄ intercambia dos teclas. **Listo** sale de la edición; cada
    cambio ya se guardó al hacerlo.
-4. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos.
+4. **Importar .keymap** (mismo menú): eliges el archivo de tu firmware ZMK y ves un resumen antes
+   de aplicar nada (capas, teclas y lo que no se reconoció). Las teclas de dos acciones salen en
+   dos líneas, las transparentes en gris y las que no se reconocen con un «?». Si vuelves a
+   importar, las descripciones que ya escribiste se conservan.
+5. **Practicar**: conecta tu teclado (por cable o Bluetooth) y el título pasa a ser la pregunta,
+   «Pulsa: Ñ». Si aciertas, la tecla se enciende un instante y sale otra; si fallas, la correcta
+   queda encendida hasta que la pulses bien, y vuelve a salir poco después. Los aciertos y los
+   fallos se ven en las dos pantallas del teclado. Se practican letras, números, símbolos y las
+   teclas de editar y moverse (Esc, Tab, Enter, flechas, F1–F10…); las que no son un carácter
+   se conocen al importar el `.keymap`. Para terminar: ⚙ → **Salir de la práctica**.
+6. **Descargar copia** guarda tu teclado en un archivo `.json` y **Restaurar copia** lo recupera
+   (antes de reemplazar el actual, descarga una copia de él por si acaso).
+7. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos.
 
 **En local** (necesita Node.js 20.19 o superior):
 
@@ -123,7 +140,9 @@ src/
     Ingreso.tsx        # Pantalla de ingreso (sin sesión): entrar con Google o ver la demo
     AvisoVersion.tsx   # «Hay una versión nueva · Actualizar»
     editor/            # Asistente, barra de edición, editores de capa y de tecla (Tailwind)
-  teclados/            # El modelo: distribuciones, plantillas, validación y edición (lógica pura)
+  teclados/            # El modelo: distribuciones, plantillas, validación, edición y copia (lógica pura)
+  keymap/              # Lector de .keymap de ZMK: sintaxis, códigos de tecla e importación
+  practica/            # Modo práctica: qué se pide, si se acierta y la pantalla con el marcador
   firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
   assets/              # El teclado animado del ingreso y la pantalla OLED (SVG)
   data.ts              # 6 capas × 42 teclas  ← el contenido
@@ -209,7 +228,7 @@ Todas las teclas siguen siendo alcanzables; a cambio, la geometría no se duplic
 
 Cada usuario tiene **un documento** en Firestore con todo su teclado: sus capas (nombre corto
 para el botón, largo para el panel) y sus teclas, guardadas por su **número de posición en ZMK**
-(0–41), el mismo orden del `.keymap`. Así el día que la app lea el firmware, cada texto cae en
+(0–41), el mismo orden del `.keymap`. Así, cuando la app lee el firmware, cada texto cae en
 su sitio y las descripciones no se pierden.
 
 Las distribuciones se describen como **lo que envía el teclado**, no como lo que se ve: el
@@ -218,6 +237,25 @@ mismo código `SEMI` se ve `;` en inglés y `Ñ` en español, y la tecla `GUI` s
 
 Los visitantes que solo miran **no descargan Firebase**: la librería (unos 190 KB) se baja
 cuando el usuario muestra intención de entrar, y el service worker no la precarga.
+
+### Leer el firmware y practicar con él
+
+El lector de `.keymap` va **dentro de la app** y entiende la sintaxis estándar de ZMK, no la de
+mi teclado: comentarios, `#define` (también las plantillas con parámetros que se usan para
+escribir macros), capas y comportamientos propios. Un `&algo` que no es de ZMK se trata como una
+macro del usuario y se muestra con su nombre; lo que está mal escrito se marca, nunca se inventa.
+
+La práctica reconoce **la tecla física, no la letra**. Un teclado no envía letras sino
+posiciones, y el sistema decide qué letra es: `SEMI` escribe `;` en inglés y `Ñ` en español. Por
+eso cada tecla importada guarda el código de ZMK que envía, y la app lo compara con la tecla
+física que informa el navegador (`KeyboardEvent.code`): funciona igual con el sistema en
+cualquier idioma. Los modificadores solos solo cuentan cuando se piden, porque para escribir `!`
+el teclado envía primero Shift y después el 1.
+
+El marcador va en las **pantallas OLED** dibujadas en el teclado. Dentro de cada mitad no cabe
+otro elemento (los pulgares se colocan contando las teclas desde el final, con `nth-last-child`),
+así que la app genera la imagen de la pantalla como SVG, con el marcador dentro, y se la pasa
+al CSS en una variable.
 
 ### Responsive de verdad
 
@@ -259,11 +297,8 @@ cuál va arriba y lo recuerda en el dispositivo.
 
 ## 🗺️ Próximos pasos
 
-- **Cargar el `.keymap`**: que cada usuario suba el archivo de su firmware y la app cree sola
-  sus capas con sus textos; solo le queda escribir las descripciones.
 - **Otros teclados ZMK** (Sofle, Lily58, el Corne de 36 teclas…) leyendo su *physical layout*.
 - **Google Play**, como Trusted Web Activity.
-- Buscador inverso (*¿cómo escribo `{`?*), modo práctica y exportar a imagen.
 
 ---
 
