@@ -145,14 +145,12 @@ src/
   practica/            # Modo práctica: qué se pide, si se acierta y la pantalla con el marcador
   firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
   assets/              # El teclado animado del ingreso y la pantalla OLED (SVG)
-  data.ts              # 6 capas × 42 teclas  ← el contenido
   teclado.ts           # Lógica pura: bloques y filas
-  tipos.ts             # Capa, Tecla, Keymap
   style.css            # Todo el diseño, incluida la geometría del teclado
 tests/
   *.test.ts            # Datos y lógica (Vitest)
-  visual/              # Prueba visual (Vitest en modo navegador)
-  referencia/          # Copia congelada de la versión original
+  visual/              # Prueba visual (Vitest en modo navegador) y sus medidas aprobadas
+  keymaps/             # Archivos .keymap de ejemplo para las pruebas
   reglas/              # Reglas de Firestore, en el emulador de Firebase (CI)
 firestore.rules        # Quién puede leer y escribir cada teclado
 firebase.json          # Hosting y cabeceras de seguridad
@@ -172,6 +170,13 @@ una prueba mide las dos versiones en el mismo navegador, en cuatro tamaños de p
 compara la posición de las 252 teclas, su fuente, los 213 paneles y la paleta de colores.
 Esa prueba atrapó cambios que nadie habría visto, como un elemento vacío que aportaba 11 px
 de aire al panel, o una animación que aparecía porque React reutiliza los elementos.
+
+Terminada la migración, la copia de la versión original ya no hacía falta. Hoy la prueba
+compara la app con **las medidas guardadas del diseño aprobado**, que se tomaron cuando las
+dos versiones medían exactamente igual. Mide con un teclado de prueba (un `.keymap` real
+importado como lo hace la app) y con una letra que viaja con las pruebas, para medir lo mismo
+en mi PC y en el servidor de la CI. Si apruebo un cambio de diseño, se actualizan con
+`npm run test:visual -- -u`.
 
 ### El teclado es CSS puro
 
@@ -207,7 +212,7 @@ Lo que ves:   ESC  .   ,   Ñ   P   Y            F   G   C   H   L  BSPC
                        ▲   ▲▲  ▲                    ▲   ▲▲  ▲
                        dedo medio (más alta)        dedo medio (más alta)
 
-1. data.ts guarda la mitad izquierda:   ESC  .   ,   Ñ   P   Y
+1. La mitad izquierda, en orden de ZMK: ESC  .   ,   Ñ   P   Y
 2. El código invierte cada fila:        Y    P   Ñ   ,   .   ESC
    → ahora está en el mismo orden que la derecha: F G C H L BSPC
 3. El CSS sube cada tecla según su posición, contando desde dentro:
