@@ -30,7 +30,7 @@ import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
 import { useApilado } from "./components/editor/useApilado";
-import { empezar, objetivos, responder, type Objetivo, type Practica } from "./practica/practica";
+import { arrancar, empezar, objetivos, responder, type Objetivo, type Practica } from "./practica/practica";
 import { pantallasDePractica } from "./practica/pantalla";
 
 // Sin cuenta se ve una capa Base de ejemplo: QWERTY en el idioma y el sistema del navegador
@@ -399,7 +399,7 @@ export default function App({ tecladoInicial }: Props) {
     // El foco vuelve a la página: las pulsaciones no deben activar un botón
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     setTecladoVisto(false);
-    setPractica(nueva);
+    setPractica(arrancar(nueva)); // provisional: la cuenta atrás llega con la pantalla nueva
     setCapa(nueva.objetivos[nueva.actual].lugares[0].capa);
   };
 

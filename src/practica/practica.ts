@@ -3,6 +3,7 @@
 // pulsación acierta y cuál es la siguiente pregunta); la pantalla va aparte.
 import { envioDeCodigo, modificadorDeCodigo, type Envio } from "../keymap/codigos";
 import type { Idioma, TecladoConfig } from "../teclados/tipos";
+import { FRASES, PALABRAS, type Lengua } from "./textos";
 
 // Lo que se lee de un evento de teclado del navegador (KeyboardEvent)
 export type Pulsacion = {
@@ -17,11 +18,12 @@ export type Pulsacion = {
 
 // Cómo se sabe que se pulsó: por la tecla física que envía (si se conoce su código de ZMK);
 // si es un modificador solo (Shift, Ctrl, Alt), por esa tecla; y en una tecla escrita a
-// mano, por el carácter que escribe
+// mano, por el carácter que escribe. Al escribir palabras y frases, por el carácter exacto
+// (con su tilde: «á» llega ya compuesto)
 type Espera =
   | { tipo: "tecla"; envio: Envio }
   | { tipo: "modificador"; code: string }
-  | { tipo: "caracter"; caracter: string; caso?: "minuscula" | "mayuscula" };
+  | { tipo: "caracter"; caracter: string; caso?: "minuscula" | "mayuscula" | "exacto" };
 
 export type Objetivo = {
   clave: string; // identifica lo que hay que pulsar: dos teclas que envían lo mismo son un solo objetivo
@@ -97,9 +99,13 @@ export function objetivos(teclado: TecladoConfig): Objetivo[] {
 
 // ---------- Grupos ----------
 
-// Se practica por grupos para aprender una zona antes de mezclarlas. «Todo» es la mezcla
-export const GRUPOS = ["letras", "mayusculas", "numeros", "simbolos", "otras", "todo"] as const;
+// Se practica por grupos para aprender una zona antes de mezclarlas. «Todo» es la mezcla de
+// las teclas sueltas. «Palabras» y «Frases» son otra forma: escribir de corrido
+export const GRUPOS = ["letras", "mayusculas", "numeros", "simbolos", "otras", "todo", "palabras", "frases"] as const;
 export type Grupo = (typeof GRUPOS)[number];
+export type GrupoDeTexto = "palabras" | "frases";
+export type GrupoDeTeclas = Exclude<Grupo, GrupoDeTexto>;
+export const esDeTexto = (g: Grupo): g is GrupoDeTexto => g === "palabras" || g === "frases";
 export const NOMBRE_GRUPO: Record<Grupo, string> = {
   letras: "Letras",
   mayusculas: "Mayúsculas",
@@ -107,9 +113,11 @@ export const NOMBRE_GRUPO: Record<Grupo, string> = {
   simbolos: "Símbolos",
   otras: "Otras",
   todo: "Todo",
+  palabras: "Palabras",
+  frases: "Frases",
 };
 
-type Clase = Exclude<Grupo, "todo">;
+type Clase = Exclude<GrupoDeTeclas, "todo">;
 
 // A qué grupo pertenece una tecla: las de editar, moverse, F1–F10 y los modificadores son
 // «otras»; las de un carácter, según el carácter
@@ -136,7 +144,7 @@ function conCaso(o: Objetivo, caso: "minuscula" | "mayuscula"): Objetivo | null 
 }
 
 // Las teclas de un grupo. Las mayúsculas salen de las letras: la misma tecla con shift
-export function objetivosDeGrupo(teclado: TecladoConfig, grupo: Grupo): Objetivo[] {
+export function objetivosDeGrupo(teclado: TecladoConfig, grupo: GrupoDeTeclas): Objetivo[] {
   const lista: Objetivo[] = [];
   const vistas = new Set<string>();
   const agregar = (o: Objetivo | null) => {
@@ -157,9 +165,67 @@ export function objetivosDeGrupo(teclado: TecladoConfig, grupo: Grupo): Objetivo
   return lista;
 }
 
-// Los grupos que tienen alguna tecla en este teclado (los demás salen apagados)
+// ---------- Palabras y frases ----------
+
+export const PALABRAS_POR_RONDA = 6;
+
+const lenguaDe = (teclado: TecladoConfig): Lengua => (teclado.ajustes.idioma === "en-US" ? "en" : "es");
+// «á» → «a» y su tilde «´»
+const sinTilde = (c: string) => c.normalize("NFD").replace(/\p{M}/gu, "");
+const TILDES: Record<string, string> = { "́": "´", "̈": "¨", "̀": "`", "̂": "^", "̃": "~" };
+const NOMBRES_ESPACIO = new Set(["SPC", "SPACE", "ESPACIO", "␣"]);
+
+// Dónde está, en este teclado, cada carácter que se puede escribir: las letras (en
+// minúscula), los signos y el espacio. Una letra con tilde necesita su letra y la tecla de
+// la tilde, y se encienden las dos
+function mapaDeCaracteres(teclado: TecladoConfig): Map<string, Objetivo["lugares"]> {
+  const mapa = new Map<string, Objetivo["lugares"]>();
+  for (const capa of teclado.orden) {
+    for (const [pos, tecla] of Object.entries(teclado.capas[capa]?.teclas ?? {})) {
+      if (tecla.heredada || tecla.sinReconocer) continue;
+      const texto = tecla.texto.split("\n")[0].trim();
+      const caracter = tecla.envia === "SPACE" || NOMBRES_ESPACIO.has(texto.toUpperCase()) ? " " : texto.toLocaleLowerCase();
+      // Una tecla de capa solo cuenta si al tocarla escribe algo (tocar A, mantener NAV)
+      if ([...caracter].length !== 1 || (tecla.deCapa && !tecla.envia)) continue;
+      mapa.set(caracter, [...(mapa.get(caracter) ?? []), { capa, pos: Number(pos) }]);
+    }
+  }
+  return mapa;
+}
+
+function lugaresDe(mapa: Map<string, Objetivo["lugares"]>, c: string): Objetivo["lugares"] | null {
+  const minuscula = c.toLocaleLowerCase();
+  if (mapa.has(minuscula)) return mapa.get(minuscula)!;
+  const base = sinTilde(minuscula);
+  const tilde = TILDES[minuscula.normalize("NFD").slice(base.length)];
+  if (!tilde || !mapa.has(base) || !mapa.has(tilde)) return null;
+  return [...mapa.get(tilde)!, ...mapa.get(base)!];
+}
+
+// Las palabras o frases de la lista que se pueden escribir con este teclado
+export function textosDeGrupo(teclado: TecladoConfig, grupo: GrupoDeTexto): string[] {
+  const mapa = mapaDeCaracteres(teclado);
+  const lista = (grupo === "palabras" ? PALABRAS : FRASES)[lenguaDe(teclado)];
+  return lista.filter((t) => [...t].every((c) => lugaresDe(mapa, c) !== null));
+}
+
+// El texto de una ronda: 6 palabras distintas al azar, o una frase. null si no hay bastantes
+export function crearTexto(teclado: TecladoConfig, grupo: GrupoDeTexto, azar: () => number = Math.random): string | null {
+  const lista = [...textosDeGrupo(teclado, grupo)];
+  const cuantas = grupo === "palabras" ? PALABRAS_POR_RONDA : 1;
+  if (lista.length < cuantas) return null;
+  const elegidas: string[] = [];
+  for (let i = 0; i < cuantas; i++) elegidas.push(lista.splice(Math.floor(azar() * lista.length), 1)[0]);
+  return elegidas.join(" ");
+}
+
+// Los grupos que tienen algo que practicar en este teclado (los demás salen apagados)
 export const gruposDisponibles = (teclado: TecladoConfig): Grupo[] =>
-  GRUPOS.filter((g) => objetivosDeGrupo(teclado, g).length > 0);
+  GRUPOS.filter((g) =>
+    esDeTexto(g)
+      ? textosDeGrupo(teclado, g).length >= (g === "palabras" ? PALABRAS_POR_RONDA : 1)
+      : objetivosDeGrupo(teclado, g).length > 0,
+  );
 
 // ---------- Si una pulsación acierta ----------
 
@@ -176,6 +242,7 @@ export function acierta(objetivo: Objetivo, p: Pulsacion): boolean {
     // Ctrl y Alt juntos son AltGr en Windows; uno solo es un atajo, no escribir el carácter
     if (p.ctrl !== p.alt) return false;
     const { caracter, caso } = objetivo.espera;
+    if (caso === "exacto") return p.key === caracter;
     if (caso === "minuscula") return p.key === caracter.toLocaleLowerCase();
     if (caso === "mayuscula") return p.key === caracter;
     return p.key.toLocaleUpperCase() === caracter;
@@ -210,10 +277,13 @@ export type Practica = {
   repaso: { objetivo: number; faltan: number }[];
   total: number; // preguntas de la ronda
   hechas: number; // preguntas ya respondidas bien
-  inicio: number | null; // cuándo se pulsó la primera tecla (ms); antes, el reloj no corre
-  desde: number | null; // cuándo empezó la pregunta actual (null en la primera)
+  inicio: number | null; // el «¡YA!» de la cuenta atrás (ms); antes nada cuenta
+  desde: number | null; // cuándo empezó la pregunta actual
   fin: number | null; // cuándo terminó la ronda
   dificultad: Dificultad;
+  // Palabras y frases: las preguntas son las letras del texto, en orden. No cuentan para
+  // las teclas difíciles (una letra dentro de una palabra se escribe de otra manera)
+  enOrden: boolean;
 };
 
 export type Resultado = "acierto" | "fallo" | "ignorada";
@@ -243,7 +313,8 @@ function elegir(p: Pick<Practica, "objetivos" | "dificultad">, excepto: number, 
   return pesos.findLastIndex((x) => x > 0);
 }
 
-// Empieza una ronda. null si el teclado no tiene ninguna tecla que se pueda practicar
+// Prepara una ronda: el reloj no corre ni cuenta nada hasta arrancar() (el «¡YA!»). null si
+// el teclado no tiene ninguna tecla que se pueda practicar
 export function empezar(
   lista: Objetivo[],
   azar: () => number = Math.random,
@@ -264,8 +335,30 @@ export function empezar(
     desde: null,
     fin: null,
     dificultad,
+    enOrden: false,
   };
 }
+
+// Prepara una ronda de escribir un texto (palabras o una frase), letra a letra
+export function empezarTexto(teclado: TecladoConfig, texto: string): Practica | null {
+  const mapa = mapaDeCaracteres(teclado);
+  const letras = [...texto];
+  if (!letras.length) return null;
+  const lista: Objetivo[] = letras.map((c) => ({
+    clave: `x:${c}`,
+    texto: c,
+    espera: { tipo: "caracter", caracter: c, caso: "exacto" },
+    lugares: lugaresDe(mapa, c) ?? [],
+  }));
+  return { ...empezar(lista, () => 0, {}, lista.length)!, actual: 0, enOrden: true };
+}
+
+// El «¡YA!» de la cuenta atrás: desde aquí corre el reloj y cuenta la primera tecla
+export const arrancar = (p: Practica, ahora: number = Date.now()): Practica =>
+  p.inicio === null ? { ...p, inicio: ahora, desde: ahora } : p;
+
+// El texto de una ronda de palabras o frases, para pintarlo
+export const textoDeRonda = (p: Practica): string => (p.enOrden ? p.objetivos.map((o) => o.texto).join("") : "");
 
 function siguiente(p: Practica, azar: () => number): Pick<Practica, "actual" | "repaso"> {
   const repaso = p.repaso.map((r) => ({ ...r, faltan: r.faltan - 1 }));
@@ -286,15 +379,15 @@ export function anotarDificultad(d: Dificultad, clave: string, fallo: boolean, m
 }
 
 // Aplica una pulsación: si acierta pasa a la siguiente pregunta; si falla, la pregunta
-// sigue hasta que se pulse bien. La primera pulsación pone en marcha el reloj y la que
-// completa la ronda lo para. No cambia la ronda que recibe
+// sigue hasta que se pulse bien. Antes del «¡YA!» y después de la última no cuenta nada;
+// la que completa la ronda para el reloj. No cambia la ronda que recibe
 export function responder(
   p: Practica,
   pulsacion: Pulsacion,
   azar: () => number = Math.random,
   ahora: number = Date.now(),
 ): { practica: Practica; resultado: Resultado } {
-  if (p.fin !== null) return { practica: p, resultado: "ignorada" };
+  if (p.inicio === null || p.fin !== null) return { practica: p, resultado: "ignorada" };
   const objetivo = p.objetivos[p.actual];
   const { espera } = objetivo;
   if (esSoloModificador(pulsacion)) {
@@ -303,24 +396,28 @@ export function responder(
     // En Windows, AltGr llega precedido de un Ctrl izquierdo que nadie pulsó
     if (espera.code === "AltRight" && pulsacion.code === "ControlLeft") return { practica: p, resultado: "ignorada" };
   }
-  const inicio = p.inicio ?? ahora;
+  // La tilde que espera a su vocal («´» y luego «a» = «á») tampoco es todavía una respuesta
+  if (p.enOrden && pulsacion.key === "Dead") return { practica: p, resultado: "ignorada" };
   if (!acierta(objetivo, pulsacion)) {
     const fallada = p.fallado ? {} : { fallado: true, fallos: p.fallos + 1 };
-    return { practica: { ...p, inicio, ...fallada }, resultado: "fallo" };
+    return { practica: { ...p, ...fallada }, resultado: "fallo" };
   }
-  const dificultad = anotarDificultad(p.dificultad, objetivo.clave, p.fallado, p.desde === null ? null : ahora - p.desde);
+  const dificultad = p.enOrden
+    ? p.dificultad
+    : anotarDificultad(p.dificultad, objetivo.clave, p.fallado, p.desde === null ? null : ahora - p.desde);
   const hechas = p.hechas + 1;
   const aciertos = p.aciertos + (p.fallado ? 0 : 1);
-  const comun = { inicio, dificultad, hechas, aciertos, fallado: false };
+  const comun = { dificultad, hechas, aciertos, fallado: false };
   if (hechas >= p.total) {
     return { practica: { ...p, ...comun, repaso: [], desde: null, fin: ahora }, resultado: "acierto" };
   }
+  if (p.enOrden) return { practica: { ...p, ...comun, actual: hechas, desde: ahora }, resultado: "acierto" };
   const { actual, repaso } = siguiente({ ...p, dificultad }, azar);
   if (p.fallado && !repaso.some((r) => r.objetivo === p.actual)) repaso.push({ objetivo: p.actual, faltan: REPASO });
   return { practica: { ...p, ...comun, actual, repaso, desde: ahora }, resultado: "acierto" };
 }
 
-// Lo que lleva la ronda, o lo que duró si ya terminó. 0 antes de la primera pulsación
+// Lo que lleva la ronda, o lo que duró si ya terminó. 0 antes del «¡YA!»
 export function tiempoDeRonda(p: Practica, ahora: number = Date.now()): number {
   if (p.inicio === null) return 0;
   return (p.fin ?? ahora) - p.inicio;

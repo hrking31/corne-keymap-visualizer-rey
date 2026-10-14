@@ -6,11 +6,12 @@ import { envioDeCodigo } from "../src/keymap/codigos";
 import { importarKeymap } from "../src/keymap/importar";
 import { leerKeymap } from "../src/keymap/leer";
 import {
-  GRUPOS, TECLAS_POR_RONDA, acierta, anotarDificultad, empezar, esSoloModificador, gruposDisponibles, objetivos,
-  objetivosDeGrupo, responder, tiempoDeRonda,
-  type Dificultad, type Grupo, type Objetivo, type Practica, type Pulsacion,
+  GRUPOS, PALABRAS_POR_RONDA, TECLAS_POR_RONDA, acierta, anotarDificultad, arrancar, crearTexto, empezar, empezarTexto,
+  esSoloModificador, gruposDisponibles, objetivos, objetivosDeGrupo, responder, textoDeRonda, textosDeGrupo, tiempoDeRonda,
+  type Dificultad, type GrupoDeTeclas, type Objetivo, type Practica, type Pulsacion,
 } from "../src/practica/practica";
 import { pantallaOled, pantallasDePractica, tamanoDeLetra } from "../src/practica/pantalla";
+import { FRASES, PALABRAS } from "../src/practica/textos";
 import { editarTecla } from "../src/teclados/editar";
 import { crearTeclado } from "../src/teclados/plantillas";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
@@ -22,6 +23,9 @@ const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows"
 const pulsar = (key: string, code: string, mods: Partial<Pulsacion> = {}): Pulsacion => ({
   key, code, ctrl: false, shift: false, alt: false, meta: false, altGr: false, ...mods,
 });
+
+// Una ronda ya arrancada, como tras el «¡YA!» de la cuenta atrás
+const ya = (p: Practica | null, ahora = 0) => arrancar(p!, ahora);
 
 const tecla = (texto: string, extra: Partial<TeclaConfig> = {}): TeclaConfig => ({ texto, descripcion: "", deCapa: false, ...extra });
 
@@ -223,7 +227,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("acertar a la primera suma un acierto y pasa a otra tecla", () => {
-    const inicio = empezar(lista, () => 0)!;
+    const inicio = ya(empezar(lista, () => 0));
     expect(pedida(inicio)).toBe("Ñ");
     const { practica, resultado } = responder(inicio, bien.Ñ, () => 0);
     expect(resultado).toBe("acierto");
@@ -233,7 +237,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("fallar cuenta un solo fallo y la pregunta sigue hasta pulsar bien", () => {
-    let p = empezar(lista, () => 0)!;
+    let p = ya(empezar(lista, () => 0));
     p = responder(p, mal).practica;
     expect(p).toMatchObject({ aciertos: 0, fallos: 1, fallado: true });
     p = responder(p, mal).practica;
@@ -245,7 +249,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("el Shift de camino a un símbolo no cuenta como fallo", () => {
-    const inicio = empezar(lista, () => 0)!;
+    const inicio = ya(empezar(lista, () => 0));
     const { practica, resultado } = responder(inicio, pulsar("Shift", "ShiftLeft", { shift: true }));
     expect(resultado).toBe("ignorada");
     expect(practica).toBe(inicio);
@@ -253,25 +257,25 @@ describe("la sesión de práctica", () => {
 
   it("un modificador solo cuenta como respuesta únicamente cuando se pide uno", () => {
     const shift = lista.findIndex((o) => o.texto === "SHIFT");
-    const pidiendoShift = { ...empezar(lista, () => 0)!, actual: shift };
+    const pidiendoShift = { ...ya(empezar(lista, () => 0)), actual: shift };
     // Acierta con su tecla…
     expect(responder(pidiendoShift, bien.SHIFT, () => 0).resultado).toBe("acierto");
     // …y falla con otro modificador o con cualquier otra tecla
     expect(responder(pidiendoShift, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("fallo");
     expect(responder(pidiendoShift, bien.A).resultado).toBe("fallo");
     // Pidiendo otra cosa, el mismo Shift se ignora
-    expect(responder(empezar(lista, () => 0)!, bien.SHIFT).resultado).toBe("ignorada");
+    expect(responder(ya(empezar(lista, () => 0)), bien.SHIFT).resultado).toBe("ignorada");
   });
 
   it("pidiendo AltGr, el Ctrl que Windows envía delante no cuenta como fallo", () => {
     const altGr: Objetivo = { clave: "m:AltRight", texto: "ALTGR", lugares: [], espera: { tipo: "modificador", code: "AltRight" } };
-    const sesion = empezar([altGr, ...lista], () => 0)!;
+    const sesion = ya(empezar([altGr, ...lista], () => 0));
     expect(responder(sesion, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("ignorada");
     expect(responder(sesion, pulsar("AltGraph", "AltRight", { ctrl: true, alt: true }), () => 0).resultado).toBe("acierto");
   });
 
   it("una tecla fallada vuelve después de tres preguntas", () => {
-    let p = empezar(lista, () => 0)!; // Ñ
+    let p = ya(empezar(lista, () => 0)); // Ñ
     p = responder(p, mal).practica;
     p = responder(p, bien.Ñ, () => 0).practica;
     const siguientes = [];
@@ -285,7 +289,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("nunca pide dos veces seguidas la misma (si hay más de una)", () => {
-    let p = empezar(lista, () => 0.5, {}, Infinity)!; // una ronda sin fin
+    let p = ya(empezar(lista, () => 0.5, {}, Infinity)); // una ronda sin fin
     let azar = 0;
     for (let i = 0; i < 200; i++) {
       const antes = pedida(p);
@@ -298,7 +302,7 @@ describe("la sesión de práctica", () => {
 });
 
 describe("los grupos", () => {
-  const textos = (g: Grupo) => objetivosDeGrupo(teclado, g).map((o) => o.texto);
+  const textos = (g: GrupoDeTeclas) => objetivosDeGrupo(teclado, g).map((o) => o.texto);
 
   it("cada tecla en su grupo; las letras, en minúscula", () => {
     expect(textos("letras")).toEqual(["ñ", "a", "x"]);
@@ -336,7 +340,7 @@ describe("los grupos", () => {
   it("con el keymap del autor: ningún grupo vacío, y «otras» son sus 27 teclas con nombre", () => {
     const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
     expect(gruposDisponibles(suyo)).toEqual([...GRUPOS]);
-    const de = (g: Grupo) => objetivosDeGrupo(suyo, g);
+    const de = (g: GrupoDeTeclas) => objetivosDeGrupo(suyo, g);
     expect(de("otras")).toHaveLength(27);
     expect(de("mayusculas")).toHaveLength(de("letras").length);
     for (const o of de("letras")) expect(o.texto).toBe(o.texto.toLocaleLowerCase());
@@ -366,35 +370,40 @@ describe("la ronda: 30 teclas contra el reloj", () => {
     expect(empezar(lista)!.total).toBe(30);
   });
 
-  it("el reloj arranca con la primera pulsación, aunque falle; un Shift suelto no lo arranca", () => {
+  it("antes del «¡YA!» nada cuenta; desde ahí corre el reloj", () => {
     let p = empezar(lista, () => 0)!;
     expect(tiempoDeRonda(p, 5000)).toBe(0);
-    p = responder(p, pulsar("Shift", "ShiftLeft", { shift: true }), () => 0, 1000).practica;
-    expect(p.inicio).toBeNull();
-    p = responder(p, mal, () => 0, 2000).practica;
-    expect(p.inicio).toBe(2000);
+    // La pulsación que comprueba el teclado y las de la cuenta atrás no son respuestas
+    for (const pulsacion of [mal, bien.Ñ]) {
+      const antes = responder(p, pulsacion, () => 0, 1000);
+      expect(antes.resultado).toBe("ignorada");
+      expect(antes.practica).toBe(p);
+    }
+    p = arrancar(p, 2000);
+    expect(arrancar(p, 9000)).toBe(p); // solo arranca una vez
     expect(tiempoDeRonda(p, 3500)).toBe(1500);
+    expect(responder(p, mal, () => 0, 3000).resultado).toBe("fallo");
   });
 
   it("termina al acertar la última: el reloj se para y ya no cuenta nada más", () => {
-    let p = empezar(lista, () => 0, {}, 3)!;
+    let p = ya(empezar(lista, () => 0, {}, 3), 1000);
     let t = 1000;
     for (let i = 0; i < 3; i++) {
       expect(p.fin).toBeNull();
       if (i === 1) p = responder(p, mal, () => 0, (t += 100)).practica; // un fallo por el camino
       p = responder(p, bien[pedida(p)], () => 0, (t += 1000)).practica;
     }
-    expect(p).toMatchObject({ hechas: 3, aciertos: 2, fallos: 1, inicio: 2000, fin: 4100 });
-    expect(tiempoDeRonda(p, 99_999)).toBe(2100);
+    expect(p).toMatchObject({ hechas: 3, aciertos: 2, fallos: 1, inicio: 1000, fin: 4100 });
+    expect(tiempoDeRonda(p, 99_999)).toBe(3100);
     const despues = responder(p, bien[pedida(p)], () => 0, 5000);
     expect(despues.resultado).toBe("ignorada");
     expect(despues.practica).toBe(p);
   });
 
-  it("anota lo que cuesta cada tecla: la primera pregunta sin tiempo, las demás con el suyo", () => {
-    let p = empezar(lista, () => 0)!; // Ñ
+  it("anota lo que cuesta cada tecla, también la primera (cuenta desde el «¡YA!»)", () => {
+    let p = ya(empezar(lista, () => 0)); // Ñ
     p = responder(p, bien.Ñ, () => 0, 1000).practica; // pasa a ENT
-    expect(p.dificultad).toEqual({ [lista[0].clave]: { ms: 0, fallos: 0 } });
+    expect(p.dificultad).toEqual({ [lista[0].clave]: { ms: 1000, fallos: 0 } });
     p = responder(p, mal, () => 0, 1500).practica;
     p = responder(p, bien.ENT, () => 0, 3000).practica;
     expect(p.dificultad[lista[1].clave]).toEqual({ ms: 2000, fallos: 1 });
@@ -417,6 +426,73 @@ describe("la ronda: 30 teclas contra el reloj", () => {
     for (let i = 0; i < 1000; i++) veces[empezar(lista, () => i / 1000, dificultad)!.actual]++;
     expect(veces[3] / 1000).toBeGreaterThan(0.3); // al azar sería 1 de 8 (0,125)
     for (const [i, n] of veces.entries()) if (i !== 3) expect(n).toBeGreaterThan(0);
+  });
+});
+
+describe("palabras y frases", () => {
+  const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+
+  it("las listas: sin repetidas, palabras en minúscula y frases con mayúscula y punto", () => {
+    for (const lengua of ["es", "en"] as const) {
+      expect(PALABRAS[lengua].length).toBeGreaterThanOrEqual(250);
+      expect(FRASES[lengua].length).toBeGreaterThanOrEqual(50);
+      expect(new Set(FRASES[lengua]).size).toBe(FRASES[lengua].length);
+      for (const p of PALABRAS[lengua]) expect(p).toMatch(/^\p{Ll}+$/u);
+      for (const f of FRASES[lengua]) expect(f).toMatch(/^\p{Lu}[\p{L} ,]*\.$/u);
+    }
+  });
+
+  it("con el keymap del autor se escriben casi todas, con tildes y ñ", () => {
+    const palabras = textosDeGrupo(suyo, "palabras");
+    expect(palabras.length / PALABRAS.es.length).toBeGreaterThan(0.95);
+    expect(palabras).toContain("mañana");
+    expect(palabras).toContain("lápiz");
+    expect(textosDeGrupo(suyo, "frases")).toEqual(FRASES.es);
+  });
+
+  it("solo lo que el teclado puede escribir: sin espacio no hay frases", () => {
+    expect(textosDeGrupo(teclado, "frases")).toEqual([]);
+    expect(gruposDisponibles(teclado)).not.toContain("palabras");
+  });
+
+  it("en inglés, las listas en inglés; la Base de plantilla basta", () => {
+    const ingles = crearTeclado({ distribucion: "qwerty", idioma: "en-US", so: "windows" });
+    expect(textosDeGrupo(ingles, "frases").length).toBeGreaterThan(0);
+    for (const f of textosDeGrupo(ingles, "frases")) expect(FRASES.en).toContain(f);
+    expect(gruposDisponibles(ingles)).toContain("palabras");
+  });
+
+  it("una ronda de palabras son 6 distintas al azar, separadas por espacios", () => {
+    let azar = 0;
+    const texto = crearTexto(suyo, "palabras", () => (azar = (azar + 0.37) % 1))!;
+    const palabras = texto.split(" ");
+    expect(PALABRAS_POR_RONDA).toBe(6);
+    expect(palabras).toHaveLength(6);
+    expect(new Set(palabras).size).toBe(6);
+    expect(crearTexto(suyo, "frases", () => 0)).toBe(FRASES.es[0]);
+  });
+
+  it("se escribe letra a letra y en orden; la tilde que espera a su vocal no es un fallo", () => {
+    const texto = "Ñu, á.";
+    let p = ya(empezarTexto(suyo, texto), 0);
+    expect(textoDeRonda(p)).toBe(texto);
+    expect(p.total).toBe([...texto].length);
+    const escribir = (key: string, mods: Partial<Pulsacion> = {}) => responder(p, pulsar(key, "", mods), () => 0, 1000);
+    expect(escribir("ñ").resultado).toBe("fallo"); // la mayúscula, exacta
+    p = escribir("Ñ", { shift: true }).practica;
+    for (const c of "u, ") p = escribir(c).practica;
+    expect(escribir("Dead").resultado).toBe("ignorada");
+    p = escribir("á").practica;
+    p = escribir(".").practica;
+    expect(p).toMatchObject({ hechas: 6, aciertos: 6, fallos: 0, fin: 1000 });
+    expect(p.dificultad).toEqual({}); // no cuenta para las teclas difíciles
+  });
+
+  it("cada letra sabe dónde está: «á» enciende la tilde y la a; el espacio, su tecla", () => {
+    const p = empezarTexto(suyo, "á ")!;
+    const enBase = (o: Objetivo) => o.lugares.filter((l) => l.capa === suyo.orden[0]).map((l) => suyo.capas[l.capa].teclas[l.pos].texto.split("\n")[0]);
+    expect(enBase(p.objetivos[0]).sort()).toEqual(["A", "´"].sort());
+    expect(p.objetivos[1].lugares.length).toBeGreaterThan(0);
   });
 });
 

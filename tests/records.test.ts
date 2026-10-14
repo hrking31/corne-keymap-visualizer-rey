@@ -1,7 +1,9 @@
 // Récords de la práctica: los 10 mejores tiempos de cada grupo, el formato del tiempo y la
 // lectura de lo guardado. Solo lógica, sin navegador.
 import { describe, expect, it } from "vitest";
-import { MARCAS_POR_GRUPO, anotarMarca, formatoTiempo, leerDatosPractica, mejorMarca, type Marca, type Records } from "../src/practica/records";
+import {
+  MARCAS_POR_GRUPO, anotarMarca, formatoMarca, formatoTiempo, leerDatosPractica, mejorMarca, ppm, type Marca, type Records,
+} from "../src/practica/records";
 
 const marca = (ms: number, dia = 1): Marca => ({ ms, fecha: `2026-10-${String(dia).padStart(2, "0")}T12:00:00.000Z`, fallos: 0 });
 
@@ -46,6 +48,33 @@ describe("anotar una ronda", () => {
     const antes: Records = { letras: [marca(40_000)] };
     anotarMarca(antes, "letras", marca(30_000));
     expect(antes.letras).toHaveLength(1);
+  });
+});
+
+describe("palabras y frases: la marca en palabras por minuto", () => {
+  // 50 letras en 15 s = 10 palabras en un cuarto de minuto = 40 ppm
+  const texto = (ms: number, letras: number, dia = 1): Marca => ({ ...marca(ms, dia), letras });
+
+  it("cada 5 letras, una palabra", () => {
+    expect(ppm(texto(15_000, 50))).toBe(40);
+    expect(formatoMarca("frases", texto(15_000, 50))).toBe("40 ppm");
+    expect(formatoMarca("letras", marca(42_000))).toBe("0:42");
+  });
+
+  it("gana la más rápida por letra, no la que menos tarda: cada texto mide distinto", () => {
+    let records: Records = {};
+    records = anotarMarca(records, "frases", texto(10_000, 25)).records; // 30 ppm
+    const larga = anotarMarca(records, "frases", texto(15_000, 50)); // tarda más, pero 40 ppm
+    expect(larga.nuevoRecord).toBe(true);
+    expect(larga.records.frases?.map(ppm)).toEqual([40, 30]);
+    expect(anotarMarca(larga.records, "frases", texto(15_000, 50, 2))).toMatchObject({ nuevoRecord: false, puesto: 1 });
+  });
+
+  it("al leer lo guardado, sin el largo del texto la marca no vale", () => {
+    const { records } = leerDatosPractica({
+      records: { palabras: [texto(30_000, 40), marca(5000), texto(15_000, 50), texto(0, 50)] },
+    });
+    expect(records.palabras?.map(ppm)).toEqual([40, 16]);
   });
 });
 
