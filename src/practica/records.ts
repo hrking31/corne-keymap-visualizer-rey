@@ -1,6 +1,6 @@
 // Récords de la práctica: los mejores tiempos de cada grupo y lo que cuesta cada tecla.
 // Solo lógica; dónde se guardan (Firestore o el navegador) va aparte
-import { GRUPOS, esDeTexto, type Dificultad, type Grupo } from "./practica";
+import { GRUPOS, TECLAS_POR_RONDA, esDeTexto, type Dificultad, type Grupo } from "./practica";
 
 // Una ronda terminada
 export type Marca = {
@@ -55,6 +55,12 @@ export function formatoTiempo(ms: number): string {
   const s = Math.floor(Math.max(0, ms) / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
+
+// Los aciertos de una ronda: cada pregunta es un acierto (a la primera) o un fallo, así que
+// no hace falta guardarlos. En las teclas sueltas, 30 preguntas; en Palabras y Frases, las
+// letras del texto
+export const aciertosDe = (grupo: Grupo, m: Marca): number =>
+  Math.max(0, (esDeTexto(grupo) ? (m.letras ?? 0) : TECLAS_POR_RONDA) - m.fallos);
 
 // La marca como se muestra: «0:42» o, en Palabras y Frases, «41 ppm»
 export const formatoMarca = (grupo: Grupo, m: Marca): string =>

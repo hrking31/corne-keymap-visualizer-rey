@@ -2,7 +2,7 @@
 // lectura de lo guardado. Solo lógica, sin navegador.
 import { describe, expect, it } from "vitest";
 import {
-  MARCAS_POR_GRUPO, anotarMarca, formatoMarca, formatoTiempo, leerDatosPractica, mejorMarca, ppm, type Marca, type Records,
+  MARCAS_POR_GRUPO, aciertosDe, anotarMarca, formatoMarca, formatoTiempo, leerDatosPractica, mejorMarca, ppm, type Marca, type Records,
 } from "../src/practica/records";
 
 const marca = (ms: number, dia = 1): Marca => ({ ms, fecha: `2026-10-${String(dia).padStart(2, "0")}T12:00:00.000Z`, fallos: 0 });
@@ -75,6 +75,16 @@ describe("palabras y frases: la marca en palabras por minuto", () => {
       records: { palabras: [texto(30_000, 40), marca(5000), texto(15_000, 50), texto(0, 50)] },
     });
     expect(records.palabras?.map(ppm)).toEqual([40, 16]);
+  });
+});
+
+describe("aciertos de una ronda", () => {
+  it("cada pregunta es un acierto o un fallo: 30 teclas, o las letras del texto", () => {
+    expect(aciertosDe("letras", { ...marca(42_000), fallos: 2 })).toBe(28);
+    expect(aciertosDe("letras", marca(42_000))).toBe(30);
+    expect(aciertosDe("frases", { ...marca(20_000), fallos: 3, letras: 36 })).toBe(33);
+    // Nunca negativo, aunque lo guardado venga raro
+    expect(aciertosDe("letras", { ...marca(42_000), fallos: 99 })).toBe(0);
   });
 });
 

@@ -242,6 +242,14 @@ body:has(.parar-ronda):has(.menu-ajustes) h1 {
   font-size: 12px;
 }
 
+/* La tabla de marcas: en los móviles más estrechos, letra algo menor para que una fila larga
+   («✓ 141 ✗ 11», con el año en la fecha) quepa sin cortarse */
+@media (max-width: 359px) {
+  .tabla-records {
+    font-size: 12px;
+  }
+}
+
 .fichas-records .layer-btn {
   padding: 5px var(--relleno-ficha);
   font-size: 1em;
