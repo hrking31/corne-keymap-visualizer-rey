@@ -67,34 +67,79 @@ export function lineas(tecla: number, filas: string[], tipo?: Parpadeo | null, q
 export const grande = (texto: string): string =>
   `<text x="75" y="${r2(36 + (LETRA_CUENTA * 0.716) / 2)}" text-anchor="middle" font-size="${LETRA_CUENTA}" ${LETRA}>${texto}</text>`;
 
-const medidas = (tecla: number) => {
+// Un cronómetro y el tiempo. El cronómetro, algo más alto que las letras y de trazo fino
+// (con el trazo del ✓ se cerraba en una mancha). El ancho del texto se estima: los números
+// de esta letra miden algo más de media letra de alto
+const escalaReloj = (t: number) => (t * 0.716 * 1.45) / 13.5;
+const anchoTiempo = (t: number, texto: string) => 12 * escalaReloj(t) + 0.3 * t + t * (0.556 * (texto.length - 1) + 0.333);
+
+// El cronómetro y el tiempo desde `x`, con la línea centrada en `centro`
+function relojEn(t: number, x: number, centro: number, texto: string, tipo?: Parpadeo | null, quieto = false): string {
+  const escala = escalaReloj(t);
+  const reloj =
+    `<g transform="translate(${r2(x)} ${r2(centro - 7.9 * escala)}) scale(${escala.toFixed(4)})" fill="none" stroke="${BLANCO}" stroke-width="${(1.05 / escala).toFixed(3)}" stroke-linecap="round">` +
+    `<path d="M4 0.8 H8 M6 0.8 V3"/><circle cx="6" cy="8.5" r="5"/><path d="M6 8.5 L8.2 6.3"/></g>`;
+  const inicio = `<text x="${r2(x + 12 * escala + 0.3 * t)}" y="${r2(centro + (t * 0.716) / 2)}" font-size="${t}" ${LETRA}>`;
+  return reloj + inicio + `${texto}${parpadeo(tipo, quieto)}</text>`;
+}
+
+// El cronómetro y el tiempo, centrados juntos
+export function tiempo(tecla: number, texto: string, tipo?: Parpadeo | null, quieto = false): string {
   const t = tamanoDeLetra(tecla, 1);
-  const alto = t * 0.716;
-  return { t, alto, base: r2(36 + alto / 2) };
+  return relojEn(t, 75 - anchoTiempo(t, texto) / 2, 36, texto, tipo, quieto);
+}
+
+// Lo que se practica, cuánto se lleva y el tiempo, bien separados para leerlos de un
+// vistazo (pedido del autor): «PALABRAS    2 / 6    ⏱ 0:42». Si no cabe en una línea (en
+// un móvil la letra es más grande), el tiempo pasa a la pantalla derecha (tiempoYPuntos)
+const ANCHO_LIBRE = 140;
+const HUECO = 1.4; // entre las partes, en letras
+// El ancho de un texto, en letras: las mayúsculas de esta letra miden unos 0,68 de su alto;
+// los números, 0,556; el espacio, la barra y los dos puntos, 0,28
+const anchoDe = (texto: string) =>
+  [...texto].reduce((suma, c) => suma + (/[0-9]/.test(c) ? 0.556 : /[ /:]/.test(c) ? 0.28 : 0.68), 0);
+
+export const cabeEnUnaLinea = (tecla: number, rotulo: string, cuenta: string, texto: string): boolean => {
+  const t = tamanoDeLetra(tecla, 1);
+  return (anchoDe(rotulo) + HUECO + anchoDe(cuenta) + HUECO) * t + anchoTiempo(t, texto) <= ANCHO_LIBRE;
 };
 
-// Un cronómetro y el tiempo, centrados juntos. El cronómetro, algo más alto que las letras y
-// de trazo fino (con el trazo del ✓ se cerraba en una mancha). El ancho del texto se estima:
-// los números de esta letra miden algo más de media letra de alto
-export function tiempo(tecla: number, texto: string, tipo?: Parpadeo | null, quieto = false): string {
-  const { t, alto, base } = medidas(tecla);
-  const escala = (alto * 1.45) / 13.5;
-  const icono = 12 * escala;
-  const hueco = 0.3 * t;
-  const ancho = icono + hueco + t * (0.556 * (texto.length - 1) + 0.333);
-  const x = 75 - ancho / 2;
-  const reloj =
-    `<g transform="translate(${r2(x)} ${r2(36 - 7.9 * escala)}) scale(${escala.toFixed(4)})" fill="none" stroke="${BLANCO}" stroke-width="${(1.05 / escala).toFixed(3)}" stroke-linecap="round">` +
-    `<path d="M4 0.8 H8 M6 0.8 V3"/><circle cx="6" cy="8.5" r="5"/><path d="M6 8.5 L8.2 6.3"/></g>`;
-  return reloj + `<text x="${r2(x + icono + hueco)}" y="${base}" font-size="${t}" ${LETRA}>${texto}${parpadeo(tipo, quieto)}</text>`;
+export function rotuloYTiempo(tecla: number, rotulo: string, cuenta: string, texto: string): string {
+  const linea = (t: number, x: number, centro: number, contenido: string) =>
+    `<text x="${r2(x)}" y="${r2(centro + (t * 0.716) / 2)}" font-size="${t}" ${LETRA}>${contenido}</text>`;
+  const t = tamanoDeLetra(tecla, 1);
+  const total = (anchoDe(rotulo) + HUECO + anchoDe(cuenta) + HUECO) * t + anchoTiempo(t, texto);
+  if (cabeEnUnaLinea(tecla, rotulo, cuenta, texto)) {
+    const x = 75 - total / 2;
+    const xCuenta = x + (anchoDe(rotulo) + HUECO) * t;
+    return linea(t, x, 36, rotulo) + linea(t, xCuenta, 36, cuenta) + relojEn(t, xCuenta + (anchoDe(cuenta) + HUECO) * t, 36, texto);
+  }
+  // Sin el tiempo, que va a la derecha: el reto y la cuenta en una línea, sin que un nombre
+  // largo («MAYÚSCULAS    30 / 30») se salga de la pantalla
+  const ancho = anchoDe(rotulo) + HUECO + anchoDe(cuenta);
+  const t1 = r2(Math.min(t, ANCHO_LIBRE / ancho));
+  const x = 75 - (ancho * t1) / 2;
+  return linea(t1, x, 36, rotulo) + linea(t1, x + (anchoDe(rotulo) + HUECO) * t1, 36, cuenta);
 }
 
 // ✓ N ✗ N, con los íconos del alto de las letras (más grandes que los de «conectado»). El
 // número que acaba de cambiar parpadea
-export function puntos(tecla: number, aciertos: number, fallos: number, cambia: "aciertos" | "fallos" | null = null, quieto = false): string {
-  const { t, alto, base } = medidas(tecla);
+export const puntos = (tecla: number, aciertos: number, fallos: number, cambia: "aciertos" | "fallos" | null = null, quieto = false): string =>
+  puntosEn(tamanoDeLetra(tecla, 1), 36, aciertos, fallos, cambia, quieto);
+
+// En el móvil, la derecha lleva también el tiempo: arriba el tiempo y abajo ✓ N ✗ N
+export function tiempoYPuntos(tecla: number, texto: string, aciertos: number, fallos: number, cambia: "aciertos" | "fallos" | null = null, quieto = false): string {
+  const t = tamanoDeLetra(tecla, 2);
+  const salto = t * 1.35; // los íconos son algo más altos que las letras
+  return relojEn(t, 75 - anchoTiempo(t, texto) / 2, 36 - salto / 2, texto) + puntosEn(t, 36 + salto / 2, aciertos, fallos, cambia, quieto);
+}
+
+// ✓ N ✗ N con letra `t`, en la línea centrada en `centro`
+function puntosEn(t: number, centro: number, aciertos: number, fallos: number, cambia: "aciertos" | "fallos" | null, quieto: boolean): string {
+  const alto = t * 0.716;
+  const base = r2(centro + alto / 2);
   const e = (alto * 1.15) / 12;
-  const arriba = r2(36 - (alto * 1.15) / 2);
+  const arriba = r2(centro - (alto * 1.15) / 2);
   const trazo = `fill="none" stroke="${BLANCO}" stroke-width="${(1.6 / e).toFixed(3)}" stroke-linecap="round" stroke-linejoin="round"`;
   const icono = (x: number, d: string) => `<g transform="translate(${r2(x)} ${arriba}) scale(${e.toFixed(4)})"><path d="${d}" ${trazo}/></g>`;
   const numero = (x: number, n: number, suyo: boolean) =>
@@ -130,8 +175,8 @@ export function pantallaOled(lado: "left" | "right", contenido: string, conectad
     (conectado ? CONECTADO : SIN_CONECTAR) +
     `</g>` +
     `<g transform="translate(65.2 -4) scale(0.7)">` +
-    // El rayo, al 60 % y centrado en el alto del «100%» (pedido del autor)
-    `<path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="${BLANCO}" transform="translate(100.6 22.3) scale(0.6) translate(-99.5 -22.5)"/>` +
+    // El rayo, al 75 %, centrado en el alto del «100%» y separado de él (pedido del autor)
+    `<path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="${BLANCO}" transform="translate(96 22.3) scale(0.75) translate(-99.5 -22.5)"/>` +
     `<text x="144" y="28" text-anchor="end" font-size="16" ${LETRA}>100%</text>` +
     `</g></g>` +
     contenido +
@@ -142,10 +187,14 @@ export function pantallaOled(lado: "left" | "right", contenido: string, conectad
 // ---------- Lo que muestra cada pantalla en cada momento de la ronda ----------
 
 export type EstadoPantallas =
+  // Solo los íconos: aún no se eligió qué practicar, se espera una tecla para empezar o la
+  // marca ya se quitó al terminar
+  | { fase: "vacia"; conectado: boolean }
   | { fase: "sinTeclado" } // antes de la primera pulsación
   | { fase: "conectado" } // la primera pulsación: el teclado responde
   | { fase: "cuenta"; texto: string } // 3, 2, 1, «¡YA!»
-  | { fase: "ronda"; tiempo: string; aciertos: number; fallos: number; cambia: "aciertos" | "fallos" | null }
+  // `rotulo` y `cuenta`: en la izquierda, qué se practica y cuánto se lleva («LETRAS», «12 / 30»)
+  | { fase: "ronda"; tiempo: string; rotulo?: string; cuenta?: string; aciertos: number; fallos: number; cambia: "aciertos" | "fallos" | null }
   // Al terminar. `marca`: en Palabras y Frases, las palabras por minuto («41 PPM»)
   | { fase: "fin"; tiempo: string; aciertos: number; fallos: number; record: boolean; marca?: string };
 
@@ -153,6 +202,8 @@ export type EstadoPantallas =
 // la puntuación con cada respuesta) y una imagen nueva reinicia su parpadeo
 export function pantallaIzquierda(estado: EstadoPantallas, tecla = 0, quieto = false): string {
   switch (estado.fase) {
+    case "vacia":
+      return pantallaOled("left", "", estado.conectado);
     case "sinTeclado":
       return pantallaOled("left", lineas(tecla, ["CONECTA TU", "TECLADO"]), false);
     case "conectado":
@@ -160,7 +211,7 @@ export function pantallaIzquierda(estado: EstadoPantallas, tecla = 0, quieto = f
     case "cuenta":
       return pantallaOled("left", grande(estado.texto), true);
     case "ronda":
-      return pantallaOled("left", tiempo(tecla, estado.tiempo), true);
+      return pantallaOled("left", estado.rotulo ? rotuloYTiempo(tecla, estado.rotulo, estado.cuenta ?? "", estado.tiempo) : tiempo(tecla, estado.tiempo), true);
     case "fin":
       return pantallaOled(
         "left",
@@ -174,12 +225,18 @@ export function pantallaIzquierda(estado: EstadoPantallas, tecla = 0, quieto = f
 // la derecha se queda con sus íconos
 export function pantallaDerecha(estado: EstadoPantallas, tecla = 0, quieto = false): string {
   switch (estado.fase) {
+    case "vacia":
+      return pantallaOled("right", "", estado.conectado);
     case "sinTeclado":
       return pantallaOled("right", "", false);
     case "conectado":
     case "cuenta":
       return pantallaOled("right", "", true);
     case "ronda":
+      // Si a la izquierda el tiempo no cabe junto al reto (móvil), va aquí, encima de ✓ ✗
+      if (estado.rotulo && !cabeEnUnaLinea(tecla, estado.rotulo, estado.cuenta ?? "", estado.tiempo)) {
+        return pantallaOled("right", tiempoYPuntos(tecla, estado.tiempo, estado.aciertos, estado.fallos, estado.cambia, quieto), true);
+      }
       return pantallaOled("right", puntos(tecla, estado.aciertos, estado.fallos, estado.cambia, quieto), true);
     case "fin":
       if (!estado.record) return pantallaOled("right", puntos(tecla, estado.aciertos, estado.fallos), true);

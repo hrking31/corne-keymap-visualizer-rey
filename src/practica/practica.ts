@@ -417,6 +417,21 @@ export function responder(
   return { practica: { ...p, ...comun, actual, repaso, desde: ahora }, resultado: "acierto" };
 }
 
+// Cuánto se lleva de la ronda: teclas acertadas o, en Palabras y Frases, palabras ya
+// escritas enteras (se ve mejor de un vistazo que las letras)
+export function progreso(p: Practica): { hechas: number; total: number } {
+  if (!p.enOrden) return { hechas: p.hechas, total: p.total };
+  const palabras = textoDeRonda(p).split(" ");
+  let fin = 0;
+  let hechas = 0;
+  for (const palabra of palabras) {
+    fin += [...palabra].length;
+    if (p.hechas >= fin) hechas++;
+    fin += 1; // el espacio
+  }
+  return { hechas, total: palabras.length };
+}
+
 // Lo que lleva la ronda, o lo que duró si ya terminó. 0 antes del «¡YA!»
 export function tiempoDeRonda(p: Practica, ahora: number = Date.now()): number {
   if (p.inicio === null) return 0;

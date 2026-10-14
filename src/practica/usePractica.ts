@@ -1,26 +1,31 @@
 // La práctica en marcha: el recorrido de una ronda y lo que pasa con cada pulsación.
-//   sinTeclado → (cualquier tecla) → conectado → cuenta (3, 2, 1, ¡YA!) → ronda → fin
-// La pulsación que comprueba el teclado y las de la cuenta atrás no cuentan. Con «Nueva
-// ronda» o ENT al terminar se salta la conexión: el teclado ya respondió.
-import { useEffect, useMemo, useRef, useState } from "react";
+// Se entra sin grupo («Elige qué practicar», en el menú ⚙) y, al elegir uno:
+//   sinTeclado → (cualquier tecla) → conectado → listo → (cualquier tecla) → cuenta (3, 2, 1,
+//   ¡YA!) → ronda → fin
+// Ninguna de esas pulsaciones cuenta. «Listo» da tiempo de poner las manos antes de la cuenta
+// atrás. Con el teclado ya comprobado se empieza en «listo»; ENT al terminar va directo a la
+// cuenta atrás. «Parar» descarta la ronda y vuelve a «listo».
+import { useEffect, useMemo, useState } from "react";
 import type { TecladoConfig } from "../teclados/tipos";
 import {
-  arrancar, crearTexto, empezar, empezarTexto, esDeTexto, objetivosDeGrupo, responder, tiempoDeRonda,
+  NOMBRE_GRUPO, arrancar, crearTexto, empezar, empezarTexto, esDeTexto, objetivosDeGrupo, progreso, responder,
+  tiempoDeRonda,
   type Grupo, type Objetivo, type Practica,
 } from "./practica";
 import { anotarMarca, formatoMarca, formatoTiempo, mejorMarca, type DatosPractica, type Marca } from "./records";
 import { guardar, guardarGrupo, leerGrupo, leerGuardado } from "./guardado";
 import { pantallaDerecha, pantallaIzquierda, type EstadoPantallas } from "./pantalla";
 
-export type Fase = "sinTeclado" | "conectado" | "cuenta" | "ronda" | "fin";
+export type Fase = "sinGrupo" | "sinTeclado" | "conectado" | "listo" | "cuenta" | "ronda" | "fin";
 export type Final = { marca: Marca; nuevoRecord: boolean; mejorAntes: Marca | null };
 
 // Cuánto dura cada paso (ms)
-const CONECTADO_MS = 1200; // «Teclado conectado», antes de la cuenta atrás
+const CONECTADO_MS = 1200; // «Teclado conectado», antes de «Pulsa una tecla para empezar»
 const CUENTA_MS = 800; // cada número de la cuenta atrás
 const YA_MS = 500; // «¡YA!» en la pantalla, con el reloj ya en marcha
 const DESTELLO_MS = 350; // la tecla acertada, encendida antes de pasar a la siguiente
 const RELOJ_MS = 250; // cada cuánto se mira el reloj para la pantalla
+const MARCA_MS = 4000; // la marca al terminar; después solo queda «Nueva ronda» (pedido del autor)
 
 type Opciones = {
   teclado: TecladoConfig;
@@ -39,18 +44,21 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
   const [practica, setPractica] = useState<Practica | null>(null);
   const [datos, setDatos] = useState<DatosPractica>(leerGuardado);
   const [final, setFinal] = useState<Final | null>(null);
+  // Al terminar, la marca se ve unos segundos y se quita
+  const [marcaVisible, setMarcaVisible] = useState(true);
   // El número que acaba de cambiar en la pantalla derecha: parpadea
   const [cambia, setCambia] = useState<"aciertos" | "fallos" | null>(null);
   // La tecla recién acertada, encendida un instante
   const [destello, setDestello] = useState<Objetivo["lugares"] | null>(null);
   const [ahora, setAhora] = useState(0);
   // Ya llegó alguna pulsación: hay un teclado conectado (el navegador no lo sabe de otro modo)
-  const tecladoVisto = useRef(false);
+  const [tecladoVisto, setTecladoVisto] = useState(false);
 
   const capaDe = (p: Practica) => p.objetivos[p.actual]?.lugares[0]?.capa;
 
-  // Prepara una ronda del grupo; false si no hay nada que practicar
-  const preparar = (g: Grupo): boolean => {
+  // Prepara una ronda del grupo; false si no hay nada que practicar. `directo`: sin esperar
+  // a «listo» (ENT al terminar)
+  const preparar = (g: Grupo, directo = false): boolean => {
     const nueva = esDeTexto(g)
       ? empezarTexto(teclado, crearTexto(teclado, g) ?? "")
       : empezar(objetivosDeGrupo(teclado, g), Math.random, datos.dificultad);
@@ -60,7 +68,7 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     setCambia(null);
     setDestello(null);
     setCuenta("3");
-    setFase(tecladoVisto.current ? "cuenta" : "sinTeclado");
+    setFase(!tecladoVisto ? "sinTeclado" : directo ? "cuenta" : "listo");
     const capa = capaDe(nueva);
     if (capa) setCapa(capa);
     return true;
@@ -76,10 +84,22 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     return true;
   };
 
-  const nuevaRonda = () => {
-    preparar(grupo);
+  // Entra en la práctica sin ningún grupo: se elige en el menú ⚙ (pedido del autor)
+  const entrar = () => {
+    setPractica(null);
+    setFinal(null);
+    setDestello(null);
+    setFase("sinGrupo");
+    setActiva(true);
+  };
+
+  const nuevaRonda = (directo = false) => {
+    preparar(grupo, directo);
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   };
+
+  // Descarta la ronda en marcha, sin marca, y espera a «Pulsa una tecla para empezar»
+  const parar = () => nuevaRonda();
 
   const salir = () => {
     setActiva(false);
@@ -98,13 +118,14 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     setDatos(nuevos);
     guardar(nuevos);
     setFinal({ marca, nuevoRecord, mejorAntes });
+    setMarcaVisible(true);
     setFase("fin");
   };
 
-  // «Teclado conectado» un momento y, después, la cuenta atrás
+  // «Teclado conectado» un momento y, después, «Pulsa una tecla para empezar»
   useEffect(() => {
     if (fase !== "conectado") return;
-    const t = window.setTimeout(() => setFase("cuenta"), CONECTADO_MS);
+    const t = window.setTimeout(() => setFase("listo"), CONECTADO_MS);
     return () => window.clearTimeout(t);
   }, [fase]);
 
@@ -121,6 +142,21 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     }, 3 * CUENTA_MS);
     return () => [...pasos, salida].forEach((t) => window.clearTimeout(t));
   }, [fase]);
+
+  // La marca se quita a los pocos segundos: en el título y en las pantallas
+  useEffect(() => {
+    if (fase !== "fin") return;
+    const t = window.setTimeout(() => setMarcaVisible(false), MARCA_MS);
+    return () => window.clearTimeout(t);
+  }, [fase]);
+
+  // El parpadeo del número que cambia dura 0,4 s; después se borra, para que la pantalla
+  // derecha, que en el móvil lleva el reloj, no lo repita al redibujarse cada segundo
+  useEffect(() => {
+    if (!cambia) return;
+    const t = window.setTimeout(() => setCambia(null), 400);
+    return () => window.clearTimeout(t);
+  }, [cambia, practica?.aciertos, practica?.fallos]);
 
   // «¡YA!» se queda un instante en la pantalla
   useEffect(() => {
@@ -144,14 +180,18 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     const alPulsar = (e: KeyboardEvent) => {
       if (libre(e)) return;
       e.preventDefault();
-      if (e.repeat || e.isComposing) return;
+      if (e.repeat || e.isComposing || fase === "sinGrupo") return;
       if (fase === "sinTeclado") {
-        tecladoVisto.current = true;
+        setTecladoVisto(true);
         setFase("conectado");
         return;
       }
+      if (fase === "listo") {
+        setFase("cuenta");
+        return;
+      }
       // Al terminar, ENT empieza otra ronda (aquí ENT no es una pregunta)
-      if (fase === "fin" && e.key === "Enter") nuevaRonda();
+      if (fase === "fin" && e.key === "Enter") nuevaRonda(true);
       if (fase !== "ronda" || !practica) return;
 
       const { practica: nueva, resultado } = responder(practica, {
@@ -205,17 +245,28 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
   const fallos = practica?.fallos ?? 0;
   let izquierda: EstadoPantallas;
   let derecha: EstadoPantallas;
-  if (fase === "sinTeclado" || fase === "conectado") {
+  const nombre = NOMBRE_GRUPO[grupo].toUpperCase();
+  if (fase === "sinGrupo" || fase === "listo") {
+    // Sin grupo, o esperando para empezar, las pantallas solo con sus íconos (pedido del autor)
+    izquierda = derecha = { fase: "vacia", conectado: tecladoVisto };
+  } else if (fase === "sinTeclado" || fase === "conectado") {
     izquierda = derecha = { fase };
   } else if (fase === "cuenta") {
     izquierda = derecha = { fase: "cuenta", texto: cuenta };
   } else {
-    izquierda = ya
-      ? { fase: "cuenta", texto: "¡YA!" }
-      : { fase: "ronda", tiempo: practica ? formatoTiempo(tiempoDeRonda(practica, ahora)) : "0:00", aciertos: 0, fallos: 0, cambia: null };
-    derecha = { fase: "ronda", tiempo: "", aciertos, fallos, cambia };
+    // Qué se practica, cuánto se lleva y el tiempo: la izquierda los muestra y, si el tiempo
+    // no le cabe (móvil), lo muestra la derecha
+    const enRonda = {
+      tiempo: practica ? formatoTiempo(tiempoDeRonda(practica, ahora)) : "0:00",
+      rotulo: nombre, // «PALABRAS»
+      cuenta: practica ? `${progreso(practica).hechas} / ${progreso(practica).total}` : "", // «2 / 6»
+    };
+    izquierda = ya ? { fase: "cuenta", texto: "¡YA!" } : { fase: "ronda", ...enRonda, aciertos: 0, fallos: 0, cambia: null };
+    derecha = { fase: "ronda", ...enRonda, aciertos, fallos, cambia };
   }
-  if (fase === "fin" && final && practica) {
+  if (fase === "fin" && !marcaVisible) {
+    izquierda = derecha = { fase: "vacia", conectado: true };
+  } else if (fase === "fin" && final && practica) {
     izquierda = derecha = {
       fase: "fin",
       tiempo: formatoTiempo(final.marca.ms),
@@ -232,12 +283,15 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     fase,
     practica,
     final,
+    marcaVisible,
     records: datos.records,
     destello,
     pantallas: { izquierda, derecha },
     formato,
     empezar: empezarGrupo,
-    nuevaRonda,
+    entrar,
+    nuevaRonda: () => nuevaRonda(),
+    parar,
     salir,
   };
 }

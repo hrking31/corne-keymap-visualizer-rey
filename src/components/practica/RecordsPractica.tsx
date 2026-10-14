@@ -12,7 +12,8 @@ type Props = {
 
 const fecha = (iso: string) => new Date(iso).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
 
-// ⚙ → «Récords»: los 10 mejores de cada grupo, del más rápido al más lento, con su fecha
+// ⚙ → «Récords»: los 10 mejores de cada grupo, del más rápido al más lento, con su fecha.
+// Más ancha que las demás ventanas: caben 4 grupos por fila (editor.css)
 export default function RecordsPractica({ records, grupo: inicial, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
   const [grupo, setGrupo] = useState(inicial);
@@ -21,7 +22,7 @@ export default function RecordsPractica({ records, grupo: inicial, onCerrar }: P
   return (
     <aside
       ref={ventana}
-      className="ventana-practica fixed left-1/2 z-40 box-border w-[min(360px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left text-sm text-texto shadow-xl"
+      className="ventana-practica fixed left-1/2 z-40 box-border w-[min(470px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left text-sm text-texto shadow-xl"
       aria-label="Récords"
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >
@@ -31,7 +32,7 @@ export default function RecordsPractica({ records, grupo: inicial, onCerrar }: P
       </button>
       <div className="flex flex-col gap-3">
         <h2 className="m-0 text-base text-naranja-claro uppercase">Récords</h2>
-        <div className="fichas-records flex flex-wrap gap-1.5">
+        <div className="fichas-records">
           {GRUPOS.map((g: Grupo) => (
             <button key={g} type="button" className={g === grupo ? "layer-btn active" : "layer-btn"} aria-pressed={g === grupo}
               onClick={() => setGrupo(g)}>
@@ -54,11 +55,6 @@ export default function RecordsPractica({ records, grupo: inicial, onCerrar }: P
             </tbody>
           </table>
         )}
-        <div className="flex justify-end">
-          <button type="button" className="layer-btn" onClick={onCerrar}>
-            Cerrar
-          </button>
-        </div>
       </div>
     </aside>
   );

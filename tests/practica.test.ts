@@ -7,7 +7,7 @@ import { importarKeymap } from "../src/keymap/importar";
 import { leerKeymap } from "../src/keymap/leer";
 import {
   GRUPOS, PALABRAS_POR_RONDA, TECLAS_POR_RONDA, acierta, anotarDificultad, arrancar, crearTexto, empezar, empezarTexto,
-  esSoloModificador, gruposDisponibles, objetivos, objetivosDeGrupo, responder, textoDeRonda, textosDeGrupo, tiempoDeRonda,
+  esSoloModificador, gruposDisponibles, objetivos, objetivosDeGrupo, progreso, responder, textoDeRonda, textosDeGrupo, tiempoDeRonda,
   type Dificultad, type GrupoDeTeclas, type Objetivo, type Practica, type Pulsacion,
 } from "../src/practica/practica";
 import { pantallaDerecha, pantallaIzquierda, pantallaOled, tamanoDeLetra, type EstadoPantallas } from "../src/practica/pantalla";
@@ -491,6 +491,15 @@ describe("palabras y frases", () => {
     expect(p.dificultad).toEqual({}); // no cuenta para las teclas difíciles
   });
 
+  it("lo que se lleva se cuenta en palabras enteras; en las teclas sueltas, en teclas", () => {
+    let p = ya(empezarTexto(suyo, "Ñu, á."), 0);
+    expect(progreso(p)).toEqual({ hechas: 0, total: 2 });
+    for (const [c, mods] of [["Ñ", { shift: true }], ["u", {}], [",", {}]] as const) p = responder(p, pulsar(c, "", mods), () => 0, 1).practica;
+    expect(progreso(p)).toEqual({ hechas: 1, total: 2 }); // «Ñu,» ya está escrita
+    const teclas = ya(empezar(objetivosDeGrupo(suyo, "letras"), () => 0), 0);
+    expect(progreso(teclas)).toEqual({ hechas: 0, total: TECLAS_POR_RONDA });
+  });
+
   it("cada letra sabe dónde está: «á» enciende la tilde y la a; el espacio, su tecla", () => {
     const p = empezarTexto(suyo, "á ")!;
     const enBase = (o: Objetivo) => o.lugares.filter((l) => l.capa === suyo.orden[0]).map((l) => suyo.capas[l.capa].teclas[l.pos].texto.split("\n")[0]);
@@ -544,6 +553,52 @@ describe("las pantallas del teclado", () => {
       expect(cuenta.izquierda).toContain(`font-size="22" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" fill="#f4f1e8">${n}<`);
       expect(cuenta.derecha).not.toContain(`>${n}<`);
     }
+  });
+
+  it("sin grupo elegido, esperando para empezar o pasados unos segundos del final: las pantallas solo con sus íconos", () => {
+    for (const conectado of [false, true]) {
+      const { izquierda, derecha } = ambas({ fase: "vacia", conectado });
+      for (const p of [izquierda, derecha]) {
+        expect(p).not.toContain("<text x=\"75\"");
+        expect(p).not.toContain(CRONOMETRO);
+        expect(p).toContain(conectado ? CHULO : EQUIS);
+      }
+    }
+  });
+
+  it("en la ronda, a la izquierda: qué se practica, cuánto se lleva y el tiempo, separados; en el móvil, el tiempo pasa a la derecha", () => {
+    const xDe = (svg: string, texto: string) => Number(svg.match(new RegExp(`<text x="([0-9.]+)"[^>]*>${texto}<`))![1]);
+    const yDe = (svg: string, texto: string) => Number(svg.match(new RegExp(`y="([0-9.]+)"[^>]*>${texto}<`))![1]);
+    const conRotulo = ronda({ rotulo: "PALABRAS", cuenta: "2 / 6" });
+    // PC: una línea, con la letra de la batería y un hueco de 1,4 letras entre las partes
+    const pc = ambas(conRotulo, 80).izquierda;
+    expect(pc).toContain('font-size="7.84" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" fill="#f4f1e8">PALABRAS<');
+    expect(pc).toContain(">2 / 6<");
+    expect(pc).toContain(CRONOMETRO);
+    expect(yDe(pc, "PALABRAS")).toBe(yDe(pc, "0:42"));
+    expect(yDe(pc, "2 / 6")).toBe(yDe(pc, "0:42"));
+    const hueco = xDe(pc, "2 / 6") - xDe(pc, "PALABRAS") - 8 * 0.68 * 7.84;
+    expect(hueco).toBeCloseTo(1.4 * 7.84, 1);
+    // En el PC la derecha solo lleva ✓ ✗
+    expect(ambas(conRotulo, 80).derecha).not.toContain(CRONOMETRO);
+    // Móvil: no cabe en una línea; a la izquierda el reto y la cuenta, y el tiempo a la
+    // derecha, encima de ✓ ✗
+    const movil = ambas(conRotulo, 34);
+    expect(yDe(movil.izquierda, "2 / 6")).toBe(yDe(movil.izquierda, "PALABRAS"));
+    expect(movil.izquierda).not.toContain(CRONOMETRO);
+    expect(movil.izquierda).not.toContain(">0:42<");
+    expect(movil.derecha).toContain(CRONOMETRO);
+    expect(yDe(movil.derecha, "27")).toBeGreaterThan(yDe(movil.derecha, "0:42"));
+    expect(yDe(movil.derecha, "3")).toBe(yDe(movil.derecha, "27"));
+    // Un nombre largo cabe en una línea en el PC y, en el móvil, encoge para no salirse
+    const largo = ronda({ rotulo: "MAYÚSCULAS", cuenta: "30 / 30", tiempo: "10:42" });
+    const pcLargo = ambas(largo, 80).izquierda;
+    expect(yDe(pcLargo, "MAYÚSCULAS")).toBe(yDe(pcLargo, "10:42"));
+    const movilLargo = ambas(largo, 34).izquierda;
+    const tamano = Number(movilLargo.match(/font-size="([0-9.]+)"[^>]*>MAYÚSCULAS</)![1]);
+    expect((10 * 0.68 + 1.4 + 2 * 0.28 + 4 * 0.556 + 0.28) * tamano).toBeLessThanOrEqual(140.1);
+    expect(movilLargo).not.toContain(">10:42<");
+    expect(xDe(movilLargo, "MAYÚSCULAS")).toBeGreaterThanOrEqual(4.9);
   });
 
   it("parpadea el número que cambia, y solo ese", () => {
@@ -608,7 +663,7 @@ describe("las pantallas del teclado", () => {
 
   it("el rayo de la batería, más pequeño, igual en todas las pantallas: práctica, las de siempre y la de ingreso", () => {
     const rayo = svg(pantallaOled("right", "", true)).match(/<path d="M101 11[^>]+>/)![0];
-    expect(rayo).toContain('transform="translate(100.6 22.3) scale(0.6) translate(-99.5 -22.5)"');
+    expect(rayo).toContain('transform="translate(96 22.3) scale(0.75) translate(-99.5 -22.5)"');
     for (const dibujo of [oledDerecha, oledIzquierda, bienvenida]) expect(dibujo).toContain(rayo);
   });
 });

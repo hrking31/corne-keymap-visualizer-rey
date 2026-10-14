@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { dividirBloques } from "./teclado";
 import { teclasParaDibujar } from "./teclados/convertir";
 import { ajustesDelNavegador, crearTeclado, nombreVisible } from "./teclados/plantillas";
@@ -29,9 +29,9 @@ import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respald
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
 import EditorTecla from "./components/editor/EditorTecla";
-import { useApilado } from "./components/editor/useApilado";
+import { useApilado, useMovil } from "./components/editor/useApilado";
 import { usePantallaOled, usePractica } from "./practica/usePractica";
-import TituloPractica from "./components/practica/TituloPractica";
+import TituloPractica, { letrasDelTitulo } from "./components/practica/TituloPractica";
 import ElegirPractica from "./components/practica/ElegirPractica";
 import RecordsPractica from "./components/practica/RecordsPractica";
 
@@ -127,21 +127,25 @@ export default function App({ tecladoInicial }: Props) {
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
   // Un aviso breve (p. ej. «Máximo 10 capas») justo debajo de lo que se tocó, donde se
   // está mirando; se va solo a los 3 s
-  const [nota, setNota] = useState<{ texto: string; x: number; y: number } | null>(null);
+  const [nota, setNota] = useState<{ texto: string; x: number; y: number; encima: boolean } | null>(null);
   // La fila de botones de capa: al editar con muchas capas se reparte en columnas (abajo)
   const filaCapas = useRef<HTMLDivElement>(null);
   const notaRef = useRef<HTMLDivElement>(null);
   const temporizadorNota = useRef<number | undefined>(undefined);
   const notificar = (texto: string, junto: Element) => {
     const caja = junto.getBoundingClientRect();
-    setNota({ texto, x: caja.left + caja.width / 2, y: caja.bottom + 8 });
+    // Lo que está abajo de la pantalla (✎ ＋ en el móvil) lo tiene encima
+    const encima = caja.bottom > window.innerHeight / 2;
+    setNota({ texto, x: caja.left + caja.width / 2, y: encima ? caja.top - 8 : caja.bottom + 8, encima });
     window.clearTimeout(temporizadorNota.current);
     temporizadorNota.current = window.setTimeout(() => setNota(null), 3000);
   };
   // Editando con más de 6 capas, si la fila es una cuadrícula (teclado apilado, editor.css):
   // tantas columnas como quepan con los nombres reales, de 6 a 3. Así nombres cortos caben
-  // 6 + 6 hasta en un móvil, y los largos bajan a 5 o 4 sin salirse de la pantalla
-  const muchasCapas = modoEdicion && teclado.orden.length > 6;
+  // 6 + 6, y los largos bajan a 5 o 4 sin salirse de la pantalla. En el móvil no: ✎ ＋ y ✓
+  // van abajo y la fila solo lleva las capas, repartida como fuera de la edición (style.css)
+  const movil = useMovil();
+  const muchasCapas = modoEdicion && !movil && teclado.orden.length > 6;
   const nombresCapas = teclado.orden.map((id) => teclado.capas[id].corto).join("|");
   useLayoutEffect(() => {
     const fila = filaCapas.current;
@@ -169,7 +173,7 @@ export default function App({ tecladoInicial }: Props) {
     const margen = 8;
     const izquierda = nota.x - el.offsetWidth / 2;
     el.style.left = Math.min(Math.max(izquierda, margen), window.innerWidth - el.offsetWidth - margen) + "px";
-    el.style.top = nota.y + "px";
+    el.style.top = (nota.encima ? nota.y - el.offsetHeight : nota.y) + "px";
   }, [nota]);
   // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
@@ -384,6 +388,13 @@ export default function App({ tecladoInicial }: Props) {
     };
   }, []);
 
+  // ⚙ → «Practicar»: entra en la práctica sin grupo; qué practicar se elige en el mismo menú
+  const entrarPractica = () => {
+    practica.entrar();
+    ocultar();
+    setAviso("");
+  };
+
   // Empieza a practicar el grupo elegido en la ventana «Practicar»
   const practicar = (grupo: Parameters<typeof practica.empezar>[0]) => {
     setVentanaPractica(null);
@@ -415,14 +426,15 @@ export default function App({ tecladoInicial }: Props) {
   // Practicando: elegir qué practicar, los récords y salir
   const menu: OpcionMenu[] = [];
   const opcionesPractica: OpcionMenu[] = [
-    { texto: "Practicar", alElegir: () => setVentanaPractica("elegir") },
+    { texto: "Practicar", alElegir: entrarPractica },
     { texto: "Récords", alElegir: () => setVentanaPractica("records") },
   ];
   if (practica.activa) {
     menu.push(
-      { texto: "Elegir qué practicar", alElegir: () => setVentanaPractica("elegir") },
+      { texto: "Qué practicar", alElegir: () => setVentanaPractica("elegir") },
       { texto: "Récords", alElegir: () => setVentanaPractica("records") },
-      { texto: "Salir de la práctica", alElegir: practica.salir },
+      // Sale de la práctica (no de la cuenta: practicando no está esa opción)
+      { texto: "Salir", alElegir: practica.salir },
     );
   } else if (conCuenta && cuenta.usuario && !modoEdicion) {
     if (mio) {
@@ -478,15 +490,15 @@ export default function App({ tecladoInicial }: Props) {
     : undefined;
 
   // Los botones de capa; al editar, también editar la capa (✎), agregar una (＋) y «Listo»
-  // (sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
-  // no gastar otra línea en el móvil
+  // (✓: sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
+  // no gastar otra línea. En el móvil el ✓ va abajo a la derecha, donde está el ⚙ (editor.css)
   const botonesDeCapa = (
     <div
       ref={filaCapas}
       // Editando con más de 6 capas: dos filas de 6 (editor.css). data-capas cuenta las
-      // casillas: las capas, ✎＋ (una sola) y «Listo»
-      className={modoEdicion && teclado.orden.length > 6 ? "layer-buttons editando-muchas" : "layer-buttons"}
-      data-capas={teclado.orden.length + (modoEdicion ? 2 : 0)}
+      // casillas: las capas y, fuera del móvil, ✎＋ (una sola) y «Listo»
+      className={muchasCapas ? "layer-buttons editando-muchas" : "layer-buttons"}
+      data-capas={teclado.orden.length + (modoEdicion && !movil ? 2 : 0)}
     >
       {teclado.orden.map((id) => (
         <button
@@ -533,11 +545,14 @@ export default function App({ tecladoInicial }: Props) {
           </span>
           <button
             type="button"
-            className="boton-principal"
-            title="Salir de edición"
+            className="boton-icono listo-edicion"
+            aria-label="Listo"
+            title="Listo: salir de edición"
             onClick={salirDeEdicion}
           >
-            Listo
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 12.5 L9.5 18 L20 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </>
       )}
@@ -548,7 +563,12 @@ export default function App({ tecladoInicial }: Props) {
     <>
       {/* Agrupa nombre y botones sin cambiar el diseño (display: contents en style.css) */}
       <header className="cabecera">
-        <h1 aria-live={practica.activa ? "polite" : undefined}>
+        <h1
+          aria-live={practica.activa ? "polite" : undefined}
+          // Practicando, en el móvil la letra se ajusta al largo del título (editor.css)
+          className={practica.activa ? "titulo-practica" : undefined}
+          style={practica.activa ? ({ "--letras": Math.max(1, letrasDelTitulo(practica)) } as CSSProperties) : undefined}
+        >
           {/* Practicando, el título es la pregunta. Editando, el nombre se escribe en el
               propio título: «Corne [Rey] ZMK» */}
           {practica.activa ? (
@@ -557,6 +577,7 @@ export default function App({ tecladoInicial }: Props) {
               practica={practica.practica}
               final={practica.final}
               formato={practica.formato}
+              marcaVisible={practica.marcaVisible}
               onNuevaRonda={practica.nuevaRonda}
             />
           ) : modoEdicion && mio ? (
@@ -613,6 +634,18 @@ export default function App({ tecladoInicial }: Props) {
         </button>
       </div>
 
+      {/* «Parar», durante la cuenta atrás y la ronda, junto al ⚙ (pedido del autor). Descarta
+          la ronda y vuelve a «Pulsa una tecla para empezar» */}
+      {practica.activa && (practica.fase === "cuenta" || practica.fase === "ronda") && (
+        <button type="button" className="parar-ronda" aria-label="Parar la ronda" title="Parar" onClick={practica.parar}>
+          {/* ↺: corta la ronda y vuelve a empezar */}
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12 A8 8 0 1 0 6.34 6.34 L4 8.6" />
+            <path d="M4 4 V8.6 H8.6" />
+          </svg>
+        </button>
+      )}
+
       {menu.length > 0 && (
         // Al entrar o salir cambian las opciones: el menú vuelve a empezar cerrado
         <MenuAjustes
@@ -626,8 +659,12 @@ export default function App({ tecladoInicial }: Props) {
           aquí va el mismo dato como texto, para quien usa un lector de pantalla */}
       {practica.activa && (
         <p className="sr-only">
-          {practica.fase === "sinTeclado"
+          {practica.fase === "sinGrupo"
+            ? "Elige qué practicar en el menú de ajustes"
+            : practica.fase === "sinTeclado"
             ? "Conecta tu teclado y pulsa cualquier tecla"
+            : practica.fase === "listo"
+            ? "Pulsa una tecla para empezar"
             : `Aciertos ${practica.practica?.aciertos ?? 0}, fallos ${practica.practica?.fallos ?? 0}`}
         </p>
       )}

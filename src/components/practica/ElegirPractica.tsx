@@ -13,9 +13,8 @@ type Props = {
   onCerrar: () => void;
 };
 
-// ⚙ → «Practicar» o «Elegir qué practicar»: los grupos con cuántas teclas tiene cada uno en
-// este teclado y su récord. Al tocar uno empieza la ronda. Un grupo sin nada que practicar
-// sale apagado.
+// Practicando, ⚙ → «Qué practicar»: los grupos con cuántas teclas tiene cada uno en
+// este teclado y su mejor marca. Un grupo sin nada que practicar sale apagado.
 export default function ElegirPractica({ teclado, grupo, records, onElegir, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
   const grupos = useMemo(
@@ -33,7 +32,7 @@ export default function ElegirPractica({ teclado, grupo, records, onElegir, onCe
     <aside
       ref={ventana}
       className="ventana-practica fixed left-1/2 z-40 box-border w-[min(360px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left text-sm text-texto shadow-xl"
-      aria-label="Elegir qué practicar"
+      aria-label="Qué practicar"
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >
       <button type="button" className="absolute top-2 right-2 cursor-pointer border-0 bg-transparent text-gris"
@@ -57,13 +56,12 @@ export default function ElegirPractica({ teclado, grupo, records, onElegir, onCe
               >
                 <span>{NOMBRE_GRUPO[g]}</span>
                 <span className="text-xs font-normal whitespace-nowrap text-gris">
-                  {disponible ? `${cuantos} ${unidad} · ${mejor ? `récord ${formatoMarca(g, mejor)}` : "sin rondas"}` : "nada que practicar"}
+                  {disponible ? `${cuantos} ${unidad} · ${mejor ? formatoMarca(g, mejor) : "sin marcador"}` : "nada que practicar"}
                 </span>
               </button>
             );
           })}
         </div>
-        <p className="m-0 text-xs text-gris">Al tocar un grupo empieza la ronda.</p>
       </div>
     </aside>
   );
