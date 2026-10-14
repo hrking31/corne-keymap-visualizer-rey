@@ -4,8 +4,6 @@
 import { describe, expect, it } from "vitest";
 import oficial from "./keymaps/zmk-corne.keymap?raw";
 import rey from "./keymaps/corne-rey.keymap?raw";
-import { keymap as dataAutor } from "../src/data";
-import { desdeKeymap } from "../src/teclados/convertir";
 import { crearTeclado } from "../src/teclados/plantillas";
 import { validarTeclado } from "../src/teclados/validar";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
@@ -67,23 +65,6 @@ describe("keymap del autor (español latino, Windows)", () => {
     expect(validarTeclado(teclado)).toEqual([]);
   });
 
-  // Nombres que el autor eligió a su gusto en vez del estándar
-  const aSuGusto = new Set(["&kp HOME", "&kp DOWN"]);
-
-  it("cada &kp se ve igual que en la configuración que el autor escribió a mano", () => {
-    const aMano = desdeKeymap(dataAutor, latino);
-    const leido = leerKeymap(rey);
-    const distintas: string[] = [];
-    leido.capas.forEach((capa, i) =>
-      capa.bindings.forEach((b, pos) => {
-        if (b.comportamiento !== "&kp" || /\(/.test(b.parametros[0]) || aSuGusto.has(b.original)) return;
-        const esperado = aMano.capas[aMano.orden[i]].teclas[pos]?.texto ?? "";
-        const obtenido = texto(teclado, i, pos);
-        if (esperado !== obtenido) distintas.push(`${resumen.capas[i]} ${pos} ${b.original}: «${esperado}» ≠ «${obtenido}»`);
-      }),
-    );
-    expect(distintas).toEqual([]);
-  });
 });
 
 describe("casos raros (un keymap inventado)", () => {

@@ -1,6 +1,8 @@
 // Mide una versión de la app dentro de un iframe del tamaño pedido: dónde queda cada
 // tecla, qué muestra el modal de cada una y qué colores se usan. Lo usa diseno.test.ts
-// para comparar la app actual con la copia congelada de tests/referencia/.
+// para comparar la app con las medidas aprobadas.
+import negrita from "@fontsource/courier-prime/files/courier-prime-latin-700-normal.woff2?url";
+import normal from "@fontsource/courier-prime/files/courier-prime-latin-400-normal.woff2?url";
 
 export type Medicion = {
   // Cajas del título, los botones de capa y las dos mitades del teclado
@@ -12,10 +14,23 @@ export type Medicion = {
   colores: string[];
 };
 
-// Los botones de capa se recorren por su posición (la original los llama «NUM», la app
-// por el id de la capa). Empieza en el 2.º y termina en el 1.º (Base): así cada clic
-// cambia de verdad de capa (las dos arrancan en Base) y se ve que las teclas se recrean.
-const ORDEN_CAPAS = [1, 2, 3, 4, 5, 0];
+// Los botones de capa se recorren por su posición. Empieza en el 2.º y termina en el 1.º
+// (Base): así cada clic cambia de verdad de capa (la app arranca en Base) y se ve que las
+// teclas se recrean.
+const ordenCapas = (n: number) => [...Array.from({ length: n - 1 }, (_, i) => i + 1), 0];
+
+// La letra de la app, Courier New, no está en todos los sistemas: el servidor de la CI
+// (Linux) no la tiene y pondría otra, con otras medidas. Para medir lo mismo en cualquier
+// máquina, la página medida usa con ese nombre una letra que viaja con las pruebas
+// (Courier Prime, licencia OFL). La app no cambia: esto solo pasa dentro de la prueba
+async function letraDeLaPrueba(doc: Document, win: Window & typeof globalThis) {
+  for (const [archivo, peso] of [[normal, "400"], [negrita, "700"]]) {
+    const cara = new win.FontFace("Courier New", `url(${archivo})`, { weight: peso });
+    doc.fonts.add(cara);
+    await cara.load();
+  }
+  await doc.fonts.ready;
+}
 
 // Los textos se comparan sin espacios sobrantes: «ALT » y «ALT» se ven igual
 const texto = (el: Element) => (el.textContent ?? "").trim();
@@ -59,6 +74,7 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
     // Los eventos se crean con el MouseEvent del iframe, no con el de la página de pruebas
     const win = iframe.contentWindow! as Window & typeof globalThis;
     await esperar(() => doc.querySelectorAll(".key").length === 42, `las 42 teclas en ${url}`);
+    await letraDeLaPrueba(doc, win);
 
     // Sin transiciones, los colores se leen en su valor final y no a mitad de animación
     const sinAnimaciones = doc.createElement("style");
@@ -77,9 +93,8 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
     });
 
     const modal = doc.getElementById("info-modal")!;
-    const tituloModal = doc.getElementById("modal-title")!;
 
-    for (const n of ORDEN_CAPAS) {
+    for (const n of ordenCapas(doc.querySelectorAll(".layer-btn").length)) {
       const capa = `capa ${n + 1}`;
       const boton = doc.querySelectorAll<HTMLElement>(".layer-btn")[n];
       const anteriores = new Set(doc.querySelectorAll(".key"));
@@ -108,7 +123,9 @@ export async function medir(url: string, ancho: number, alto: number): Promise<M
         tecla.dispatchEvent(new win.MouseEvent("mouseover", { bubbles: true }));
         tecla.dispatchEvent(new win.MouseEvent("mouseenter"));
         await esperar(
-          () => !modal.classList.contains("hidden") && texto(tituloModal) === etiqueta,
+          // Basta con que se abra (se espera a que se cierre tras cada tecla); lo que muestra queda
+          // anotado abajo. El título no siempre es el texto de la tecla: «CTRL+N / ALT+B»
+          () => !modal.classList.contains("hidden"),
           `abrir el modal de ${capa} ${etiqueta}`,
         );
 

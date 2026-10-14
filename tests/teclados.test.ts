@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keymap } from "../src/data";
-import { ORDEN_DIBUJO, desdeKeymap, teclasParaDibujar } from "../src/teclados/convertir";
+import { ORDEN_DIBUJO, teclasParaDibujar } from "../src/teclados/convertir";
 import { DISTRIBUCIONES, textoDe } from "../src/teclados/distribuciones";
 import { ajustesDelNavegador, crearBase, crearTeclado, nombreVisible } from "../src/teclados/plantillas";
 import type { Ajustes, CapaConfig, Distribucion, Idioma, SistemaOperativo } from "../src/teclados/tipos";
@@ -87,33 +86,6 @@ describe("teclasParaDibujar", () => {
     const teclas = teclasParaDibujar(vacia);
     expect(teclas.map((t) => t.pos)).toEqual([...ORDEN_DIBUJO]);
     expect(teclas.filter((t) => t.texto)).toEqual([{ texto: "1", descripcion: "", deCapa: false, pos: 13 }]);
-  });
-});
-
-describe("desdeKeymap (data.ts → modelo nuevo)", () => {
-  const teclado = desdeKeymap(keymap, { distribucion: "dvorak", idioma: "es-LA", so: "windows" });
-
-  it("pasa las 6 capas en el mismo orden", () => {
-    expect(teclado.orden).toEqual(["base", "num", "sym", "nav", "led", "fun"]);
-    expect(teclado.capas.nav).toMatchObject({ corto: "NAV", largo: "Navegación" });
-  });
-
-  it("cada tecla queda en su número de posición de ZMK", () => {
-    expect(texto(teclado.capas.base, 0)).toBe("ESC");
-    expect(texto(teclado.capas.base, 11)).toBe("BSPC");
-    expect(teclado.capas.base.teclas[0].descripcion).toBe("cancela, detiene o aborta una acción en curso");
-  });
-
-  it("conserva las teclas de capa (naranja) y no pierde ninguna con texto", () => {
-    for (const [id, teclas] of Object.entries(keymap)) {
-      const capa = teclado.capas[id.toLowerCase()];
-      expect(Object.values(capa.teclas).filter((t) => t.deCapa)).toHaveLength(teclas.filter((t) => t.clase).length);
-      expect(Object.values(capa.teclas).filter((t) => t.texto)).toHaveLength(teclas.filter((t) => t.label.trim()).length);
-    }
-  });
-
-  it("es un teclado válido", () => {
-    expect(validarTeclado(teclado)).toEqual([]);
   });
 });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { dividirBloques, dividirFilas, tieneAccion } from "../src/teclado";
+import { dividirBloques, dividirFilas } from "../src/teclado";
 
-// 42 teclas falsas numeradas 0..41 en el orden en que las guarda data.ts
+// 42 teclas falsas numeradas 0..41 en el orden de dibujo (ORDEN_DIBUJO)
 const teclas = Array.from({ length: 42 }, (_, i) => ({ label: String(i) }));
 
 describe("dividirBloques", () => {
@@ -41,16 +41,5 @@ describe("dividirFilas", () => {
     dividirFilas(izquierdo, true);
 
     expect(izquierdo[0].label).toBe("0");
-  });
-});
-
-describe("tieneAccion", () => {
-  it("una tecla con etiqueta tiene acción", () => {
-    expect(tieneAccion({ label: "ESC" })).toBe(true);
-  });
-
-  it("una tecla vacía o solo con espacios no tiene acción", () => {
-    expect(tieneAccion({ label: "" })).toBe(false);
-    expect(tieneAccion({ label: "  " })).toBe(false);
   });
 });

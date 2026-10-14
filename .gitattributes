@@ -1,0 +1,2 @@
+# Las medidas de la prueba visual: Vitest las escribe siempre con saltos LF
+*.snap text eol=lf

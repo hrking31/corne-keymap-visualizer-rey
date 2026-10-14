@@ -119,6 +119,150 @@ dialog.confirmar::backdrop {
   background-image: var(--oled);
 }
 
+/* Practicando, en el título: la tecla que se pide y «¡Nuevo récord!», en naranja */
+.pide {
+  color: var(--color-naranja-claro);
+}
+
+/* Palabras y frases: lo ya escrito en naranja y la letra que toca, subrayada. Los espacios
+   se conservan para que el subrayado se vea también cuando toca un espacio */
+.frase {
+  white-space: pre-wrap;
+}
+
+.frase .hecha {
+  color: var(--color-naranja-claro);
+}
+
+.frase .toca {
+  text-decoration: underline 3px var(--color-naranja-claro);
+  text-underline-offset: 6px;
+}
+
+/* «Nueva ronda», junto al título al terminar */
+.boton-principal.nueva-ronda {
+  margin-inline-start: 14px;
+  padding: 7px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* «Parar» (↺), durante la cuenta atrás y la ronda: junto al ⚙ (24px a su izquierda) y como
+   él, solo el ícono, gris y naranja al tocarlo. Late despacio para que se vea (pedido del autor) */
+.parar-ronda {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px + 36px + 24px);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-gris);
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.parar-ronda:hover,
+.parar-ronda:focus-visible,
+.parar-ronda:active {
+  color: var(--color-naranja-claro);
+}
+
+.parar-ronda svg {
+  width: 22px;
+  height: 22px;
+  animation: pulso-parar 1.6s ease-in-out infinite;
+}
+
+@keyframes pulso-parar {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.25);
+    opacity: 0.45;
+  }
+}
+
+/* Con «reducir movimiento» en el sistema, quieto */
+@media (prefers-reduced-motion: reduce) {
+  .parar-ronda svg {
+    animation: none;
+  }
+}
+
+/* Con «Parar» en pantalla, el título tampoco llega hasta él (8 + 36 + 24 + 36 + 8 px). Gana
+   a la regla del ⚙, que va más abajo */
+body:has(.parar-ronda):has(.menu-ajustes) h1 {
+  padding-inline-end: 112px;
+}
+
+/* Al terminar, en el móvil, la marca va en dos partes: «¡Nuevo récord!» con la letra del
+   título y, debajo y más pequeño, «19 ppm» con «Nueva ronda» (pedido del autor) */
+@media (max-width: 600px) {
+  .fin-separa {
+    display: none;
+  }
+
+  .fin-detalle {
+    display: block;
+    margin-top: 6px;
+    font-size: 16px;
+  }
+}
+
+/* Ventana «Practicar»: un grupo sin nada que practicar en este teclado */
+.opcion:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.opcion:disabled:hover {
+  border-color: var(--color-borde);
+}
+
+/* Ventana «Récords»: los grupos, como botones de capa más pequeños, todos del ancho del más
+   largo («MAYÚSCULAS», unas 7 letras de ancho) en filas de 4 o, si no caben, de 3 (pedido
+   del autor). En el móvil, algo más pequeños para que quepan 3 */
+.fichas-records {
+  --relleno-ficha: 9px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(7em + 2 * var(--relleno-ficha) + 2px), 1fr));
+  gap: 6px;
+  font-size: 12px;
+}
+
+/* La tabla de marcas: en los móviles más estrechos, letra algo menor para que una fila larga
+   («✓ 141 ✗ 11», con el año en la fecha) quepa sin cortarse */
+@media (max-width: 359px) {
+  .tabla-records {
+    font-size: 12px;
+  }
+}
+
+.fichas-records .layer-btn {
+  padding: 5px var(--relleno-ficha);
+  font-size: 1em;
+  white-space: nowrap;
+}
+
+@media (max-width: 499px) {
+  .fichas-records {
+    --relleno-ficha: 6px;
+    font-size: 11px;
+  }
+}
+
 /* La tecla que se está editando o intercambiando, resaltada en naranja */
 .key[data-elegida] {
   border-color: var(--color-naranja);
@@ -257,36 +401,8 @@ body:has(.menu-ajustes) h1 {
 }
 
 /* ===== EDICIÓN SIN FRANJA ARRIBA (2026-10-09, pedida por el autor) =====
-   «Listo» va dentro de la fila de capas, al final, y el nombre se escribe en el propio
+   «Listo» (✓) va dentro de la fila de capas, al final, y el nombre se escribe en el propio
    título (TituloEditable). */
-/* «Listo» en contorno, del gris de los textos e íconos; naranja al pasar por encima */
-.layer-buttons .boton-principal {
-  padding: 8px 16px;
-  border-color: var(--color-gris);
-  background: none;
-  color: var(--color-gris);
-  font-size: 13px;
-  transition: color 0.2s, border-color 0.2s;
-}
-
-/* :active: en el móvil no hay «pasar el puntero»; el color cambia mientras el dedo pulsa */
-.layer-buttons .boton-principal:hover,
-.layer-buttons .boton-principal:focus-visible,
-.layer-buttons .boton-principal:active {
-  border-color: var(--color-naranja);
-  background: none;
-  color: var(--color-naranja-claro);
-}
-
-/* En el móvil, del tamaño de los botones de capa (style.css), para no salirse */
-@media (max-width: 480px) {
-  .layer-buttons .boton-principal {
-    padding: 6px clamp(6px, 2.2vw, 12px);
-    font-size: 12px;
-    border-radius: 16px;
-  }
-}
-
 /* El nombre dentro del título, con su misma letra: sin caja, solo una línea naranja debajo */
 .titulo-campo {
   box-sizing: content-box;
@@ -479,6 +595,12 @@ input[type="radio"] {
   color: var(--color-gris);
 }
 
+/* «Listo» al editar: un ✓ del tamaño de ✎ y ＋ */
+.listo-edicion svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
 /* Móviles de menos de 440px: con nombres de 6 letras, cinco píldoras por fila se salían
    (medido con 10 capas); filas de cuatro */
 @media (max-width: 439px) {
@@ -502,4 +624,85 @@ input[type="radio"] {
   color: var(--color-naranja-claro);
   font-size: 1.6em;
   font-weight: bold;
+}
+
+/* ===== MÓVIL: BOTONES ABAJO (2026-10-14, pedido del autor) =====
+   El título ocupa todo el ancho: centrado el nombre del teclado y, practicando, a la
+   izquierda lo que se pide. El ⚙, «Parar», ✎ ＋ y ✓ bajan a las esquinas de abajo, en una
+   franja que se reserva encima del texto de la firma (8 + 36 px). El menú se abre hacia arriba */
+@media (max-width: 600px) {
+  body:has(.menu-ajustes) h1,
+  body:has(.parar-ronda):has(.menu-ajustes) h1,
+  body:has(.listo-edicion) h1 {
+    padding-inline: 16px;
+  }
+
+  h1.titulo-practica {
+    text-align: left;
+  }
+
+  body:has(.menu-ajustes) .firma,
+  body:has(.listo-edicion) .firma {
+    padding-top: 44px;
+  }
+
+  /* Al editar, ✎ y ＋ abajo a la derecha, junto al ✓ (12px entre ellos) y sin recuadro,
+     como el ⚙: la fila de arriba queda solo con las capas (hasta 10) */
+  .layer-buttons .par-edicion {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 8px + 36px + 12px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6px + 15.4px + 4px);
+    z-index: 30;
+    gap: 4px;
+  }
+
+  .layer-buttons .par-edicion .boton-icono {
+    box-sizing: border-box;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 20px;
+  }
+
+  /* Al editar no hay ⚙: el ✓ de «Listo» va en su sitio, como el ⚙: solo el ícono, gris y
+     naranja al tocarlo (pedido del autor) */
+  .layer-buttons .listo-edicion {
+    position: fixed;
+    right: calc(env(safe-area-inset-right, 0px) + 8px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6px + 15.4px + 4px);
+    z-index: 30;
+    box-sizing: border-box;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  .layer-buttons .listo-edicion svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .menu-ajustes,
+  .parar-ronda {
+    top: auto;
+    /* Encima del texto de la firma: su línea (11px × 1,4) y su relleno de abajo */
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6px + 15.4px + 4px);
+  }
+
+  .parar-ronda {
+    right: auto;
+    left: calc(env(safe-area-inset-left, 0px) + 8px);
+  }
+
+  .menu-lista {
+    top: auto;
+    bottom: calc(100% + 8px);
+  }
+
+  /* Practicando, el título en una línea si se puede: la letra se ajusta a su largo
+     (--letras, que pone App.tsx). Es de ancho fijo: cada letra mide 0,6 de su alto. Sin
+     pasar del tamaño de siempre ni bajar de 16px: una frase larga ocupa dos líneas */
+  h1.titulo-practica {
+    font-size: clamp(16px, calc((100vw - 36px) / (var(--letras) * 0.6)), 2em);
+  }
 }

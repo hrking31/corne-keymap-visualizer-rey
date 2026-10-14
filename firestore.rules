@@ -1,14 +1,48 @@
 rules_version = '2';
 
-// Reglas de seguridad de Firestore. Cada usuario tiene UN documento con su teclado,
-// teclados/{uid}, y solo él puede leerlo, escribirlo o borrarlo. Todo lo demás está
-// prohibido. Los límites son los mismos de src/teclados/validar.ts.
+// Reglas de seguridad de Firestore. Cada usuario tiene dos documentos: su teclado,
+// teclados/{uid}, y su práctica (récords y teclas difíciles), practica/{uid}. Solo él puede
+// leerlos, escribirlos o borrarlos. Todo lo demás está prohibido. Los límites son los mismos
+// de src/teclados/validar.ts y src/practica/records.ts.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /teclados/{uid} {
       allow read, delete: if esDueno(uid);
       allow create, update: if esDueno(uid) && tecladoValido(request.resource.data);
+    }
+
+    // Aparte del teclado: el editor guarda el teclado entero y se llevaría los récords
+    match /practica/{uid} {
+      allow read, delete: if esDueno(uid);
+      allow create, update: if esDueno(uid) && practicaValida(request.resource.data);
+    }
+
+    // Los récords: solo de los 8 grupos y como mucho 10 marcas en cada uno. Lo que cuesta
+    // cada tecla: como mucho 400 (un teclado no tiene tantas que practicar). El contenido de
+    // cada marca no se revisa aquí (las reglas no tienen bucles): la app lo revisa al leer
+    function practicaValida(p) {
+      return p.keys().hasAll(['records', 'dificultad'])
+        && p.keys().hasOnly(['records', 'dificultad', 'actualizado'])
+        && p.records is map
+        && p.records.keys().hasOnly(['letras', 'mayusculas', 'numeros', 'simbolos', 'otras', 'todo', 'palabras', 'frases'])
+        && marcasValidas(p.records, 'letras') && marcasValidas(p.records, 'mayusculas')
+        && marcasValidas(p.records, 'numeros') && marcasValidas(p.records, 'simbolos')
+        && marcasValidas(p.records, 'otras') && marcasValidas(p.records, 'todo')
+        && marcasValidas(p.records, 'palabras') && marcasValidas(p.records, 'frases')
+        && p.dificultad is map && p.dificultad.size() <= 400
+        && fechaDelServidor(p);
+    }
+
+    function marcasValidas(records, grupo) {
+      return !(grupo in records) || (records[grupo] is list && records[grupo].size() <= 10);
+    }
+
+    // La fecha de actualización la pone el servidor, no el teléfono: o es la de este momento
+    // (serverTimestamp) o se queda la que ya tenía
+    function fechaDelServidor(d) {
+      return !('actualizado' in d) || d.actualizado == request.time
+        || (resource != null && d.actualizado == resource.data.get('actualizado', null));
     }
 
     function esDueno(uid) {

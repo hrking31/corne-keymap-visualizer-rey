@@ -5,8 +5,16 @@ import rey from "./keymaps/corne-rey.keymap?raw";
 import { envioDeCodigo } from "../src/keymap/codigos";
 import { importarKeymap } from "../src/keymap/importar";
 import { leerKeymap } from "../src/keymap/leer";
-import { acierta, empezar, esSoloModificador, objetivos, responder, type Objetivo, type Pulsacion } from "../src/practica/practica";
-import { pantallaOled, pantallasDePractica, tamanoDeLetra } from "../src/practica/pantalla";
+import {
+  GRUPOS, PALABRAS_POR_RONDA, TECLAS_POR_RONDA, acierta, anotarDificultad, arrancar, crearTexto, empezar, empezarTexto,
+  esSoloModificador, gruposDisponibles, objetivos, objetivosDeGrupo, progreso, responder, textoDeRonda, textosDeGrupo, tiempoDeRonda,
+  type Dificultad, type GrupoDeTeclas, type Objetivo, type Practica, type Pulsacion,
+} from "../src/practica/practica";
+import { pantallaDerecha, pantallaIzquierda, pantallaOled, tamanoDeLetra, type EstadoPantallas } from "../src/practica/pantalla";
+import oledDerecha from "../src/assets/oled-derecha.svg?raw";
+import oledIzquierda from "../src/assets/oled-izquierda.svg?raw";
+import bienvenida from "../src/assets/bienvenida.svg?raw";
+import { FRASES, PALABRAS } from "../src/practica/textos";
 import { editarTecla } from "../src/teclados/editar";
 import { crearTeclado } from "../src/teclados/plantillas";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
@@ -18,6 +26,9 @@ const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows"
 const pulsar = (key: string, code: string, mods: Partial<Pulsacion> = {}): Pulsacion => ({
   key, code, ctrl: false, shift: false, alt: false, meta: false, altGr: false, ...mods,
 });
+
+// Una ronda ya arrancada, como tras el «¡YA!» de la cuenta atrás
+const ya = (p: Practica | null, ahora = 0) => arrancar(p!, ahora);
 
 const tecla = (texto: string, extra: Partial<TeclaConfig> = {}): TeclaConfig => ({ texto, descripcion: "", deCapa: false, ...extra });
 
@@ -219,7 +230,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("acertar a la primera suma un acierto y pasa a otra tecla", () => {
-    const inicio = empezar(lista, () => 0)!;
+    const inicio = ya(empezar(lista, () => 0));
     expect(pedida(inicio)).toBe("Ñ");
     const { practica, resultado } = responder(inicio, bien.Ñ, () => 0);
     expect(resultado).toBe("acierto");
@@ -229,7 +240,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("fallar cuenta un solo fallo y la pregunta sigue hasta pulsar bien", () => {
-    let p = empezar(lista, () => 0)!;
+    let p = ya(empezar(lista, () => 0));
     p = responder(p, mal).practica;
     expect(p).toMatchObject({ aciertos: 0, fallos: 1, fallado: true });
     p = responder(p, mal).practica;
@@ -241,7 +252,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("el Shift de camino a un símbolo no cuenta como fallo", () => {
-    const inicio = empezar(lista, () => 0)!;
+    const inicio = ya(empezar(lista, () => 0));
     const { practica, resultado } = responder(inicio, pulsar("Shift", "ShiftLeft", { shift: true }));
     expect(resultado).toBe("ignorada");
     expect(practica).toBe(inicio);
@@ -249,25 +260,25 @@ describe("la sesión de práctica", () => {
 
   it("un modificador solo cuenta como respuesta únicamente cuando se pide uno", () => {
     const shift = lista.findIndex((o) => o.texto === "SHIFT");
-    const pidiendoShift = { ...empezar(lista, () => 0)!, actual: shift };
+    const pidiendoShift = { ...ya(empezar(lista, () => 0)), actual: shift };
     // Acierta con su tecla…
     expect(responder(pidiendoShift, bien.SHIFT, () => 0).resultado).toBe("acierto");
     // …y falla con otro modificador o con cualquier otra tecla
     expect(responder(pidiendoShift, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("fallo");
     expect(responder(pidiendoShift, bien.A).resultado).toBe("fallo");
     // Pidiendo otra cosa, el mismo Shift se ignora
-    expect(responder(empezar(lista, () => 0)!, bien.SHIFT).resultado).toBe("ignorada");
+    expect(responder(ya(empezar(lista, () => 0)), bien.SHIFT).resultado).toBe("ignorada");
   });
 
   it("pidiendo AltGr, el Ctrl que Windows envía delante no cuenta como fallo", () => {
     const altGr: Objetivo = { clave: "m:AltRight", texto: "ALTGR", lugares: [], espera: { tipo: "modificador", code: "AltRight" } };
-    const sesion = empezar([altGr, ...lista], () => 0)!;
+    const sesion = ya(empezar([altGr, ...lista], () => 0));
     expect(responder(sesion, pulsar("Control", "ControlLeft", { ctrl: true })).resultado).toBe("ignorada");
     expect(responder(sesion, pulsar("AltGraph", "AltRight", { ctrl: true, alt: true }), () => 0).resultado).toBe("acierto");
   });
 
   it("una tecla fallada vuelve después de tres preguntas", () => {
-    let p = empezar(lista, () => 0)!; // Ñ
+    let p = ya(empezar(lista, () => 0)); // Ñ
     p = responder(p, mal).practica;
     p = responder(p, bien.Ñ, () => 0).practica;
     const siguientes = [];
@@ -281,7 +292,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("nunca pide dos veces seguidas la misma (si hay más de una)", () => {
-    let p = empezar(lista, () => 0.5)!;
+    let p = ya(empezar(lista, () => 0.5, {}, Infinity)); // una ronda sin fin
     let azar = 0;
     for (let i = 0; i < 200; i++) {
       const antes = pedida(p);
@@ -293,29 +304,341 @@ describe("la sesión de práctica", () => {
   });
 });
 
-describe("el marcador en las pantallas del teclado", () => {
-  const svg = (valor: string) => decodeURIComponent(valor.replace(/^url\("data:image\/svg\+xml,/, "").replace(/"\)$/, ""));
-  const CHULO = "M38 23 L43 28 L53 16";
-  const EQUIS = "M40 16.5 L51 27.5 M51 16.5 L40 27.5";
+describe("los grupos", () => {
+  const textos = (g: GrupoDeTeclas) => objetivosDeGrupo(teclado, g).map((o) => o.texto);
 
-  it("aciertos en la izquierda y fallos en la derecha, con el ✓ de conectado", () => {
-    const { izquierda, derecha } = pantallasDePractica(12, 3, true);
-    expect(izquierda).toMatch(/^url\("data:image\/svg\+xml,[^"]+"\)$/);
-    // El número va separado de la palabra más que un espacio, que a ese tamaño no se veía
-    expect(svg(izquierda)).toContain('>ACIERTOS<tspan dx="0.6em">12</tspan><');
-    expect(svg(derecha)).toContain('>FALLOS<tspan dx="0.6em">3</tspan><');
-    expect(svg(izquierda)).toContain(CHULO);
-    expect(svg(izquierda)).not.toContain(EQUIS);
+  it("cada tecla en su grupo; las letras, en minúscula", () => {
+    expect(textos("letras")).toEqual(["ñ", "a", "x"]);
+    expect(textos("numeros")).toEqual([]);
+    expect(textos("simbolos")).toEqual(["!", "@"]);
+    expect(textos("otras")).toEqual(["ENT", "SHIFT", "INIT"]);
   });
 
-  it("sin teclado todavía: el aviso en las dos y una ✗ en lugar del ✓", () => {
-    const { izquierda, derecha } = pantallasDePractica(0, 0, false);
-    for (const pantalla of [izquierda, derecha]) {
-      expect(svg(pantalla)).toContain(">CONECTA TU<");
-      expect(svg(pantalla)).toContain(">TECLADO<");
-      expect(svg(pantalla)).toContain(EQUIS);
-      expect(svg(pantalla)).not.toContain(CHULO);
+  it("las mayúsculas son las mismas teclas con shift", () => {
+    const mayusculas = objetivosDeGrupo(teclado, "mayusculas");
+    expect(mayusculas.map((o) => o.texto)).toEqual(["Ñ", "A", "X"]);
+    expect(mayusculas[0].espera).toEqual({ tipo: "tecla", envio: { ...envioDeCodigo("SEMI")!, shift: true } });
+    expect(mayusculas[0].lugares).toEqual([{ capa: "base", pos: 0 }]);
+  });
+
+  it("minúscula y mayúscula se distinguen al pulsar", () => {
+    const [enie, , x] = objetivosDeGrupo(teclado, "letras");
+    const [ENIE, , X] = objetivosDeGrupo(teclado, "mayusculas");
+    expect(acierta(enie, pulsar("ñ", "Semicolon"))).toBe(true);
+    expect(acierta(enie, pulsar("Ñ", "Semicolon", { shift: true }))).toBe(false);
+    expect(acierta(ENIE, pulsar("Ñ", "Semicolon", { shift: true }))).toBe(true);
+    expect(acierta(ENIE, pulsar("ñ", "Semicolon"))).toBe(false);
+    // Las escritas a mano, por el carácter exacto
+    expect(acierta(x, pulsar("x", "KeyB"))).toBe(true);
+    expect(acierta(x, pulsar("X", "KeyB", { shift: true }))).toBe(false);
+    expect(acierta(X, pulsar("X", "KeyB", { shift: true }))).toBe(true);
+    expect(acierta(X, pulsar("x", "KeyB"))).toBe(false);
+  });
+
+  it("«Todo» es la suma de los demás, y los grupos sin teclas salen apagados", () => {
+    expect(textos("todo")).toEqual(["ñ", "ENT", "SHIFT", "a", "x", "!", "@", "INIT", "Ñ", "A", "X"]);
+    expect(gruposDisponibles(teclado)).toEqual(["letras", "mayusculas", "simbolos", "otras", "todo"]);
+  });
+
+  it("con el keymap del autor: ningún grupo vacío, y «otras» son sus 27 teclas con nombre", () => {
+    const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+    expect(gruposDisponibles(suyo)).toEqual([...GRUPOS]);
+    const de = (g: GrupoDeTeclas) => objetivosDeGrupo(suyo, g);
+    expect(de("otras")).toHaveLength(27);
+    expect(de("mayusculas")).toHaveLength(de("letras").length);
+    for (const o of de("letras")) expect(o.texto).toBe(o.texto.toLocaleLowerCase());
+    for (const o of de("numeros")) expect(o.texto).toMatch(/^\d$/);
+    const suma = (["letras", "mayusculas", "numeros", "simbolos", "otras"] as const).reduce((n, g) => n + de(g).length, 0);
+    expect(de("todo")).toHaveLength(suma);
+  });
+});
+
+describe("la ronda: 30 teclas contra el reloj", () => {
+  const lista = objetivos(teclado); // Ñ, ENT, SHIFT, A, x, !, @, INIT
+  const bien: Record<string, Pulsacion> = {
+    Ñ: pulsar("ñ", "Semicolon"),
+    ENT: pulsar("Enter", "Enter"),
+    SHIFT: pulsar("Shift", "ShiftLeft", { shift: true }),
+    A: pulsar("a", "KeyA"),
+    x: pulsar("x", "KeyX"),
+    "!": pulsar("!", "Digit1", { shift: true }),
+    "@": pulsar("@", "KeyQ", { ctrl: true, alt: true, altGr: true }),
+    INIT: pulsar("Home", "Home"),
+  };
+  const mal = pulsar("0", "Digit0");
+  const pedida = (p: Practica) => p.objetivos[p.actual].texto;
+
+  it("son 30 por defecto", () => {
+    expect(TECLAS_POR_RONDA).toBe(30);
+    expect(empezar(lista)!.total).toBe(30);
+  });
+
+  it("antes del «¡YA!» nada cuenta; desde ahí corre el reloj", () => {
+    let p = empezar(lista, () => 0)!;
+    expect(tiempoDeRonda(p, 5000)).toBe(0);
+    // La pulsación que comprueba el teclado y las de la cuenta atrás no son respuestas
+    for (const pulsacion of [mal, bien.Ñ]) {
+      const antes = responder(p, pulsacion, () => 0, 1000);
+      expect(antes.resultado).toBe("ignorada");
+      expect(antes.practica).toBe(p);
     }
+    p = arrancar(p, 2000);
+    expect(arrancar(p, 9000)).toBe(p); // solo arranca una vez
+    expect(tiempoDeRonda(p, 3500)).toBe(1500);
+    expect(responder(p, mal, () => 0, 3000).resultado).toBe("fallo");
+  });
+
+  it("termina al acertar la última: el reloj se para y ya no cuenta nada más", () => {
+    let p = ya(empezar(lista, () => 0, {}, 3), 1000);
+    let t = 1000;
+    for (let i = 0; i < 3; i++) {
+      expect(p.fin).toBeNull();
+      if (i === 1) p = responder(p, mal, () => 0, (t += 100)).practica; // un fallo por el camino
+      p = responder(p, bien[pedida(p)], () => 0, (t += 1000)).practica;
+    }
+    expect(p).toMatchObject({ hechas: 3, aciertos: 2, fallos: 1, inicio: 1000, fin: 4100 });
+    expect(tiempoDeRonda(p, 99_999)).toBe(3100);
+    const despues = responder(p, bien[pedida(p)], () => 0, 5000);
+    expect(despues.resultado).toBe("ignorada");
+    expect(despues.practica).toBe(p);
+  });
+
+  it("anota lo que cuesta cada tecla, también la primera (cuenta desde el «¡YA!»)", () => {
+    let p = ya(empezar(lista, () => 0)); // Ñ
+    p = responder(p, bien.Ñ, () => 0, 1000).practica; // pasa a ENT
+    expect(p.dificultad).toEqual({ [lista[0].clave]: { ms: 1000, fallos: 0 } });
+    p = responder(p, mal, () => 0, 1500).practica;
+    p = responder(p, bien.ENT, () => 0, 3000).practica;
+    expect(p.dificultad[lista[1].clave]).toEqual({ ms: 2000, fallos: 1 });
+  });
+
+  it("las medias olvidan poco a poco: mejorar se nota sin borrar lo anterior", () => {
+    let d: Dificultad = anotarDificultad({}, "k", true, 3000);
+    d = anotarDificultad(d, "k", false, 1000);
+    expect(d.k.ms).toBeCloseTo(2400);
+    expect(d.k.fallos).toBeCloseTo(0.7);
+    // Sin tiempo (primera pregunta), el tiempo no cambia
+    expect(anotarDificultad(d, "k", false, null).k.ms).toBeCloseTo(2400);
+  });
+
+  it("las teclas que cuestan salen más a menudo", () => {
+    const sabida = { ms: 1000, fallos: 0 };
+    const dificultad: Dificultad = Object.fromEntries(lista.map((o) => [o.clave, sabida]));
+    dificultad[lista[3].clave] = { ms: 3000, fallos: 1 }; // la A
+    const veces = Array<number>(lista.length).fill(0);
+    for (let i = 0; i < 1000; i++) veces[empezar(lista, () => i / 1000, dificultad)!.actual]++;
+    expect(veces[3] / 1000).toBeGreaterThan(0.3); // al azar sería 1 de 8 (0,125)
+    for (const [i, n] of veces.entries()) if (i !== 3) expect(n).toBeGreaterThan(0);
+  });
+});
+
+describe("palabras y frases", () => {
+  const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+
+  it("las listas: sin repetidas, palabras en minúscula y frases con mayúscula y punto", () => {
+    for (const lengua of ["es", "en"] as const) {
+      expect(PALABRAS[lengua].length).toBeGreaterThanOrEqual(250);
+      expect(FRASES[lengua].length).toBeGreaterThanOrEqual(50);
+      expect(new Set(FRASES[lengua]).size).toBe(FRASES[lengua].length);
+      for (const p of PALABRAS[lengua]) expect(p).toMatch(/^\p{Ll}+$/u);
+      for (const f of FRASES[lengua]) expect(f).toMatch(/^\p{Lu}[\p{L} ,]*\.$/u);
+    }
+  });
+
+  it("con el keymap del autor se escriben casi todas, con tildes y ñ", () => {
+    const palabras = textosDeGrupo(suyo, "palabras");
+    expect(palabras.length / PALABRAS.es.length).toBeGreaterThan(0.95);
+    expect(palabras).toContain("mañana");
+    expect(palabras).toContain("lápiz");
+    expect(textosDeGrupo(suyo, "frases")).toEqual(FRASES.es);
+  });
+
+  it("solo lo que el teclado puede escribir: sin espacio no hay frases", () => {
+    expect(textosDeGrupo(teclado, "frases")).toEqual([]);
+    expect(gruposDisponibles(teclado)).not.toContain("palabras");
+  });
+
+  it("en inglés, las listas en inglés; la Base de plantilla basta", () => {
+    const ingles = crearTeclado({ distribucion: "qwerty", idioma: "en-US", so: "windows" });
+    expect(textosDeGrupo(ingles, "frases").length).toBeGreaterThan(0);
+    for (const f of textosDeGrupo(ingles, "frases")) expect(FRASES.en).toContain(f);
+    expect(gruposDisponibles(ingles)).toContain("palabras");
+  });
+
+  it("una ronda de palabras son 6 distintas al azar, separadas por espacios", () => {
+    let azar = 0;
+    const texto = crearTexto(suyo, "palabras", () => (azar = (azar + 0.37) % 1))!;
+    const palabras = texto.split(" ");
+    expect(PALABRAS_POR_RONDA).toBe(6);
+    expect(palabras).toHaveLength(6);
+    expect(new Set(palabras).size).toBe(6);
+    expect(crearTexto(suyo, "frases", () => 0)).toBe(FRASES.es[0]);
+  });
+
+  it("se escribe letra a letra y en orden; la tilde que espera a su vocal no es un fallo", () => {
+    const texto = "Ñu, á.";
+    let p = ya(empezarTexto(suyo, texto), 0);
+    expect(textoDeRonda(p)).toBe(texto);
+    expect(p.total).toBe([...texto].length);
+    const escribir = (key: string, mods: Partial<Pulsacion> = {}) => responder(p, pulsar(key, "", mods), () => 0, 1000);
+    expect(escribir("ñ").resultado).toBe("fallo"); // la mayúscula, exacta
+    p = escribir("Ñ", { shift: true }).practica;
+    for (const c of "u, ") p = escribir(c).practica;
+    expect(escribir("Dead").resultado).toBe("ignorada");
+    p = escribir("á").practica;
+    p = escribir(".").practica;
+    expect(p).toMatchObject({ hechas: 6, aciertos: 6, fallos: 0, fin: 1000 });
+    expect(p.dificultad).toEqual({}); // no cuenta para las teclas difíciles
+  });
+
+  it("lo que se lleva se cuenta en palabras enteras; en las teclas sueltas, en teclas", () => {
+    let p = ya(empezarTexto(suyo, "Ñu, á."), 0);
+    expect(progreso(p)).toEqual({ hechas: 0, total: 2 });
+    for (const [c, mods] of [["Ñ", { shift: true }], ["u", {}], [",", {}]] as const) p = responder(p, pulsar(c, "", mods), () => 0, 1).practica;
+    expect(progreso(p)).toEqual({ hechas: 1, total: 2 }); // «Ñu,» ya está escrita
+    const teclas = ya(empezar(objetivosDeGrupo(suyo, "letras"), () => 0), 0);
+    expect(progreso(teclas)).toEqual({ hechas: 0, total: TECLAS_POR_RONDA });
+  });
+
+  it("cada letra sabe dónde está: «á» enciende la tilde y la a; el espacio, su tecla", () => {
+    const p = empezarTexto(suyo, "á ")!;
+    const enBase = (o: Objetivo) => o.lugares.filter((l) => l.capa === suyo.orden[0]).map((l) => suyo.capas[l.capa].teclas[l.pos].texto.split("\n")[0]);
+    expect(enBase(p.objetivos[0]).sort()).toEqual(["A", "´"].sort());
+    expect(p.objetivos[1].lugares.length).toBeGreaterThan(0);
+  });
+});
+
+describe("las pantallas del teclado", () => {
+  const svg = (valor: string) => decodeURIComponent(valor.replace(/^url\("data:image\/svg\+xml,/, "").replace(/"\)$/, ""));
+  const CHULO = "M38 23 L43 28 L53 16"; // el ✓ de «conectado», arriba
+  const EQUIS = "M40 16.5 L51 27.5 M51 16.5 L40 27.5"; // la ✗ de «sin conectar»
+  const CRONOMETRO = '<circle cx="6" cy="8.5" r="5"/>';
+  const ambas = (estado: EstadoPantallas, tecla = 80, quieto = false) => ({
+    izquierda: svg(pantallaIzquierda(estado, tecla, quieto)),
+    derecha: svg(pantallaDerecha(estado, tecla, quieto)),
+  });
+  const ronda = (extra: Partial<Extract<EstadoPantallas, { fase: "ronda" }>> = {}): EstadoPantallas =>
+    ({ fase: "ronda", tiempo: "0:42", aciertos: 27, fallos: 3, cambia: null, ...extra });
+
+  it("en la ronda: el tiempo con un cronómetro a la izquierda y ✓ N ✗ N a la derecha", () => {
+    const { izquierda, derecha } = ambas(ronda());
+    expect(pantallaIzquierda(ronda())).toMatch(/^url\("data:image\/svg\+xml,[^"]+"\)$/);
+    expect(izquierda).toContain(CRONOMETRO);
+    expect(izquierda).toContain(">0:42<");
+    expect(derecha).toContain(">27<");
+    expect(derecha).toContain(">3<");
+    expect(derecha).toContain('d="M0 7 L5 12 L15 0"'); // el ✓ de la puntuación
+    expect(derecha).toContain('d="M1 0 L12 12 M12 0 L1 12"'); // y su ✗
+    for (const p of [izquierda, derecha]) {
+      expect(p).toContain(CHULO);
+      expect(p).not.toContain(EQUIS);
+    }
+  });
+
+  it("los avisos van solo en la izquierda: conectar (con la ✗ en las dos), conectado y la cuenta atrás", () => {
+    const sin = ambas({ fase: "sinTeclado" });
+    expect(sin.izquierda).toContain(">CONECTA TU<");
+    expect(sin.izquierda).toContain(">TECLADO<");
+    expect(sin.derecha).not.toContain("<text x=\"75\"");
+    for (const p of [sin.izquierda, sin.derecha]) {
+      expect(p).toContain(EQUIS);
+      expect(p).not.toContain(CHULO);
+    }
+    const conectado = ambas({ fase: "conectado" });
+    expect(conectado.izquierda).toContain(">CONECTADO<");
+    expect(conectado.izquierda).toContain(CHULO);
+    expect(conectado.derecha).not.toContain("CONECTADO");
+    for (const n of ["3", "2", "1", "¡YA!"]) {
+      const cuenta = ambas({ fase: "cuenta", texto: n });
+      expect(cuenta.izquierda).toContain(`font-size="22" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" fill="#f4f1e8">${n}<`);
+      expect(cuenta.derecha).not.toContain(`>${n}<`);
+    }
+  });
+
+  it("sin grupo elegido, esperando para empezar o pasados unos segundos del final: las pantallas solo con sus íconos", () => {
+    for (const conectado of [false, true]) {
+      const { izquierda, derecha } = ambas({ fase: "vacia", conectado });
+      for (const p of [izquierda, derecha]) {
+        expect(p).not.toContain("<text x=\"75\"");
+        expect(p).not.toContain(CRONOMETRO);
+        expect(p).toContain(conectado ? CHULO : EQUIS);
+      }
+    }
+  });
+
+  it("en la ronda, a la izquierda: qué se practica, cuánto se lleva y el tiempo, separados; en el móvil, el tiempo pasa a la derecha", () => {
+    const xDe = (svg: string, texto: string) => Number(svg.match(new RegExp(`<text x="([0-9.]+)"[^>]*>${texto}<`))![1]);
+    const yDe = (svg: string, texto: string) => Number(svg.match(new RegExp(`y="([0-9.]+)"[^>]*>${texto}<`))![1]);
+    const conRotulo = ronda({ rotulo: "PALABRAS", cuenta: "2 / 6" });
+    // PC: una línea, con la letra de la batería y un hueco de 1,4 letras entre las partes
+    const pc = ambas(conRotulo, 80).izquierda;
+    expect(pc).toContain('font-size="7.84" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" fill="#f4f1e8">PALABRAS<');
+    expect(pc).toContain(">2 / 6<");
+    expect(pc).toContain(CRONOMETRO);
+    expect(yDe(pc, "PALABRAS")).toBe(yDe(pc, "0:42"));
+    expect(yDe(pc, "2 / 6")).toBe(yDe(pc, "0:42"));
+    const hueco = xDe(pc, "2 / 6") - xDe(pc, "PALABRAS") - 8 * 0.68 * 7.84;
+    expect(hueco).toBeCloseTo(1.4 * 7.84, 1);
+    // En el PC la derecha solo lleva ✓ ✗
+    expect(ambas(conRotulo, 80).derecha).not.toContain(CRONOMETRO);
+    // Móvil: no cabe en una línea; a la izquierda el reto y la cuenta, y el tiempo a la
+    // derecha, encima de ✓ ✗
+    const movil = ambas(conRotulo, 34);
+    expect(yDe(movil.izquierda, "2 / 6")).toBe(yDe(movil.izquierda, "PALABRAS"));
+    expect(movil.izquierda).not.toContain(CRONOMETRO);
+    expect(movil.izquierda).not.toContain(">0:42<");
+    expect(movil.derecha).toContain(CRONOMETRO);
+    expect(yDe(movil.derecha, "27")).toBeGreaterThan(yDe(movil.derecha, "0:42"));
+    expect(yDe(movil.derecha, "3")).toBe(yDe(movil.derecha, "27"));
+    // Un nombre largo cabe en una línea en el PC y, en el móvil, encoge para no salirse
+    const largo = ronda({ rotulo: "MAYÚSCULAS", cuenta: "30 / 30", tiempo: "10:42" });
+    const pcLargo = ambas(largo, 80).izquierda;
+    expect(yDe(pcLargo, "MAYÚSCULAS")).toBe(yDe(pcLargo, "10:42"));
+    const movilLargo = ambas(largo, 34).izquierda;
+    const tamano = Number(movilLargo.match(/font-size="([0-9.]+)"[^>]*>MAYÚSCULAS</)![1]);
+    expect((10 * 0.68 + 1.4 + 2 * 0.28 + 4 * 0.556 + 0.28) * tamano).toBeLessThanOrEqual(140.1);
+    expect(movilLargo).not.toContain(">10:42<");
+    expect(xDe(movilLargo, "MAYÚSCULAS")).toBeGreaterThanOrEqual(4.9);
+  });
+
+  it("parpadea el número que cambia, y solo ese", () => {
+    const aciertos = ambas(ronda({ cambia: "aciertos" })).derecha;
+    expect(aciertos).toMatch(/>27<animate attributeName="opacity" values="0;1;0;1" dur="0.4s"/);
+    expect(aciertos).not.toMatch(/>3<animate/);
+    expect(ambas(ronda({ cambia: "fallos" })).derecha).toMatch(/>3<animate/);
+    expect(ambas(ronda()).derecha).not.toContain("<animate");
+    // El reloj no parpadea al avanzar
+    expect(ambas(ronda({ cambia: "aciertos" })).izquierda).not.toContain("<animate");
+  });
+
+  it("al terminar: sin récord el tiempo parpadea tres veces; con récord, «NUEVO RÉCORD» sin parar y la marca a la derecha", () => {
+    const fin = { fase: "fin", tiempo: "0:42", aciertos: 27, fallos: 3 } as const;
+    const sinRecord = ambas({ ...fin, record: false });
+    expect(sinRecord.izquierda).toMatch(/>0:42<animate attributeName="opacity" values="0;1;0;1;0;1" dur="1.5s"/);
+    expect(sinRecord.derecha).toContain(">27<");
+    const conRecord = ambas({ ...fin, record: true });
+    expect(conRecord.izquierda).toContain(">NUEVO<");
+    expect(conRecord.izquierda).toContain(">RÉCORD<");
+    expect(conRecord.izquierda).toContain('repeatCount="indefinite"');
+    expect(conRecord.derecha).toContain(CRONOMETRO);
+    expect(conRecord.derecha).toContain(">0:42<");
+    // En Palabras y Frases la marca son las palabras por minuto
+    expect(ambas({ ...fin, record: true, marca: "41 PPM" }).derecha).toContain(">41 PPM<");
+  });
+
+  it("con «reducir movimiento», nada parpadea", () => {
+    const fin = { fase: "fin", tiempo: "0:42", aciertos: 27, fallos: 3 } as const;
+    for (const estado of [ronda({ cambia: "aciertos" }), { ...fin, record: false }, { ...fin, record: true }] as EstadoPantallas[]) {
+      const { izquierda, derecha } = ambas(estado, 80, true);
+      expect(izquierda + derecha).not.toContain("<animate");
+    }
+  });
+
+  it("dos imágenes que parpadean nunca son iguales: si no, el navegador reutilizaría la animación ya terminada", () => {
+    const una = pantallaDerecha(ronda({ cambia: "aciertos" }));
+    expect(pantallaDerecha(ronda({ cambia: "aciertos" }))).not.toBe(una);
+    // Las quietas sí: así no se redibujan sin necesidad
+    expect(pantallaDerecha(ronda())).toBe(pantallaDerecha(ronda()));
   });
 
   it("la letra es la del «100%» de la batería; en móviles se agranda para que se lea, sin salirse", () => {
@@ -328,14 +651,20 @@ describe("el marcador en las pantallas del teclado", () => {
     expect(tamanoDeLetra(20, 2)).toBe(16);
     // Sin medida (no debería pasar), la de la batería
     expect(tamanoDeLetra(0, 1)).toBeCloseTo(bateria, 2);
-    expect(svg(pantallasDePractica(1, 0, true, 80).izquierda)).toContain('font-size="7.84"');
-    expect(svg(pantallasDePractica(1, 0, true, 34).izquierda)).toContain('font-size="14.12"');
+    expect(ambas(ronda(), 80).izquierda).toContain('font-size="7.84"');
+    expect(ambas(ronda(), 34).izquierda).toContain('font-size="14.12"');
   });
 
   it("la izquierda va volteada, como su imagen de siempre, y ninguna lleva estilos en línea (CSP)", () => {
-    expect(svg(pantallaOled("left", ["X"], true))).toContain('transform="translate(56 0) scale(-1 1) matrix(0 -1 1 0 0 150)"');
-    expect(svg(pantallaOled("right", ["X"], true))).toContain('transform="matrix(0 -1 1 0 0 150)"');
-    expect(svg(pantallaOled("right", ["X"], true))).not.toMatch(/style=|<style/);
+    expect(svg(pantallaOled("left", "", true))).toContain('transform="translate(56 0) scale(-1 1) matrix(0 -1 1 0 0 150)"');
+    expect(svg(pantallaOled("right", "", true))).toContain('transform="matrix(0 -1 1 0 0 150)"');
+    expect(ambas({ fase: "fin", tiempo: "0:42", aciertos: 1, fallos: 0, record: true }).izquierda).not.toMatch(/style=|<style/);
+  });
+
+  it("el rayo de la batería, más pequeño, igual en todas las pantallas: práctica, las de siempre y la de ingreso", () => {
+    const rayo = svg(pantallaOled("right", "", true)).match(/<path d="M101 11[^>]+>/)![0];
+    expect(rayo).toContain('transform="translate(96 22.3) scale(0.75) translate(-99.5 -22.5)"');
+    for (const dibujo of [oledDerecha, oledIzquierda, bienvenida]) expect(dibujo).toContain(rayo);
   });
 });
 

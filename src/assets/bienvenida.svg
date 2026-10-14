@@ -88,7 +88,7 @@
       <path d="M38 23 L43 28 L53 16" fill="none" stroke="#f4f1e8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
     <g transform="translate(21.2 -4) scale(0.7)">
-      <path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="#f4f1e8"/>
+      <path d="M101 11 L94 24 H99 L96 34 L105 20 H100 Z" fill="#f4f1e8" transform="translate(96 22.3) scale(0.75) translate(-99.5 -22.5)"/>
       <text x="144" y="28" text-anchor="end" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="#f4f1e8">100%</text>
     </g>
     </g></g>
