@@ -5,7 +5,11 @@ import rey from "./keymaps/corne-rey.keymap?raw";
 import { envioDeCodigo } from "../src/keymap/codigos";
 import { importarKeymap } from "../src/keymap/importar";
 import { leerKeymap } from "../src/keymap/leer";
-import { acierta, empezar, esSoloModificador, objetivos, responder, type Objetivo, type Pulsacion } from "../src/practica/practica";
+import {
+  GRUPOS, TECLAS_POR_RONDA, acierta, anotarDificultad, empezar, esSoloModificador, gruposDisponibles, objetivos,
+  objetivosDeGrupo, responder, tiempoDeRonda,
+  type Dificultad, type Grupo, type Objetivo, type Practica, type Pulsacion,
+} from "../src/practica/practica";
 import { pantallaOled, pantallasDePractica, tamanoDeLetra } from "../src/practica/pantalla";
 import { editarTecla } from "../src/teclados/editar";
 import { crearTeclado } from "../src/teclados/plantillas";
@@ -281,7 +285,7 @@ describe("la sesión de práctica", () => {
   });
 
   it("nunca pide dos veces seguidas la misma (si hay más de una)", () => {
-    let p = empezar(lista, () => 0.5)!;
+    let p = empezar(lista, () => 0.5, {}, Infinity)!; // una ronda sin fin
     let azar = 0;
     for (let i = 0; i < 200; i++) {
       const antes = pedida(p);
@@ -290,6 +294,129 @@ describe("la sesión de práctica", () => {
       expect(pedida(p)).not.toBe(antes);
     }
     expect(p.aciertos).toBe(200);
+  });
+});
+
+describe("los grupos", () => {
+  const textos = (g: Grupo) => objetivosDeGrupo(teclado, g).map((o) => o.texto);
+
+  it("cada tecla en su grupo; las letras, en minúscula", () => {
+    expect(textos("letras")).toEqual(["ñ", "a", "x"]);
+    expect(textos("numeros")).toEqual([]);
+    expect(textos("simbolos")).toEqual(["!", "@"]);
+    expect(textos("otras")).toEqual(["ENT", "SHIFT", "INIT"]);
+  });
+
+  it("las mayúsculas son las mismas teclas con shift", () => {
+    const mayusculas = objetivosDeGrupo(teclado, "mayusculas");
+    expect(mayusculas.map((o) => o.texto)).toEqual(["Ñ", "A", "X"]);
+    expect(mayusculas[0].espera).toEqual({ tipo: "tecla", envio: { ...envioDeCodigo("SEMI")!, shift: true } });
+    expect(mayusculas[0].lugares).toEqual([{ capa: "base", pos: 0 }]);
+  });
+
+  it("minúscula y mayúscula se distinguen al pulsar", () => {
+    const [enie, , x] = objetivosDeGrupo(teclado, "letras");
+    const [ENIE, , X] = objetivosDeGrupo(teclado, "mayusculas");
+    expect(acierta(enie, pulsar("ñ", "Semicolon"))).toBe(true);
+    expect(acierta(enie, pulsar("Ñ", "Semicolon", { shift: true }))).toBe(false);
+    expect(acierta(ENIE, pulsar("Ñ", "Semicolon", { shift: true }))).toBe(true);
+    expect(acierta(ENIE, pulsar("ñ", "Semicolon"))).toBe(false);
+    // Las escritas a mano, por el carácter exacto
+    expect(acierta(x, pulsar("x", "KeyB"))).toBe(true);
+    expect(acierta(x, pulsar("X", "KeyB", { shift: true }))).toBe(false);
+    expect(acierta(X, pulsar("X", "KeyB", { shift: true }))).toBe(true);
+    expect(acierta(X, pulsar("x", "KeyB"))).toBe(false);
+  });
+
+  it("«Todo» es la suma de los demás, y los grupos sin teclas salen apagados", () => {
+    expect(textos("todo")).toEqual(["ñ", "ENT", "SHIFT", "a", "x", "!", "@", "INIT", "Ñ", "A", "X"]);
+    expect(gruposDisponibles(teclado)).toEqual(["letras", "mayusculas", "simbolos", "otras", "todo"]);
+  });
+
+  it("con el keymap del autor: ningún grupo vacío, y «otras» son sus 27 teclas con nombre", () => {
+    const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+    expect(gruposDisponibles(suyo)).toEqual([...GRUPOS]);
+    const de = (g: Grupo) => objetivosDeGrupo(suyo, g);
+    expect(de("otras")).toHaveLength(27);
+    expect(de("mayusculas")).toHaveLength(de("letras").length);
+    for (const o of de("letras")) expect(o.texto).toBe(o.texto.toLocaleLowerCase());
+    for (const o of de("numeros")) expect(o.texto).toMatch(/^\d$/);
+    const suma = (["letras", "mayusculas", "numeros", "simbolos", "otras"] as const).reduce((n, g) => n + de(g).length, 0);
+    expect(de("todo")).toHaveLength(suma);
+  });
+});
+
+describe("la ronda: 30 teclas contra el reloj", () => {
+  const lista = objetivos(teclado); // Ñ, ENT, SHIFT, A, x, !, @, INIT
+  const bien: Record<string, Pulsacion> = {
+    Ñ: pulsar("ñ", "Semicolon"),
+    ENT: pulsar("Enter", "Enter"),
+    SHIFT: pulsar("Shift", "ShiftLeft", { shift: true }),
+    A: pulsar("a", "KeyA"),
+    x: pulsar("x", "KeyX"),
+    "!": pulsar("!", "Digit1", { shift: true }),
+    "@": pulsar("@", "KeyQ", { ctrl: true, alt: true, altGr: true }),
+    INIT: pulsar("Home", "Home"),
+  };
+  const mal = pulsar("0", "Digit0");
+  const pedida = (p: Practica) => p.objetivos[p.actual].texto;
+
+  it("son 30 por defecto", () => {
+    expect(TECLAS_POR_RONDA).toBe(30);
+    expect(empezar(lista)!.total).toBe(30);
+  });
+
+  it("el reloj arranca con la primera pulsación, aunque falle; un Shift suelto no lo arranca", () => {
+    let p = empezar(lista, () => 0)!;
+    expect(tiempoDeRonda(p, 5000)).toBe(0);
+    p = responder(p, pulsar("Shift", "ShiftLeft", { shift: true }), () => 0, 1000).practica;
+    expect(p.inicio).toBeNull();
+    p = responder(p, mal, () => 0, 2000).practica;
+    expect(p.inicio).toBe(2000);
+    expect(tiempoDeRonda(p, 3500)).toBe(1500);
+  });
+
+  it("termina al acertar la última: el reloj se para y ya no cuenta nada más", () => {
+    let p = empezar(lista, () => 0, {}, 3)!;
+    let t = 1000;
+    for (let i = 0; i < 3; i++) {
+      expect(p.fin).toBeNull();
+      if (i === 1) p = responder(p, mal, () => 0, (t += 100)).practica; // un fallo por el camino
+      p = responder(p, bien[pedida(p)], () => 0, (t += 1000)).practica;
+    }
+    expect(p).toMatchObject({ hechas: 3, aciertos: 2, fallos: 1, inicio: 2000, fin: 4100 });
+    expect(tiempoDeRonda(p, 99_999)).toBe(2100);
+    const despues = responder(p, bien[pedida(p)], () => 0, 5000);
+    expect(despues.resultado).toBe("ignorada");
+    expect(despues.practica).toBe(p);
+  });
+
+  it("anota lo que cuesta cada tecla: la primera pregunta sin tiempo, las demás con el suyo", () => {
+    let p = empezar(lista, () => 0)!; // Ñ
+    p = responder(p, bien.Ñ, () => 0, 1000).practica; // pasa a ENT
+    expect(p.dificultad).toEqual({ [lista[0].clave]: { ms: 0, fallos: 0 } });
+    p = responder(p, mal, () => 0, 1500).practica;
+    p = responder(p, bien.ENT, () => 0, 3000).practica;
+    expect(p.dificultad[lista[1].clave]).toEqual({ ms: 2000, fallos: 1 });
+  });
+
+  it("las medias olvidan poco a poco: mejorar se nota sin borrar lo anterior", () => {
+    let d: Dificultad = anotarDificultad({}, "k", true, 3000);
+    d = anotarDificultad(d, "k", false, 1000);
+    expect(d.k.ms).toBeCloseTo(2400);
+    expect(d.k.fallos).toBeCloseTo(0.7);
+    // Sin tiempo (primera pregunta), el tiempo no cambia
+    expect(anotarDificultad(d, "k", false, null).k.ms).toBeCloseTo(2400);
+  });
+
+  it("las teclas que cuestan salen más a menudo", () => {
+    const sabida = { ms: 1000, fallos: 0 };
+    const dificultad: Dificultad = Object.fromEntries(lista.map((o) => [o.clave, sabida]));
+    dificultad[lista[3].clave] = { ms: 3000, fallos: 1 }; // la A
+    const veces = Array<number>(lista.length).fill(0);
+    for (let i = 0; i < 1000; i++) veces[empezar(lista, () => i / 1000, dificultad)!.actual]++;
+    expect(veces[3] / 1000).toBeGreaterThan(0.3); // al azar sería 1 de 8 (0,125)
+    for (const [i, n] of veces.entries()) if (i !== 3) expect(n).toBeGreaterThan(0);
   });
 });
 
