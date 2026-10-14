@@ -15,6 +15,7 @@ import {
 import { anotarMarca, formatoMarca, formatoTiempo, mejorMarca, type DatosPractica, type Marca } from "./records";
 import { guardar, guardarGrupo, leerGrupo, leerGuardado } from "./guardado";
 import { pantallaDerecha, pantallaIzquierda, type EstadoPantallas } from "./pantalla";
+import type { PracticaEnCuenta } from "../firebase/useCuenta";
 
 export type Fase = "sinGrupo" | "sinTeclado" | "conectado" | "listo" | "cuenta" | "ronda" | "fin";
 export type Final = { marca: Marca; nuevoRecord: boolean; mejorAntes: Marca | null };
@@ -33,16 +34,21 @@ type Opciones = {
   setCapa: (capa: string) => void;
   // Con una ventana abierta (elegir grupo, récords) las pulsaciones son de la ventana
   ignorar: boolean;
+  // Con cuenta: los récords y las teclas difíciles van en Firestore y se ven en todos los
+  // dispositivos. Sin cuenta (demo), o si la cuenta aún no tiene acceso, en el navegador
+  nube?: { practica: PracticaEnCuenta; guardar: (datos: DatosPractica) => Promise<void> };
 };
 
-export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
+export function usePractica({ teclado, setCapa, ignorar, nube }: Opciones) {
   const [activa, setActiva] = useState(false);
   const [grupo, setGrupo] = useState<Grupo>(leerGrupo);
   const [fase, setFase] = useState<Fase>("sinTeclado");
   const [cuenta, setCuenta] = useState("3");
   const [ya, setYa] = useState(false);
   const [practica, setPractica] = useState<Practica | null>(null);
-  const [datos, setDatos] = useState<DatosPractica>(leerGuardado);
+  const [datosLocales, setDatosLocales] = useState<DatosPractica>(leerGuardado);
+  const enNube = nube?.practica.estado === "lista" ? nube.practica.datos : null;
+  const datos = enNube ?? datosLocales;
   const [final, setFinal] = useState<Final | null>(null);
   // Al terminar, la marca se ve unos segundos y se quita
   const [marcaVisible, setMarcaVisible] = useState(true);
@@ -115,8 +121,13 @@ export function usePractica({ teclado, setCapa, ignorar }: Opciones) {
     const { records, nuevoRecord } = anotarMarca(datos.records, grupo, marca);
     // Lo que cuesta cada tecla solo se aprende con las teclas sueltas
     const nuevos: DatosPractica = { records, dificultad: p.enOrden ? datos.dificultad : p.dificultad };
-    setDatos(nuevos);
-    guardar(nuevos);
+    const enDispositivo = () => {
+      setDatosLocales(nuevos);
+      guardar(nuevos);
+    };
+    // En la nube, si el servidor la rechaza, la ronda no se pierde: queda en el dispositivo
+    if (enNube && nube) nube.guardar(nuevos).catch(enDispositivo);
+    else enDispositivo();
     setFinal({ marca, nuevoRecord, mejorAntes });
     setMarcaVisible(true);
     setFase("fin");

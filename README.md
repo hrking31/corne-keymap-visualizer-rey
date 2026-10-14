@@ -49,8 +49,10 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
 - ✅ Su teclado se guarda en la nube y se abre **también sin conexión**, en el PC y en el celular
 - ✅ **Importa el `.keymap` de tu firmware**: la app lee el archivo de ZMK y crea tus capas con el
   texto de cada tecla; a ti solo te queda escribir qué significa cada una
-- ✅ **Modo práctica** para la memoria muscular: la app pide una tecla, la pulsas en tu teclado
-  sin mirarlo y las pantallas del Corne llevan la cuenta de aciertos y fallos
+- ✅ **Modo práctica** para la memoria muscular: rondas contra el reloj por grupos (letras,
+  mayúsculas, números, símbolos, otras teclas, todo) o escribiendo **palabras y frases**. La pulsas
+  en tu teclado sin mirarlo, las pantallas del Corne llevan el tiempo y la puntuación, las teclas
+  que te cuestan salen más, y tus **récords** se guardan en tu cuenta
 - ✅ **Copia de seguridad**: descarga tu teclado como un archivo y restáuralo cuando quieras
 - ✅ La geometría real del Corne: columnas escalonadas y pulgares en abanico
 - ✅ **Placa con el contorno de mi teclado** y la pantalla OLED mostrando su estado, como en el real
@@ -90,23 +92,32 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    el idioma de tu navegador) sin necesidad de cuenta.
 2. **Inicia sesión con Google**. La primera vez, el asistente te pregunta cómo es tu teclado y crea
    tu capa Base. Las siguientes veces la app abre directo en tu teclado.
-3. En el menú **⚙** (arriba a la derecha), **Editar**: el nombre del teclado se escribe en el propio
-   título («Corne Rey ZMK»), ＋ agrega una capa, ✎ le cambia el nombre (o la mueve o la borra) y al
-   tocar una tecla escribes qué hace. ⇄ intercambia dos teclas. **Listo** sale de la edición; cada
-   cambio ya se guardó al hacerlo.
+3. En el menú **⚙** (arriba a la derecha; en el móvil, abajo), **Editar**: el nombre del teclado se
+   escribe en el propio título («Corne Rey ZMK»), ＋ agrega una capa, ✎ le cambia el nombre (o la
+   mueve o la borra) y al tocar una tecla escribes qué hace. ⇄ intercambia dos teclas. **✓** sale de
+   la edición; cada cambio ya se guardó al hacerlo.
 4. **Importar .keymap** (mismo menú): eliges el archivo de tu firmware ZMK y ves un resumen antes
    de aplicar nada (capas, teclas y lo que no se reconoció). Las teclas de dos acciones salen en
    dos líneas, las transparentes en gris y las que no se reconocen con un «?». Si vuelves a
    importar, las descripciones que ya escribiste se conservan.
-5. **Practicar**: conecta tu teclado (por cable o Bluetooth) y el título pasa a ser la pregunta,
-   «Pulsa: Ñ». Si aciertas, la tecla se enciende un instante y sale otra; si fallas, la correcta
-   queda encendida hasta que la pulses bien, y vuelve a salir poco después. Los aciertos y los
-   fallos se ven en las dos pantallas del teclado. Se practican letras, números, símbolos y las
-   teclas de editar y moverse (Esc, Tab, Enter, flechas, F1–F10…); las que no son un carácter
-   se conocen al importar el `.keymap`. Para terminar: ⚙ → **Salir de la práctica**.
+5. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un
+   grupo: letras, mayúsculas, números, símbolos, otras teclas (Esc, Tab, Enter, flechas,
+   F1–F10…), todo mezclado, palabras o frases. La primera pulsación comprueba el teclado; la
+   siguiente empieza la cuenta atrás, y el reloj corre desde el «¡YA!».
+   - Una ronda son **30 teclas**, **6 palabras** o una frase. El título es la pregunta («Pulsa: ñ»)
+     o el texto, que se pone en naranja a medida que lo escribes.
+   - Si aciertas, la tecla se enciende un instante; si fallas, la correcta queda encendida hasta
+     que la pulses bien. Las teclas que te cuestan salen más a menudo.
+   - Las pantallas del teclado muestran qué practicas, cuánto llevas («2 / 6»), el tiempo y ✓ ✗.
+   - Al terminar ves tu marca: el tiempo o, en palabras y frases, las **palabras por minuto**.
+     **Nueva ronda** (o Enter) repite; ↺ corta una ronda a medias. ⚙ → **Récords** muestra tus
+     10 mejores de cada grupo.
+   - Las teclas que no son un carácter se conocen al importar el `.keymap`. Para terminar:
+     ⚙ → **Salir**.
 6. **Descargar copia** guarda tu teclado en un archivo `.json` y **Restaurar copia** lo recupera
    (antes de reemplazar el actual, descarga una copia de él por si acaso).
-7. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos.
+7. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
+   En la demo, sin cuenta, los récords se guardan en el navegador.
 
 **En local** (necesita Node.js 20.19 o superior):
 
@@ -240,6 +251,12 @@ Las distribuciones se describen como **lo que envía el teclado**, no como lo qu
 mismo código `SEMI` se ve `;` en inglés y `Ñ` en español, y la tecla `GUI` se llama
 `WIN`, `CMD` o `SUPER` según el sistema. Una sola tabla sirve para los tres idiomas.
 
+La práctica va en **otro documento**, también solo suyo: sus 10 mejores marcas de cada grupo
+(tiempo, fallos y fecha) y, por cada tecla, cuánto tarda y cuánto falla. Va aparte porque el
+editor guarda el teclado entero y se llevaría los récords por delante. Solo se usa cuando el
+servidor lo ha confirmado: un móvil sin red que nunca practicó tiene una copia vacía, y su
+primera ronda pisaría los récords de la nube; mientras tanto, se guarda en el dispositivo.
+
 Los visitantes que solo miran **no descargan Firebase**: la librería (unos 190 KB) se baja
 cuando el usuario muestra intención de entrar, y el service worker no la precarga.
 
@@ -286,9 +303,10 @@ cuál va arriba y lo recuerda en el dispositivo.
 - **Credenciales con permisos mínimos:** la cuenta que publica desde GitHub solo puede tocar
   Hosting.
 - **Reglas de Firestore probadas:** cada usuario solo puede leer, escribir y borrar su propio
-  teclado; se validan los límites (10 capas, Base primera, largos de los textos). Las pruebas
-  corren en el emulador de Firebase en cada cambio: ni otro usuario ni alguien sin sesión pueden
-  tocar un teclado ajeno.
+  teclado y su práctica; se validan los límites (10 capas, Base primera, largos de los textos;
+  solo los grupos que existen, 10 marcas por grupo y 400 teclas anotadas). Las pruebas corren en
+  el emulador de Firebase en cada cambio: ni otro usuario ni alguien sin sesión pueden tocar los
+  datos ajenos.
 - **Sin contraseñas propias:** solo se entra con Google, así la app no guarda contraseñas que se
   puedan filtrar. Cada usuario puede **borrar su cuenta y sus datos** desde la app.
 - **La política de seguridad (CSP)** solo abre los dominios de Google que necesitan el inicio de

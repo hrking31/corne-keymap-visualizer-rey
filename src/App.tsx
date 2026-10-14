@@ -196,7 +196,13 @@ export default function App({ tecladoInicial }: Props) {
   // Práctica (memoria muscular): la app pide una tecla o un texto y se pulsa en el teclado
   // físico. Sus ventanas: elegir qué practicar y los récords
   const [ventanaPractica, setVentanaPractica] = useState<"elegir" | "records" | null>(null);
-  const practica = usePractica({ teclado, setCapa, ignorar: ventanaPractica !== null });
+  const practica = usePractica({
+    teclado,
+    setCapa,
+    ignorar: ventanaPractica !== null,
+    // Con cuenta, la práctica se guarda en ella (en la demo, en el navegador)
+    nube: cuenta.usuario && !tecladoInicial ? { practica: cuenta.practica, guardar: cuenta.guardarPractica } : undefined,
+  });
 
   const capaActual = teclado.capas[capa];
   // En el panel: «Capa» y el nombre largo («Capa Navegación»)

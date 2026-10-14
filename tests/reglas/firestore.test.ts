@@ -127,4 +127,55 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
   it("la fecha de actualización solo la puede poner el servidor", async () => {
     await assertFails(crearConCambio((t) => (t.actualizado = new Date(2000, 0, 1))));
   });
+
+  // ---------- La práctica: practica/{uid}, aparte del teclado ----------
+
+  // Récords de Letras con `marcas` rondas y `teclas` teclas anotadas, como los guarda la app
+  const practica = (marcas = 1, teclas = 1): Record<string, unknown> => ({
+    records: {
+      letras: Array.from({ length: marcas }, (_, i) => ({ ms: 40_000 + i, fecha: "2026-10-14T12:00:00.000Z", fallos: 0 })),
+    },
+    dificultad: Object.fromEntries(Array.from({ length: teclas }, (_, i) => [`t:Key${i}:`, { ms: 900, fallos: 0.1 }])),
+  });
+  const sembrarPractica = (uid: string) =>
+    entorno.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), "practica", uid), practica()));
+
+  it("el dueño guarda, lee y borra su práctica", async () => {
+    const ref = doc(de("ana"), "practica/ana");
+    // Como lo hace la app (guardarPractica): todo el documento y la fecha del servidor
+    await assertSucceeds(setDoc(ref, { ...practica(), actualizado: serverTimestamp() }));
+    await assertSucceeds(getDoc(ref));
+    await assertSucceeds(setDoc(ref, { ...practica(2), actualizado: serverTimestamp() }));
+    await assertSucceeds(deleteDoc(ref));
+  });
+
+  it("otro usuario, o sin sesión, no puede leer, escribir ni borrar una práctica ajena", async () => {
+    await sembrarPractica("ana");
+    const ref = doc(de("beto"), "practica/ana");
+    await assertFails(getDoc(ref));
+    await assertFails(setDoc(ref, practica()));
+    await assertFails(deleteDoc(ref));
+    await assertFails(getDoc(doc(sinSesion(), "practica/ana")));
+    await assertFails(setDoc(doc(sinSesion(), "practica/ana"), practica()));
+  });
+
+  it("acepta 10 marcas por grupo y 400 teclas anotadas; rechaza 11 y 401", async () => {
+    const ref = doc(de("ana"), "practica/ana");
+    await assertSucceeds(setDoc(ref, practica(10, 400)));
+    await assertFails(setDoc(ref, practica(11, 1)));
+    await assertFails(setDoc(ref, practica(1, 401)));
+  });
+
+  it("rechaza grupos desconocidos, campos de más o que falten, y otra forma", async () => {
+    const ref = doc(de("ana"), "practica/ana");
+    await assertFails(setDoc(ref, { ...practica(), records: { inventado: [] } }));
+    await assertFails(setDoc(ref, { ...practica(), admin: true }));
+    await assertFails(setDoc(ref, { records: {} }));
+    await assertFails(setDoc(ref, { ...practica(), records: { letras: "rápido" } }));
+    await assertFails(setDoc(ref, { ...practica(), dificultad: [] }));
+  });
+
+  it("la fecha de la práctica también la pone solo el servidor", async () => {
+    await assertFails(setDoc(doc(de("ana"), "practica/ana"), { ...practica(), actualizado: new Date(2000, 0, 1) }));
+  });
 });

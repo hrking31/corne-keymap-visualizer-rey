@@ -1,6 +1,7 @@
 // La cuenta del usuario, para la app. Firebase se carga con import() solo si ya había una
 // sesión abierta o el usuario muestra intención de entrar: un visitante no lo descarga.
 import { useEffect, useRef, useState } from "react";
+import { leerDatosPractica, type DatosPractica } from "../practica/records";
 import type { TecladoConfig } from "../teclados/tipos";
 import { guardarCopia, haySesion, leerCopia, marcarSesion } from "./copia";
 import type { Usuario } from "./sesion";
@@ -25,6 +26,11 @@ export type PasoEntrada = "entrar" | "conectando" | "continuar";
 // "comprobando": había una sesión guardada en el teléfono y Firebase aún no lo confirma
 type EstadoSesion = "comprobando" | "abierta" | "cerrada";
 
+// La práctica del usuario en Firestore (practica/{uid}): llegando, ya leída, o sin acceso
+// (las reglas de la práctica aún sin publicar, o un error): entonces la práctica se guarda
+// en el dispositivo, como en la demo
+export type PracticaEnCuenta = { estado: "cargando" } | { estado: "lista"; datos: DatosPractica } | { estado: "sinAcceso" };
+
 export type Cuenta = {
   usuario: Usuario | null;
   sesion: EstadoSesion;
@@ -40,6 +46,9 @@ export type Cuenta = {
   salir: () => Promise<void>;
   // Guarda el teclado entero del usuario (el editor lo usa en cada cambio)
   guardar: (teclado: TecladoConfig) => Promise<void>;
+  practica: PracticaEnCuenta;
+  // Guarda la práctica entera (al terminar cada ronda). Falla si el servidor la rechaza
+  guardarPractica: (datos: DatosPractica) => Promise<void>;
   borrarCuenta: () => Promise<void>;
 };
 
@@ -55,6 +64,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
     habilitada && haySesion() ? leerCopia() : null,
   );
   const [tecladoCargado, setTecladoCargado] = useState(false);
+  const [practica, setPractica] = useState<PracticaEnCuenta>({ estado: "cargando" });
   const [error, setError] = useState("");
   const [paso, setPaso] = useState<PasoEntrada>("entrar");
   // El módulo ya descargado: entrar() lo usa sin esperar nada
@@ -76,6 +86,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
     let cancelado = false;
     let dejarSesion = () => {};
     let dejarTeclado = () => {};
+    let dejarPractica = () => {};
 
     cargarSesion()
       .then((s) => {
@@ -84,6 +95,9 @@ export function useCuenta(habilitada: boolean): Cuenta {
         dejarSesion = s.escucharSesion((u) => {
           dejarTeclado();
           dejarTeclado = () => {};
+          dejarPractica();
+          dejarPractica = () => {};
+          setPractica({ estado: "cargando" });
           setUsuario(u);
           setSesion(u ? "abierta" : "cerrada");
           marcarSesion(Boolean(u));
@@ -103,6 +117,19 @@ export function useCuenta(habilitada: boolean): Cuenta {
             },
             () => setError("No se pudo leer tu teclado. Revisa la conexión."),
           );
+          // Solo se usa cuando el servidor la confirmó una vez: la copia del dispositivo puede
+          // estar vacía (un móvil sin red que nunca practicó) y la ronda siguiente pisaría los
+          // récords de la nube. Desde ahí, también los cambios sin red (los suyos, pendientes).
+          // Lo que llega se revisa: solo se conserva lo que tiene la forma esperada
+          let confirmada = false;
+          dejarPractica = s.escucharPractica(
+            u.uid,
+            (datos, deCache) => {
+              if (!deCache) confirmada = true;
+              if (confirmada) setPractica({ estado: "lista", datos: leerDatosPractica(datos) });
+            },
+            () => setPractica({ estado: "sinAcceso" }),
+          );
         });
       })
       .catch(() => setError("No se pudo conectar. Revisa la conexión."));
@@ -111,6 +138,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
       cancelado = true;
       dejarSesion();
       dejarTeclado();
+      dejarPractica();
     };
   }, [conectar]);
 
@@ -149,6 +177,17 @@ export function useCuenta(habilitada: boolean): Cuenta {
     }
   };
 
+  const guardarPractica = async (datos: DatosPractica) => {
+    if (!usuario) throw new Error("Sin sesión");
+    try {
+      await (await cargarSesion()).guardarPractica(usuario.uid, datos);
+    } catch (e) {
+      // El servidor no la acepta (reglas sin publicar): desde aquí, en el dispositivo
+      setPractica({ estado: "sinAcceso" });
+      throw e;
+    }
+  };
+
   const borrarCuenta = async () => {
     setError("");
     try {
@@ -160,5 +199,7 @@ export function useCuenta(habilitada: boolean): Cuenta {
     }
   };
 
-  return { usuario, sesion, teclado, tecladoCargado, error, paso, precargar, entrar, salir, guardar, borrarCuenta };
+  return {
+    usuario, sesion, teclado, tecladoCargado, error, paso, precargar, entrar, salir, guardar, practica, guardarPractica, borrarCuenta,
+  };
 }
