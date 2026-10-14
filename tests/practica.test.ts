@@ -10,7 +10,10 @@ import {
   esSoloModificador, gruposDisponibles, objetivos, objetivosDeGrupo, responder, textoDeRonda, textosDeGrupo, tiempoDeRonda,
   type Dificultad, type GrupoDeTeclas, type Objetivo, type Practica, type Pulsacion,
 } from "../src/practica/practica";
-import { pantallaOled, pantallasDePractica, tamanoDeLetra } from "../src/practica/pantalla";
+import { pantallaDerecha, pantallaIzquierda, pantallaOled, tamanoDeLetra, type EstadoPantallas } from "../src/practica/pantalla";
+import oledDerecha from "../src/assets/oled-derecha.svg?raw";
+import oledIzquierda from "../src/assets/oled-izquierda.svg?raw";
+import bienvenida from "../src/assets/bienvenida.svg?raw";
 import { FRASES, PALABRAS } from "../src/practica/textos";
 import { editarTecla } from "../src/teclados/editar";
 import { crearTeclado } from "../src/teclados/plantillas";
@@ -496,29 +499,91 @@ describe("palabras y frases", () => {
   });
 });
 
-describe("el marcador en las pantallas del teclado", () => {
+describe("las pantallas del teclado", () => {
   const svg = (valor: string) => decodeURIComponent(valor.replace(/^url\("data:image\/svg\+xml,/, "").replace(/"\)$/, ""));
-  const CHULO = "M38 23 L43 28 L53 16";
-  const EQUIS = "M40 16.5 L51 27.5 M51 16.5 L40 27.5";
+  const CHULO = "M38 23 L43 28 L53 16"; // el ✓ de «conectado», arriba
+  const EQUIS = "M40 16.5 L51 27.5 M51 16.5 L40 27.5"; // la ✗ de «sin conectar»
+  const CRONOMETRO = '<circle cx="6" cy="8.5" r="5"/>';
+  const ambas = (estado: EstadoPantallas, tecla = 80, quieto = false) => ({
+    izquierda: svg(pantallaIzquierda(estado, tecla, quieto)),
+    derecha: svg(pantallaDerecha(estado, tecla, quieto)),
+  });
+  const ronda = (extra: Partial<Extract<EstadoPantallas, { fase: "ronda" }>> = {}): EstadoPantallas =>
+    ({ fase: "ronda", tiempo: "0:42", aciertos: 27, fallos: 3, cambia: null, ...extra });
 
-  it("aciertos en la izquierda y fallos en la derecha, con el ✓ de conectado", () => {
-    const { izquierda, derecha } = pantallasDePractica(12, 3, true);
-    expect(izquierda).toMatch(/^url\("data:image\/svg\+xml,[^"]+"\)$/);
-    // El número va separado de la palabra más que un espacio, que a ese tamaño no se veía
-    expect(svg(izquierda)).toContain('>ACIERTOS<tspan dx="0.6em">12</tspan><');
-    expect(svg(derecha)).toContain('>FALLOS<tspan dx="0.6em">3</tspan><');
-    expect(svg(izquierda)).toContain(CHULO);
-    expect(svg(izquierda)).not.toContain(EQUIS);
+  it("en la ronda: el tiempo con un cronómetro a la izquierda y ✓ N ✗ N a la derecha", () => {
+    const { izquierda, derecha } = ambas(ronda());
+    expect(pantallaIzquierda(ronda())).toMatch(/^url\("data:image\/svg\+xml,[^"]+"\)$/);
+    expect(izquierda).toContain(CRONOMETRO);
+    expect(izquierda).toContain(">0:42<");
+    expect(derecha).toContain(">27<");
+    expect(derecha).toContain(">3<");
+    expect(derecha).toContain('d="M0 7 L5 12 L15 0"'); // el ✓ de la puntuación
+    expect(derecha).toContain('d="M1 0 L12 12 M12 0 L1 12"'); // y su ✗
+    for (const p of [izquierda, derecha]) {
+      expect(p).toContain(CHULO);
+      expect(p).not.toContain(EQUIS);
+    }
   });
 
-  it("sin teclado todavía: el aviso en las dos y una ✗ en lugar del ✓", () => {
-    const { izquierda, derecha } = pantallasDePractica(0, 0, false);
-    for (const pantalla of [izquierda, derecha]) {
-      expect(svg(pantalla)).toContain(">CONECTA TU<");
-      expect(svg(pantalla)).toContain(">TECLADO<");
-      expect(svg(pantalla)).toContain(EQUIS);
-      expect(svg(pantalla)).not.toContain(CHULO);
+  it("los avisos van solo en la izquierda: conectar (con la ✗ en las dos), conectado y la cuenta atrás", () => {
+    const sin = ambas({ fase: "sinTeclado" });
+    expect(sin.izquierda).toContain(">CONECTA TU<");
+    expect(sin.izquierda).toContain(">TECLADO<");
+    expect(sin.derecha).not.toContain("<text x=\"75\"");
+    for (const p of [sin.izquierda, sin.derecha]) {
+      expect(p).toContain(EQUIS);
+      expect(p).not.toContain(CHULO);
     }
+    const conectado = ambas({ fase: "conectado" });
+    expect(conectado.izquierda).toContain(">CONECTADO<");
+    expect(conectado.izquierda).toContain(CHULO);
+    expect(conectado.derecha).not.toContain("CONECTADO");
+    for (const n of ["3", "2", "1", "¡YA!"]) {
+      const cuenta = ambas({ fase: "cuenta", texto: n });
+      expect(cuenta.izquierda).toContain(`font-size="22" font-family="Montserrat, Arial, Helvetica, sans-serif" font-weight="bold" fill="#f4f1e8">${n}<`);
+      expect(cuenta.derecha).not.toContain(`>${n}<`);
+    }
+  });
+
+  it("parpadea el número que cambia, y solo ese", () => {
+    const aciertos = ambas(ronda({ cambia: "aciertos" })).derecha;
+    expect(aciertos).toMatch(/>27<animate attributeName="opacity" values="0;1;0;1" dur="0.4s"/);
+    expect(aciertos).not.toMatch(/>3<animate/);
+    expect(ambas(ronda({ cambia: "fallos" })).derecha).toMatch(/>3<animate/);
+    expect(ambas(ronda()).derecha).not.toContain("<animate");
+    // El reloj no parpadea al avanzar
+    expect(ambas(ronda({ cambia: "aciertos" })).izquierda).not.toContain("<animate");
+  });
+
+  it("al terminar: sin récord el tiempo parpadea tres veces; con récord, «NUEVO RÉCORD» sin parar y la marca a la derecha", () => {
+    const fin = { fase: "fin", tiempo: "0:42", aciertos: 27, fallos: 3 } as const;
+    const sinRecord = ambas({ ...fin, record: false });
+    expect(sinRecord.izquierda).toMatch(/>0:42<animate attributeName="opacity" values="0;1;0;1;0;1" dur="1.5s"/);
+    expect(sinRecord.derecha).toContain(">27<");
+    const conRecord = ambas({ ...fin, record: true });
+    expect(conRecord.izquierda).toContain(">NUEVO<");
+    expect(conRecord.izquierda).toContain(">RÉCORD<");
+    expect(conRecord.izquierda).toContain('repeatCount="indefinite"');
+    expect(conRecord.derecha).toContain(CRONOMETRO);
+    expect(conRecord.derecha).toContain(">0:42<");
+    // En Palabras y Frases la marca son las palabras por minuto
+    expect(ambas({ ...fin, record: true, marca: "41 PPM" }).derecha).toContain(">41 PPM<");
+  });
+
+  it("con «reducir movimiento», nada parpadea", () => {
+    const fin = { fase: "fin", tiempo: "0:42", aciertos: 27, fallos: 3 } as const;
+    for (const estado of [ronda({ cambia: "aciertos" }), { ...fin, record: false }, { ...fin, record: true }] as EstadoPantallas[]) {
+      const { izquierda, derecha } = ambas(estado, 80, true);
+      expect(izquierda + derecha).not.toContain("<animate");
+    }
+  });
+
+  it("dos imágenes que parpadean nunca son iguales: si no, el navegador reutilizaría la animación ya terminada", () => {
+    const una = pantallaDerecha(ronda({ cambia: "aciertos" }));
+    expect(pantallaDerecha(ronda({ cambia: "aciertos" }))).not.toBe(una);
+    // Las quietas sí: así no se redibujan sin necesidad
+    expect(pantallaDerecha(ronda())).toBe(pantallaDerecha(ronda()));
   });
 
   it("la letra es la del «100%» de la batería; en móviles se agranda para que se lea, sin salirse", () => {
@@ -531,14 +596,20 @@ describe("el marcador en las pantallas del teclado", () => {
     expect(tamanoDeLetra(20, 2)).toBe(16);
     // Sin medida (no debería pasar), la de la batería
     expect(tamanoDeLetra(0, 1)).toBeCloseTo(bateria, 2);
-    expect(svg(pantallasDePractica(1, 0, true, 80).izquierda)).toContain('font-size="7.84"');
-    expect(svg(pantallasDePractica(1, 0, true, 34).izquierda)).toContain('font-size="14.12"');
+    expect(ambas(ronda(), 80).izquierda).toContain('font-size="7.84"');
+    expect(ambas(ronda(), 34).izquierda).toContain('font-size="14.12"');
   });
 
   it("la izquierda va volteada, como su imagen de siempre, y ninguna lleva estilos en línea (CSP)", () => {
-    expect(svg(pantallaOled("left", ["X"], true))).toContain('transform="translate(56 0) scale(-1 1) matrix(0 -1 1 0 0 150)"');
-    expect(svg(pantallaOled("right", ["X"], true))).toContain('transform="matrix(0 -1 1 0 0 150)"');
-    expect(svg(pantallaOled("right", ["X"], true))).not.toMatch(/style=|<style/);
+    expect(svg(pantallaOled("left", "", true))).toContain('transform="translate(56 0) scale(-1 1) matrix(0 -1 1 0 0 150)"');
+    expect(svg(pantallaOled("right", "", true))).toContain('transform="matrix(0 -1 1 0 0 150)"');
+    expect(ambas({ fase: "fin", tiempo: "0:42", aciertos: 1, fallos: 0, record: true }).izquierda).not.toMatch(/style=|<style/);
+  });
+
+  it("el rayo de la batería, más pequeño, igual en todas las pantallas: práctica, las de siempre y la de ingreso", () => {
+    const rayo = svg(pantallaOled("right", "", true)).match(/<path d="M101 11[^>]+>/)![0];
+    expect(rayo).toContain('transform="translate(100.6 22.3) scale(0.6) translate(-99.5 -22.5)"');
+    for (const dibujo of [oledDerecha, oledIzquierda, bienvenida]) expect(dibujo).toContain(rayo);
   });
 });
 

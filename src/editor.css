@@ -119,6 +119,50 @@ dialog.confirmar::backdrop {
   background-image: var(--oled);
 }
 
+/* Practicando, en el título: la tecla que se pide y «¡Nuevo récord!», en naranja */
+.pide {
+  color: var(--color-naranja-claro);
+}
+
+/* Palabras y frases: lo ya escrito en naranja y la letra que toca, subrayada. Los espacios
+   se conservan para que el subrayado se vea también cuando toca un espacio */
+.frase {
+  white-space: pre-wrap;
+}
+
+.frase .hecha {
+  color: var(--color-naranja-claro);
+}
+
+.frase .toca {
+  text-decoration: underline 3px var(--color-naranja-claro);
+  text-underline-offset: 6px;
+}
+
+/* «Nueva ronda», junto al título al terminar (en el móvil baja a otra línea) */
+.boton-principal.nueva-ronda {
+  margin-inline-start: 14px;
+  padding: 7px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* Ventana «Practicar»: un grupo sin nada que practicar en este teclado */
+.opcion:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.opcion:disabled:hover {
+  border-color: var(--color-borde);
+}
+
+/* Ventana «Récords»: los grupos, como botones de capa más pequeños */
+.fichas-records .layer-btn {
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
 /* La tecla que se está editando o intercambiando, resaltada en naranja */
 .key[data-elegida] {
   border-color: var(--color-naranja);
