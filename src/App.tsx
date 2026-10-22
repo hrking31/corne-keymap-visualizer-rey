@@ -865,6 +865,7 @@ export default function App({ tecladoInicial }: Props) {
 
       {confirmarBorrado && (
         <ConfirmarBorrado
+          correo={cuenta.usuario?.correo ?? ""}
           onBorrar={async () => {
             await cuenta.borrarCuenta();
             setConfirmarBorrado(false);

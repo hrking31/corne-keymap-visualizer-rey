@@ -101,6 +101,11 @@
   background: #3a2018;
 }
 
+.boton-peligro:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* El fondo detrás del diálogo de confirmación */
 dialog.confirmar::backdrop {
   background: rgba(0, 0, 0, 0.6);
