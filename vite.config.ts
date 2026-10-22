@@ -81,6 +81,9 @@ export default defineConfig({
     include: ["react", "react/jsx-dev-runtime", "react-dom/client"],
   },
   test: {
+    // De fábrica abre un proceso por hilo (15 en el PC del autor): llenó la memoria y el
+    // PC se reinició (22-10-2026). Con 3 basta para estas pruebas.
+    maxWorkers: 3,
     // Por defecto Vitest vacía los CSS; tests/data.test.ts lee style.css con ?raw
     css: { include: [/style\.css/] },
     projects: [
