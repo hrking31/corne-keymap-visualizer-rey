@@ -36,8 +36,12 @@ const db = initializeFirestore(app, {
 });
 const proveedor = new GoogleAuthProvider();
 
-export type Usuario = { uid: string; nombre: string };
-const usuario = (u: User): Usuario => ({ uid: u.uid, nombre: u.displayName ?? "" });
+export type Usuario = { uid: string; nombre: string; correo: string };
+const usuario = (u: User): Usuario => ({
+  uid: u.uid,
+  nombre: u.displayName ?? "",
+  correo: u.email ?? "",
+});
 
 // Dos documentos por usuario: su teclado, teclados/{uid}, y su práctica (récords y teclas
 // difíciles), practica/{uid}. Separados: el editor guarda el teclado entero
