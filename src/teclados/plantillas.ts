@@ -18,10 +18,10 @@ const EXTERIORES: Record<number, string> = {
   39: "RET",
   41: "RALT",
 };
-// Las dos teclas de capa del ejemplo de ZMK, en naranja
+// Las dos teclas de capa del ejemplo de ZMK
 const DE_CAPA: Record<number, string> = { 37: "LOWER", 40: "RAISE" };
 
-const tecla = (texto: string, deCapa = false): TeclaConfig => ({ texto, descripcion: "", deCapa });
+const tecla = (texto: string): TeclaConfig => ({ texto, descripcion: "" });
 
 export function crearBase({ distribucion, idioma, so }: Ajustes): CapaConfig {
   const teclas: Record<string, TeclaConfig> = {};
@@ -32,7 +32,7 @@ export function crearBase({ distribucion, idioma, so }: Ajustes): CapaConfig {
     }),
   );
   for (const [pos, codigo] of Object.entries(EXTERIORES)) teclas[pos] = tecla(textoDe(codigo, idioma, so));
-  for (const [pos, nombre] of Object.entries(DE_CAPA)) teclas[pos] = tecla(nombre, true);
+  for (const [pos, nombre] of Object.entries(DE_CAPA)) teclas[pos] = tecla(nombre);
   return { corto: "BASE", largo: "Base", teclas };
 }
 

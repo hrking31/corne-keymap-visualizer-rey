@@ -34,7 +34,8 @@ describe("keymap oficial del Corne (ZMK)", () => {
     expect(texto(teclado, 0, 22)).toBe(";");
     expect(texto(teclado, 0, 23)).toBe("'");
     expect(texto(teclado, 0, 36)).toBe("WIN");
-    expect(teclado.capas.base.teclas[37]).toMatchObject({ texto: "LOWER", deCapa: true });
+    // Sin naranja fijo: solo se colorea al animarse (capas animadas); sabe a qué capa lleva
+    expect(teclado.capas.base.teclas[37]).toMatchObject({ texto: "LOWER", abre: { capa: teclado.orden[1] } });
     expect(texto(teclado, 1, 12)).toBe("BT CLR");
     expect(texto(teclado, 1, 13)).toBe("BT1");
   });
@@ -95,7 +96,7 @@ describe("casos raros (un keymap inventado)", () => {
 
   it("entiende los comportamientos estándar, los #define y las plantillas", () => {
     // Dos acciones: tocar arriba, mantener abajo
-    expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "SPC\nNAV", deCapa: true });
+    expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "SPC\nNAV", abre: { modo: "mantener" } });
     expect(texto(teclado, 0, 1)).toBe("A\nSHIFT");
     expect(texto(teclado, 0, 2)).toBe("SK SHIFT");
     expect(texto(teclado, 0, 3)).toBe("S\nCTRL");
@@ -127,7 +128,7 @@ describe("casos raros (un keymap inventado)", () => {
     const corregido = archivo.replace("&kp NOEXISTE", "&kp B");
     const otra = importarKeymap(leerKeymap(corregido), teclado).teclado;
     // Sin la marca, y con lo que envía (lo usa la práctica)
-    expect(otra.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "", deCapa: false, envia: "B" });
+    expect(otra.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "", envia: "B" });
   });
 
   it("la capa de abajo de una &trans es la que la activa", () => {
@@ -148,7 +149,7 @@ describe("casos raros (un keymap inventado)", () => {
 describe("volver a importar", () => {
   it("conserva las descripciones escritas a mano y avisa de las capas que sobran", () => {
     const actual = crearTeclado(ingles);
-    actual.capas.base.teclas[0] = { texto: "X", descripcion: "Mi tabulador", deCapa: false };
+    actual.capas.base.teclas[0] = { texto: "X", descripcion: "Mi tabulador" };
     actual.orden.push("a", "b", "c", "d");
     for (const id of ["a", "b", "c", "d"]) actual.capas[id] = { corto: id.toUpperCase(), largo: "", teclas: {} };
     const { teclado, resumen } = importarKeymap(leerKeymap(oficial), actual);

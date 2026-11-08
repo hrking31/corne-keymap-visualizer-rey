@@ -45,3 +45,30 @@ export function caminoDeCapa(t: TecladoConfig, destino: string): PasoCamino[] {
   }
   return [];
 }
+
+// Cómo se anima cada tecla del camino («Secuencia», editor.css)
+export type MarcaCamino = {
+  paso: number; // en qué momento baja: 1, 2 o 3
+  pasos: number; // cuántos momentos tiene la secuencia (1 a 3)
+  tocar: boolean; // baja y sube sola (&tog, &to, &sl); si no, se queda abajo hasta el final
+  aviso: string; // para los lectores de pantalla: «mantén primero», «mantén después»…
+};
+
+// La secuencia tiene hasta 3 momentos (en un Corne real casi nunca hay más de 2): los pasos
+// de más bajan con el tercero. Una tecla «juntas» baja a la vez que la anterior.
+const MAX_PASOS = 3;
+
+export function marcasDelCamino(camino: PasoCamino[]): Map<number, MarcaCamino> {
+  const momentos: number[] = [];
+  camino.forEach((p, i) => momentos.push(i === 0 ? 1 : p.modo === "juntas" ? momentos[i - 1] : momentos[i - 1] + 1));
+  const pasos = Math.min(Math.max(0, ...momentos), MAX_PASOS);
+  const marcas = new Map<number, MarcaCamino>();
+  camino.forEach((p, i) => {
+    if (marcas.has(p.pos)) return;
+    const paso = Math.min(momentos[i], MAX_PASOS);
+    const tocar = p.modo === "tocar";
+    const cuando = camino.length === 1 ? "" : pasos === 1 ? " a la vez" : paso === 1 ? " primero" : " después";
+    marcas.set(p.pos, { paso, pasos, tocar, aviso: `${tocar ? "toca" : "mantén"}${cuando}` });
+  });
+  return marcas;
+}

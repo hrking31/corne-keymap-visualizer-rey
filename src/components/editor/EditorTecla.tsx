@@ -10,29 +10,26 @@ type Props = {
   lado: "izquierdo" | "derecho";
   apilado: boolean;
   onGuardar: (t: TeclaConfig) => void;
-  // Al marcar o desmarcar «Tecla de capa»: el teclado lo muestra al momento
-  onDeCapa: (deCapa: boolean) => void;
   onIntercambiar: () => void;
   onCerrar: () => void;
 };
 
-// Editar una tecla: su texto, su descripción y si es de capa (naranja). Ventana flotante
+// Editar una tecla: su texto y su descripción. Ventana flotante
 // centrada sobre la mitad contraria a la tecla, en el PC y en el móvil, como el recuadro
 // con la descripción (en el PC, al tocar otra tecla pasa a esa).
 export default function EditorTecla(props: Props) {
-  const { nombreCapa, tecla, lado, apilado, onGuardar, onDeCapa, onIntercambiar, onCerrar } = props;
+  const { nombreCapa, tecla, lado, apilado, onGuardar, onIntercambiar, onCerrar } = props;
   // Centrada sobre la mitad contraria a la tecla; tocar fuera la cierra, igual que la ✕ y Escape
   const ventana = useVentanaEditor<HTMLElement>(onCerrar, lado === "izquierdo" ? "right-side" : "left-side");
   const [texto, setTexto] = useState(tecla.texto);
   const [descripcion, setDescripcion] = useState(tecla.descripcion);
-  const [deCapa, setDeCapa] = useState(tecla.deCapa);
 
   const contenido = (
     <form
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();
-        onGuardar({ texto, descripcion, deCapa });
+        onGuardar({ texto, descripcion });
       }}
     >
       <div className="flex items-baseline gap-2 text-xs font-bold tracking-wider uppercase">
@@ -50,13 +47,6 @@ export default function EditorTecla(props: Props) {
         Descripción
         <textarea className="campo min-h-24 resize-y" value={descripcion} maxLength={LIMITES.descripcion}
           onChange={(e) => setDescripcion(e.target.value)} />
-      </label>
-      <label className="flex items-center gap-2 text-sm text-texto">
-        <input type="checkbox" checked={deCapa} onChange={(e) => {
-          setDeCapa(e.target.checked);
-          onDeCapa(e.target.checked);
-        }} />
-        Tecla de capa
       </label>
       <div className="flex flex-wrap justify-between gap-2">
         <button type="button" className="layer-btn" onClick={onIntercambiar}>

@@ -7,7 +7,6 @@
 export type TeclaConfig = {
   texto: string; // lo que se ve en la tecla y es el título del panel
   descripcion: string; // el recuadro naranja del panel
-  deCapa: boolean; // tecla que cambia de capa: se pinta en naranja
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo
   heredada?: boolean;
@@ -20,7 +19,8 @@ export type TeclaConfig = {
   // a mano no lo llevan: se reconocen por su texto, si es un carácter
   envia?: string;
   // Importada de un .keymap: la capa a la que lleva una tecla de capa. Con eso la app sabe
-  // qué teclas mantener, y en qué orden, para llegar a cada capa (caminoDeCapa)
+  // qué teclas mantener, y en qué orden, para llegar a cada capa (caminoDeCapa). Es lo único
+  // que marca una tecla de capa: no se pintan de naranja, solo se colorean al animarse
   abre?: AbreCapa;
 };
 

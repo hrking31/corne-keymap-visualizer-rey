@@ -44,7 +44,6 @@ function leerTecla(v: unknown, donde: string): TeclaConfig {
   const tecla: TeclaConfig = {
     texto: texto(v.texto, `el texto de ${donde}`),
     descripcion: texto(v.descripcion, `la descripción de ${donde}`),
-    deCapa: v.deCapa === true,
   };
   if (v.heredada === true) tecla.heredada = true;
   if (typeof v.sinReconocer === "string") tecla.sinReconocer = v.sinReconocer;

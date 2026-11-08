@@ -47,23 +47,23 @@ export function renombrarCapa(t: TecladoConfig, id: string, nombres: Pick<CapaCo
   return nuevo;
 }
 
-const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.trim() && !tecla.deCapa;
+const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.trim() && !tecla.abre;
 
 // Cambia una tecla. Si queda vacía se quita (así una capa en blanco no guarda 42 teclas vacías)
 export function editarTecla(t: TecladoConfig, capa: string, pos: number, tecla: TeclaConfig): TecladoConfig {
   const nuevo = copiar(t);
-  const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim(), deCapa: tecla.deCapa };
+  const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim() };
   // Lo que envía una tecla importada y la capa a la que lleva no dependen de cómo se llame
   // ni de su descripción: se conservan hasta que se vuelva a importar el .keymap
   const { envia, abre } = nuevo.capas[capa].teclas[pos] ?? {};
   if (envia) limpia.envia = envia;
   if (abre) limpia.abre = abre;
-  if (vacia(limpia) && !limpia.abre) delete nuevo.capas[capa].teclas[pos];
+  if (vacia(limpia)) delete nuevo.capas[capa].teclas[pos];
   else nuevo.capas[capa].teclas[pos] = limpia;
   return nuevo;
 }
 
-// Intercambia dos teclas de una capa, con su texto, su descripción y si son de capa
+// Intercambia dos teclas de una capa, con todo lo que llevan
 export function intercambiarTeclas(t: TecladoConfig, capa: string, a: number, b: number): TecladoConfig {
   if (a === b) return t;
   const nuevo = copiar(t);

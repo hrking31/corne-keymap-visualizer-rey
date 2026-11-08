@@ -11,9 +11,9 @@ const fecha = new Date(2026, 9, 13, 10, 30);
 function miTeclado(): TecladoConfig {
   let t = crearTeclado({ distribucion: "dvorak", idioma: "es-LA", so: "windows" }, "Rey");
   t = agregarCapa(t).teclado;
-  t = editarTecla(t, "base", 0, { texto: "ESC", descripcion: "Cancela lo que estoy haciendo", deCapa: false });
-  t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", deCapa: false, sinReconocer: "&kp NOEXISTE" };
-  t.capas[t.orden[1]].teclas[3] = { texto: "TAB", descripcion: "", deCapa: false, heredada: true };
+  t = editarTecla(t, "base", 0, { texto: "ESC", descripcion: "Cancela lo que estoy haciendo" });
+  t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", sinReconocer: "&kp NOEXISTE" };
+  t.capas[t.orden[1]].teclas[3] = { texto: "TAB", descripcion: "", heredada: true };
   return t;
 }
 

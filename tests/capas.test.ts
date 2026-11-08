@@ -9,7 +9,7 @@ import { validarTeclado } from "../src/teclados/validar";
 import { borrarCapa, editarTecla } from "../src/teclados/editar";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
-import { caminoDeCapa } from "../src/teclados/camino";
+import { caminoDeCapa, marcasDelCamino, type PasoCamino } from "../src/teclados/camino";
 import { leerKeymap } from "../src/keymap/leer";
 import { importarKeymap } from "../src/keymap/importar";
 
@@ -165,8 +165,37 @@ describe("el camino a cada capa", () => {
     expect(caminoDeCapa(t, "no-existe")).toEqual([]);
     // Una tecla que apunta a una capa que ya no está no rompe nada
     const rota = structuredClone(t);
-    rota.capas.base.teclas[37] = { texto: "X", descripcion: "", deCapa: true, abre: { capa: "borrada", modo: "mantener" } };
+    rota.capas.base.teclas[37] = { texto: "X", descripcion: "", abre: { capa: "borrada", modo: "mantener" } };
     expect(pasos(rota, 1)).toEqual(["36 mantener"]);
+  });
+});
+
+describe("cómo se anima cada tecla del camino", () => {
+  const paso = (pos: number, modo: PasoCamino["modo"] = "mantener"): PasoCamino => ({ pos, capa: "x", modo });
+  const marcas = (camino: PasoCamino[]) => Object.fromEntries(marcasDelCamino(camino));
+
+  it("una sola tecla, y dos en orden (NAV del autor)", () => {
+    expect(marcas([paso(37)])).toEqual({ 37: { paso: 1, pasos: 1, tocar: false, aviso: "mantén" } });
+    expect(marcas([paso(37), paso(40)])).toEqual({
+      37: { paso: 1, pasos: 2, tocar: false, aviso: "mantén primero" },
+      40: { paso: 2, pasos: 2, tocar: false, aviso: "mantén después" },
+    });
+  });
+
+  it("«juntas» baja a la vez que la anterior; «tocar» baja y sube sola", () => {
+    expect(marcas([paso(37), paso(40, "juntas")])).toEqual({
+      37: { paso: 1, pasos: 1, tocar: false, aviso: "mantén a la vez" },
+      40: { paso: 1, pasos: 1, tocar: false, aviso: "mantén a la vez" },
+    });
+    expect(marcas([paso(36, "tocar"), paso(41)])[36]).toEqual({ paso: 1, pasos: 2, tocar: true, aviso: "toca primero" });
+  });
+
+  it("como mucho 3 momentos, y una tecla repetida cuenta la primera vez", () => {
+    const m = marcas([paso(1), paso(2), paso(3), paso(4)]);
+    expect([m[1].paso, m[2].paso, m[3].paso, m[4].paso]).toEqual([1, 2, 3, 3]);
+    expect(m[4].pasos).toBe(3);
+    expect(marcas([paso(37), paso(37)])[37].paso).toBe(1);
+    expect(marcasDelCamino([]).size).toBe(0);
   });
 });
 
@@ -175,7 +204,7 @@ describe("el dato se conserva", () => {
   const nav = t.orden[3];
 
   it("al editar el texto o la descripción de una tecla", () => {
-    const editado = editarTecla(t, t.orden[1], 40, { texto: "NAVEG", descripcion: "Flechas y ventanas", deCapa: true });
+    const editado = editarTecla(t, t.orden[1], 40, { texto: "NAVEG", descripcion: "Flechas y ventanas" });
     expect(tecla(editado, 1, 40).abre).toEqual({ capa: nav, modo: "mantener" });
   });
 

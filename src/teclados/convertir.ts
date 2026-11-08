@@ -11,7 +11,7 @@ export const ORDEN_DIBUJO: readonly number[] = [
   ...rango(6, 11), ...rango(18, 23), ...rango(30, 35), ...rango(39, 41),
 ];
 
-const VACIA: TeclaConfig = { texto: "", descripcion: "", deCapa: false };
+const VACIA: TeclaConfig = { texto: "", descripcion: "" };
 
 // Las 42 teclas de una capa en el orden de dibujo; las que no están configuradas salen vacías
 export function teclasParaDibujar(capa: CapaConfig): TeclaDibujo[] {
