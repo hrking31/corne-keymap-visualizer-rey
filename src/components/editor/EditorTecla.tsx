@@ -48,7 +48,10 @@ export default function EditorTecla(props: Props) {
         <textarea className="campo min-h-24 resize-y" value={descripcion} maxLength={LIMITES.descripcion}
           onChange={(e) => setDescripcion(e.target.value)} />
       </label>
-      <div className="flex justify-end">
+      <div className="botones-ventana flex justify-between gap-2">
+        <button type="button" className="layer-btn" onClick={onCerrar}>
+          Cancelar
+        </button>
         <button type="submit" className="boton-principal">
           Guardar
         </button>

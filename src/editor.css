@@ -481,6 +481,13 @@ body:has(.menu-ajustes) h1 {
   font-size: 12px;
 }
 
+/* Los botones de abajo de las ventanas del editor («Cancelar» y la acción): más bajos
+   (pedido del autor) y de la misma altura los dos */
+.botones-ventana .layer-btn,
+.botones-ventana .boton-principal {
+  padding-block: 5px;
+}
+
 /* Tecla importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y su
    texto se ve en gris para distinguirla de las que tienen función propia en esta capa */
 .key.key-heredada {

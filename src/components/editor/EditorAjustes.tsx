@@ -37,7 +37,7 @@ export default function EditorAjustes({ ajustes: actuales, onKeymap, onCerrar }:
         <p className="m-0 text-xs text-gris">
           Para aplicarlo, vuelve a actualizar tu .keymap.
         </p>
-        <div className="flex justify-between gap-2">
+        <div className="botones-ventana flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
             Cancelar
           </button>

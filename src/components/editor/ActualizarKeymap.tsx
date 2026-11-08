@@ -88,7 +88,7 @@ export default function ActualizarKeymap({ actualizacion, onAplicar, onCerrar }:
           </>
         )}
 
-        <div className="flex justify-between gap-2">
+        <div className="botones-ventana flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
             {error ? "Cerrar" : "Cancelar"}
           </button>
