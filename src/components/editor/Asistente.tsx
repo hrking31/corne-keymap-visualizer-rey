@@ -50,7 +50,7 @@ export default function Asistente(props: Props) {
 
   const elegir = (
     <button type="button" className="boton-principal" disabled={guardando} onClick={() => selector.current?.click()}>
-      {guardando ? "Creando…" : "Elegir mi .keymap"}
+      {guardando ? "Creando…" : ".keymap"}
     </button>
   );
   const archivo = (

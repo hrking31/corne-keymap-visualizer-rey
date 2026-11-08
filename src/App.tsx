@@ -17,7 +17,7 @@ import TituloEditable from "./components/editor/TituloEditable";
 import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
-import CargarTeclado, { type Carga } from "./components/editor/CargarTeclado";
+import RestaurarRespaldo, { type Restauracion } from "./components/editor/RestaurarRespaldo";
 import EditorAjustes from "./components/editor/EditorAjustes";
 import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
@@ -149,9 +149,9 @@ export default function App({ tecladoInicial }: Props) {
   // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
-  // «Cargar teclado desde archivo»: el resumen y el teclado leído, hasta aplicar o cancelar
-  const [carga, setCarga] = useState<Carga | null>(null);
-  const [selectorArchivo, setSelectorArchivo] = useState<HTMLInputElement | null>(null);
+  // «Restaurar respaldo»: el resumen y el teclado leído, hasta aplicar o cancelar
+  const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
+  const [selectorRespaldo, setSelectorRespaldo] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -230,8 +230,8 @@ export default function App({ tecladoInicial }: Props) {
     setCreando(false);
   };
 
-  // «Guardar teclado en archivo»: lo descarga como .json (se genera aquí, sin pasar por ningún servidor)
-  const guardarEnArchivo = (actual: TecladoConfig) => {
+  // «Hacer respaldo»: descarga el teclado como .json (se genera aquí, sin pasar por ningún servidor)
+  const hacerRespaldo = (actual: TecladoConfig) => {
     const contenido = JSON.stringify(crearRespaldo(actual), null, 2);
     const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
     const enlace = document.createElement("a");
@@ -241,14 +241,14 @@ export default function App({ tecladoInicial }: Props) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // «Cargar teclado desde archivo»: lee el .json y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
-  const leerArchivoTeclado = async (archivo: File | undefined) => {
+  // «Restaurar respaldo»: lee el .json y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
+  const leerRespaldoElegido = async (archivo: File | undefined) => {
     if (!archivo) return;
     try {
       const { teclado: leido, fecha } = leerRespaldo(await archivo.text());
-      setCarga({ archivo: archivo.name, teclado: leido, fecha });
+      setRestauracion({ archivo: archivo.name, teclado: leido, fecha });
     } catch (e) {
-      setCarga({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
+      setRestauracion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -426,8 +426,8 @@ export default function App({ tecladoInicial }: Props) {
       menu.push(...opcionesPractica);
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
-      menu.push({ texto: "Guardar teclado en archivo", alElegir: () => guardarEnArchivo(mio) });
-      menu.push({ texto: "Cargar teclado desde archivo", alElegir: () => selectorArchivo?.click() });
+      menu.push({ texto: "Hacer respaldo", alElegir: () => hacerRespaldo(mio) });
+      menu.push({ texto: "Restaurar respaldo", alElegir: () => selectorRespaldo?.click() });
     }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
@@ -768,33 +768,33 @@ export default function App({ tecladoInicial }: Props) {
         />
       )}
 
-      {/* El selector de archivos del menú «Cargar teclado desde archivo»: no se ve */}
+      {/* El selector de archivos del menú «Restaurar respaldo»: no se ve */}
       {mio && (
         <input
-          ref={setSelectorArchivo}
+          ref={setSelectorRespaldo}
           type="file"
           accept=".json,application/json"
           hidden
           onChange={(e) => {
-            void leerArchivoTeclado(e.target.files?.[0]);
+            void leerRespaldoElegido(e.target.files?.[0]);
             e.target.value = "";
           }}
         />
       )}
 
-      {carga && (
-        <CargarTeclado
-          carga={carga}
+      {restauracion && (
+        <RestaurarRespaldo
+          restauracion={restauracion}
           onAplicar={() => {
-            if (!mio || !carga.teclado) return;
-            // Por si acaso: antes de reemplazarlo, el teclado actual se guarda en un archivo
-            guardarEnArchivo(mio);
-            if (guardar(carga.teclado)) {
+            if (!mio || !restauracion.teclado) return;
+            // Por si acaso: antes de reemplazarlo, un respaldo del teclado actual
+            hacerRespaldo(mio);
+            if (guardar(restauracion.teclado)) {
               setCapa("base");
-              setCarga(null);
+              setRestauracion(null);
             }
           }}
-          onCerrar={() => setCarga(null)}
+          onCerrar={() => setRestauracion(null)}
         />
       )}
 

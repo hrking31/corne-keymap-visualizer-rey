@@ -1,5 +1,5 @@
-// El teclado en un archivo .json: «Guardar teclado en archivo» lo descarga y «Cargar
-// teclado desde archivo» lo vuelve a poner en la cuenta. Al leerlo se revisa todo y solo se conservan los campos conocidos:
+// El respaldo del teclado: un archivo .json que «Hacer respaldo» descarga y «Restaurar
+// respaldo» vuelve a poner en la cuenta. Al leerlo se revisa todo y solo se conservan los campos conocidos:
 // un archivo editado a mano o de otra app no puede meter datos raros en la cuenta.
 import { IDIOMAS, SISTEMAS } from "./basico";
 import { LIMITES, MODOS_CAPA, validarTeclado } from "./validar";
@@ -68,19 +68,19 @@ function leerCapa(v: unknown, id: string): CapaConfig {
   return { corto: texto(v.corto, `el nombre de la capa «${id}»`), largo: texto(v.largo, `el nombre largo de «${id}»`), teclas };
 }
 
-// Lee un archivo de teclado. Lanza ErrorRespaldo, con un mensaje claro, si no lo es o no es válido
+// Lee un respaldo. Lanza ErrorRespaldo, con un mensaje claro, si no lo es o no es válido
 export function leerRespaldo(contenido: string): { teclado: TecladoConfig; fecha: Date | null } {
   let datos: unknown;
   try {
     datos = JSON.parse(contenido);
   } catch {
-    throw new ErrorRespaldo("No es un archivo de teclado: no se puede leer.");
+    throw new ErrorRespaldo("No es un respaldo: el archivo no se puede leer.");
   }
   if (!esObjeto(datos) || datos.formato !== FORMATO || !esObjeto(datos.teclado)) {
-    throw new ErrorRespaldo("No es un archivo de teclado de Corne ZMK Visualizer.");
+    throw new ErrorRespaldo("No es un respaldo de Corne ZMK Visualizer.");
   }
   if (typeof datos.version !== "number" || datos.version > VERSION) {
-    throw new ErrorRespaldo("El archivo es de una versión más nueva de la app: actualízala e inténtalo otra vez.");
+    throw new ErrorRespaldo("El respaldo es de una versión más nueva de la app: actualízala e inténtalo otra vez.");
   }
 
   const t = datos.teclado;
@@ -105,7 +105,7 @@ export function leerRespaldo(contenido: string): { teclado: TecladoConfig; fecha
   };
 
   const problemas = validarTeclado(teclado);
-  if (problemas.length) throw new ErrorRespaldo(`El archivo no es válido: ${problemas[0]}.`);
+  if (problemas.length) throw new ErrorRespaldo(`El respaldo no es válido: ${problemas[0]}.`);
 
   const fecha = typeof datos.fecha === "string" ? new Date(datos.fecha) : null;
   return { teclado, fecha: fecha && !Number.isNaN(fecha.getTime()) ? fecha : null };

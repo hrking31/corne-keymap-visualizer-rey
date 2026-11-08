@@ -1,6 +1,5 @@
-// El teclado en un archivo: «Guardar teclado en archivo» y «Cargar teclado desde archivo».
-// Se guarda y se carga idéntico; un archivo roto, de otra app o fuera de los límites se
-// rechaza con un mensaje claro, sin tocar nada.
+// El respaldo: «Hacer respaldo» y «Restaurar respaldo». Se restaura idéntico; un archivo
+// roto, de otra app o fuera de los límites se rechaza con un mensaje claro, sin tocar nada.
 import { describe, expect, it } from "vitest";
 import { crearRespaldo, ErrorRespaldo, leerRespaldo, nombreDeArchivo } from "../src/teclados/respaldo";
 import { tecladoDeEjemplo } from "../src/teclados/ejemplo";
@@ -19,8 +18,8 @@ function miTeclado(): TecladoConfig {
 
 const archivo = (datos: unknown) => JSON.stringify(datos);
 
-describe("teclado en un archivo", () => {
-  it("se guarda y se carga idéntico, con su fecha", () => {
+describe("respaldo", () => {
+  it("se hace y se restaura idéntico, con su fecha", () => {
     const t = miTeclado();
     const leida = leerRespaldo(JSON.stringify(crearRespaldo(t, fecha)));
     expect(leida.teclado).toEqual(t);
@@ -34,13 +33,13 @@ describe("teclado en un archivo", () => {
     expect(nombreDeArchivo({ ...miTeclado(), nombre: "Árbol Ñ!" }, fecha)).toBe("corne-zmk-arbol-n-2026-10-13.json");
   });
 
-  it("rechaza lo que no es un archivo de esta app", () => {
+  it("rechaza lo que no es un respaldo de esta app", () => {
     expect(() => leerRespaldo("esto no es json")).toThrow(ErrorRespaldo);
     expect(() => leerRespaldo(archivo({ hola: 1 }))).toThrow(/Corne ZMK Visualizer/);
     expect(() => leerRespaldo(archivo({ ...crearRespaldo(miTeclado()), version: 99 }))).toThrow(/más nueva/);
   });
 
-  it("rechaza un archivo dañado o fuera de los límites", () => {
+  it("rechaza un respaldo dañado o fuera de los límites", () => {
     const copia = crearRespaldo(miTeclado(), fecha);
     const sinTexto = structuredClone(copia) as unknown as { teclado: { capas: { base: { teclas: Record<string, unknown> } } } };
     sinTexto.teclado.capas.base.teclas[0] = { descripcion: "" };

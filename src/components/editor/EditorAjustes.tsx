@@ -43,7 +43,7 @@ export default function EditorAjustes({ ajustes: actuales, onKeymap, onCerrar }:
             Cancelar
           </button>
           <button type="button" className="boton-principal" onClick={() => selector.current?.click()}>
-            Elegir mi .keymap
+            .keymap
           </button>
         </div>
       </div>

@@ -117,9 +117,9 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
      **Nueva ronda** (o Enter) repite; ↺ corta una ronda a medias. ⚙ → **Récords** muestra tus
      10 mejores de cada grupo.
    - Para terminar: ⚙ → **Salir**.
-7. **Guardar teclado en archivo** descarga tu teclado (con tus descripciones) en un `.json`, y
-   **Cargar teclado desde archivo** lo vuelve a poner en tu cuenta (antes de reemplazar el actual,
-   lo guarda en otro archivo por si acaso).
+7. **Hacer respaldo** descarga tu teclado (con tus descripciones) en un `.json`, y **Restaurar
+   respaldo** lo vuelve a poner en tu cuenta (antes de reemplazar el actual, hace un respaldo de
+   él por si acaso).
 8. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
    En la demo, sin cuenta, los récords se guardan en el navegador.
 
@@ -155,7 +155,7 @@ src/
     Ingreso.tsx        # Pantalla de ingreso (sin sesión): entrar con Google o ver la demo
     AvisoVersion.tsx   # «Hay una versión nueva · Actualizar»
     editor/            # Asistente, editores de capa, de tecla y de idioma y sistema (Tailwind)
-  teclados/            # El modelo: teclado de ejemplo, camino a cada capa, validación, edición y archivo (lógica pura)
+  teclados/            # El modelo: teclado de ejemplo, camino a cada capa, validación, edición y respaldo (lógica pura)
   keymap/              # Lector de .keymap de ZMK: sintaxis, códigos de tecla e importación
   practica/            # Modo práctica: qué se pide, si se acierta y la pantalla con el marcador
   firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
