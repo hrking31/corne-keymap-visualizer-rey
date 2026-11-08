@@ -26,9 +26,14 @@ type ComportamientoPropio = {
   bindings: Binding[];
 };
 
+// Una capa por combinación (conditional_layers): con las capas `si` activas a la vez, se
+// activa `entonces` (el «tri-layer»: LOWER + RAISE → ADJUST). Números de capa de ZMK
+type Combinacion = { si: number[]; entonces: number };
+
 export type KeymapLeido = {
   capas: CapaLeida[];
   propios: Record<string, ComportamientoPropio>;
+  combinaciones: Combinacion[];
 };
 
 export class ErrorKeymap extends Error {}
@@ -278,9 +283,17 @@ export function leerKeymap(texto: string): KeymapLeido {
 
   let keymap: Nodo | undefined;
   const propios: Record<string, ComportamientoPropio> = {};
+  const combinaciones: Combinacion[] = [];
   recorrer(raiz, (n) => {
     const compatible = cadena(n.propiedades.compatible) ?? "";
     if (compatible === "zmk,keymap") keymap ??= n;
+    if (compatible === "zmk,conditional-layers") {
+      for (const h of n.hijos) {
+        const si = numeros(h.propiedades["if-layers"]);
+        const [entonces] = numeros(h.propiedades["then-layer"]);
+        if (si.length && entonces !== undefined) combinaciones.push({ si, entonces });
+      }
+    }
     const tipo = /^zmk,behavior-(.+)$/.exec(compatible)?.[1];
     if (tipo && n.etiqueta) {
       propios[n.etiqueta] = { tipo, bindings: leerBindings(n.propiedades.bindings ?? "") };
@@ -296,5 +309,15 @@ export function leerKeymap(texto: string): KeymapLeido {
       bindings: leerBindings(n.propiedades.bindings),
     }));
   if (!capas.length) throw new ErrorKeymap("El keymap no tiene capas.");
-  return { capas, propios };
+  return { capas, propios, combinaciones };
+}
+
+// «<1 2>» → [1, 2]. Los #define ya se aplicaron; lo que no sea un número se descarta
+function numeros(valor: string | undefined): number[] {
+  return (valor ?? "")
+    .replace(/[<>]/g, " ")
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n >= 0);
 }

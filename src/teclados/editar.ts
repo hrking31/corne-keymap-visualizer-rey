@@ -25,6 +25,9 @@ export function borrarCapa(t: TecladoConfig, id: string): TecladoConfig {
   const nuevo = copiar(t);
   nuevo.orden = nuevo.orden.filter((c) => c !== id);
   delete nuevo.capas[id];
+  // Las teclas que llevaban a esa capa ya no llevan a ninguna
+  for (const capa of Object.values(nuevo.capas))
+    for (const tecla of Object.values(capa.teclas)) if (tecla.abre?.capa === id) delete tecla.abre;
   return nuevo;
 }
 
@@ -50,11 +53,12 @@ const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.
 export function editarTecla(t: TecladoConfig, capa: string, pos: number, tecla: TeclaConfig): TecladoConfig {
   const nuevo = copiar(t);
   const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim(), deCapa: tecla.deCapa };
-  // Lo que envía una tecla importada no depende de cómo se llame ni de su descripción: se
-  // conserva hasta que se vuelva a importar el .keymap
-  const envia = nuevo.capas[capa].teclas[pos]?.envia;
+  // Lo que envía una tecla importada y la capa a la que lleva no dependen de cómo se llame
+  // ni de su descripción: se conservan hasta que se vuelva a importar el .keymap
+  const { envia, abre } = nuevo.capas[capa].teclas[pos] ?? {};
   if (envia) limpia.envia = envia;
-  if (vacia(limpia)) delete nuevo.capas[capa].teclas[pos];
+  if (abre) limpia.abre = abre;
+  if (vacia(limpia) && !limpia.abre) delete nuevo.capas[capa].teclas[pos];
   else nuevo.capas[capa].teclas[pos] = limpia;
   return nuevo;
 }

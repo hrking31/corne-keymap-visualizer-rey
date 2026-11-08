@@ -1,6 +1,8 @@
 // Límites de un teclado. Los mismos se repiten en las reglas de Firestore: aquí sirven
 // para avisar al usuario antes de guardar; allí, para que nadie se los salte.
-import type { TecladoConfig } from "./tipos";
+import type { ModoCapa, TecladoConfig } from "./tipos";
+
+export const MODOS_CAPA: readonly ModoCapa[] = ["mantener", "tocar", "juntas"];
 
 export const LIMITES = {
   capas: 10,
@@ -13,6 +15,8 @@ export const LIMITES = {
   descripcion: 300,
   // El código de ZMK de una tecla, con sus modificadores («LC(LS(LA(DELETE)))»)
   envia: 40,
+  // El id de la capa a la que lleva una tecla de capa («base», «capa3»)
+  idCapa: 20,
 } as const;
 
 // Devuelve los problemas encontrados (vacío si el teclado es válido)
@@ -42,6 +46,9 @@ export function validarTeclado(t: TecladoConfig): string[] {
       largo(tecla.texto, LIMITES.texto, `Capa ${capa.corto}, tecla ${pos}, texto`);
       largo(tecla.descripcion, LIMITES.descripcion, `Capa ${capa.corto}, tecla ${pos}, descripción`);
       if (tecla.envia) largo(tecla.envia, LIMITES.envia, `Capa ${capa.corto}, tecla ${pos}, código`);
+      // Puede apuntar a una capa que ya no existe: no es un error, solo no cuenta para el camino
+      if (tecla.abre && (!tecla.abre.capa || tecla.abre.capa.length > LIMITES.idCapa || !MODOS_CAPA.includes(tecla.abre.modo)))
+        problemas.push(`Capa ${capa.corto}, tecla ${pos}: la capa a la que lleva no es válida`);
     }
   }
   return problemas;
