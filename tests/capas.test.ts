@@ -9,6 +9,7 @@ import { validarTeclado } from "../src/teclados/validar";
 import { borrarCapa, editarTecla } from "../src/teclados/editar";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
+import { caminoDeCapa } from "../src/teclados/camino";
 import { leerKeymap } from "../src/keymap/leer";
 import { importarKeymap } from "../src/keymap/importar";
 
@@ -110,6 +111,62 @@ describe("capas por combinación (conditional_layers)", () => {
     const tres = archivo.replace("<LOWER RAISE>", "<LOWER RAISE 3>");
     const t = importar(tres, ingles);
     expect(tecla(t, 1, 40).abre).toBeUndefined();
+  });
+});
+
+describe("el camino a cada capa", () => {
+  // Solo las posiciones y el modo, en orden: lo que se anima
+  const pasos = (t: TecladoConfig, capa: number) => caminoDeCapa(t, t.orden[capa]).map((p) => `${p.pos} ${p.modo}`);
+
+  it("keymap del autor: los pulgares en su orden", () => {
+    const t = importar(rey, latino);
+    expect(pasos(t, 0)).toEqual([]); // Base: nada que mantener
+    expect(pasos(t, 1)).toEqual(["37 mantener"]); // NUM
+    expect(pasos(t, 2)).toEqual(["40 mantener"]); // SYM
+    expect(pasos(t, 3)).toEqual(["37 mantener", "40 mantener"]); // NAV: NUM y luego el derecho
+    expect(pasos(t, 4)).toEqual(["40 mantener", "37 mantener"]); // LED: los mismos, al revés
+    expect(pasos(t, 5)).toEqual(["37 mantener", "41 mantener"]); // FUN: NUM y el derecho de fuera
+  });
+
+  it("dice en qué capa está cada tecla del camino", () => {
+    const t = importar(rey, latino);
+    expect(caminoDeCapa(t, t.orden[3]).map((p) => p.capa)).toEqual(["base", t.orden[1]]);
+  });
+
+  it("keymap oficial de ZMK: LOWER y RAISE desde Base", () => {
+    const t = importar(oficial, ingles);
+    expect(pasos(t, 1)).toEqual(["37 mantener"]);
+    expect(pasos(t, 2)).toEqual(["40 mantener"]);
+  });
+
+  it("una capa por combinación: las dos teclas, la segunda «juntas»", () => {
+    const archivo = keymap(
+      ["&kp A &mo 1 &kp B &kp C &mo 2 &kp D", "&trans &trans &trans &trans &trans &trans", "&trans &trans &trans &trans &trans &trans", "&none &none &none &none &none &none"],
+      `conditional_layers { compatible = "zmk,conditional-layers"; tri { if-layers = <1 2>; then-layer = <3>; }; };`,
+    );
+    expect(pasos(importar(archivo, ingles), 3)).toEqual(["37 mantener", "40 juntas"]);
+  });
+
+  it("una capa que se toca y, dentro de ella, otra que se mantiene", () => {
+    const t = importar(keymap(["&tog 1 &none &none &none &none &none", "&none &none &none &none &none &mo 2", "&none &none &none &none &none &none"]), ingles);
+    expect(pasos(t, 1)).toEqual(["36 tocar"]);
+    expect(pasos(t, 2)).toEqual(["36 tocar", "41 mantener"]);
+  });
+
+  it("gana el camino más corto", () => {
+    // A la capa 2 se llega directo desde Base (40) o pasando por la 1 (37 → 36)
+    const t = importar(keymap(["&none &mo 1 &none &none &mo 2 &none", "&mo 2 &none &none &none &none &none", "&none &none &none &none &none &none"]), ingles);
+    expect(pasos(t, 2)).toEqual(["40 mantener"]);
+  });
+
+  it("sin camino: una capa sin tecla que lleve a ella, una borrada o una que no existe", () => {
+    const t = importar(keymap(["&mo 1 &none &none &none &none &none", "&none &none &none &none &none &none", "&none &none &none &none &none &none"]), ingles);
+    expect(pasos(t, 2)).toEqual([]);
+    expect(caminoDeCapa(t, "no-existe")).toEqual([]);
+    // Una tecla que apunta a una capa que ya no está no rompe nada
+    const rota = structuredClone(t);
+    rota.capas.base.teclas[37] = { texto: "X", descripcion: "", deCapa: true, abre: { capa: "borrada", modo: "mantener" } };
+    expect(pasos(rota, 1)).toEqual(["36 mantener"]);
   });
 });
 
