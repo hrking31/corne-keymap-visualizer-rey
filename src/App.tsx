@@ -533,8 +533,8 @@ export default function App({ tecladoInicial }: Props) {
           <button
             type="button"
             className="boton-icono listo-edicion"
-            aria-label="Listo"
-            title="Listo: salir de edición"
+            aria-label="Salir de edición"
+            title="Salir de edición"
             onClick={salirDeEdicion}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
