@@ -13,8 +13,8 @@ type Props = {
 };
 
 // «Restaurar respaldo»: antes de reemplazar el teclado de la cuenta, de qué teclado es el
-// respaldo, sus capas y de cuándo es. Nada cambia hasta pulsar «Aplicar», y antes se hace
-// un respaldo del teclado actual.
+// respaldo, sus capas y de cuándo es. Nada cambia hasta pulsar «Aplicar», y antes se
+// descarga una copia de respaldo del teclado actual.
 export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
   const { archivo, teclado, fecha, error } = restauracion;
@@ -46,7 +46,7 @@ export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }:
               {teclado.orden.map((id) => teclado.capas[id].corto).join(" · ")}
             </p>
             <p className="m-0 text-naranja-claro">Reemplazará tu teclado actual.</p>
-            <p className="m-0 text-xs text-gris">Antes se hará un respaldo de tu teclado actual, por si acaso.</p>
+            <p className="m-0 text-xs text-gris">Antes se descargará una copia de respaldo de tu teclado actual, por si acaso.</p>
           </>
         )}
 

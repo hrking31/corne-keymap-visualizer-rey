@@ -1,4 +1,4 @@
-// El respaldo del teclado: un archivo .json que «Hacer respaldo» descarga y «Restaurar
+// El respaldo del teclado: un archivo .json que «Copia de respaldo» descarga y «Restaurar
 // respaldo» vuelve a poner en la cuenta. Al leerlo se revisa todo y solo se conservan los campos conocidos:
 // un archivo editado a mano o de otra app no puede meter datos raros en la cuenta.
 import { IDIOMAS, SISTEMAS } from "./basico";

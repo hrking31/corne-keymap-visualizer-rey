@@ -18,6 +18,7 @@ import ActualizarKeymap, { type Actualizacion } from "./components/editor/Actual
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
 import RestaurarRespaldo, { type Restauracion } from "./components/editor/RestaurarRespaldo";
+import CopiaRespaldo from "./components/editor/CopiaRespaldo";
 import EditorAjustes from "./components/editor/EditorAjustes";
 import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
@@ -151,6 +152,8 @@ export default function App({ tecladoInicial }: Props) {
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
   // «Restaurar respaldo»: el resumen y el teclado leído, hasta aplicar o cancelar
   const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
+  // «Copia de respaldo»: la ventana que explica qué lleva antes de descargarla
+  const [copiaAbierta, setCopiaAbierta] = useState(false);
   const [selectorRespaldo, setSelectorRespaldo] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
@@ -230,7 +233,7 @@ export default function App({ tecladoInicial }: Props) {
     setCreando(false);
   };
 
-  // «Hacer respaldo»: descarga el teclado como .json (se genera aquí, sin pasar por ningún servidor)
+  // «Copia de respaldo»: descarga el teclado como .json (se genera aquí, sin pasar por ningún servidor)
   const hacerRespaldo = (actual: TecladoConfig) => {
     const contenido = JSON.stringify(crearRespaldo(actual), null, 2);
     const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
@@ -426,7 +429,7 @@ export default function App({ tecladoInicial }: Props) {
       menu.push(...opcionesPractica);
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Actualizar .keymap", alElegir: () => selectorKeymap?.click() });
-      menu.push({ texto: "Hacer respaldo", alElegir: () => hacerRespaldo(mio) });
+      menu.push({ texto: "Copia de respaldo", alElegir: () => setCopiaAbierta(true) });
       menu.push({ texto: "Restaurar respaldo", alElegir: () => selectorRespaldo?.click() });
     }
     menu.push(
@@ -779,6 +782,14 @@ export default function App({ tecladoInicial }: Props) {
             void leerRespaldoElegido(e.target.files?.[0]);
             e.target.value = "";
           }}
+        />
+      )}
+
+      {copiaAbierta && mio && (
+        <CopiaRespaldo
+          archivo={nombreDeArchivo(mio)}
+          onDescargar={() => hacerRespaldo(mio)}
+          onCerrar={() => setCopiaAbierta(false)}
         />
       )}
 
