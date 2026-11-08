@@ -496,21 +496,8 @@ export default function App({ tecladoInicial }: Props) {
       ))}
       {modoEdicion && mio && (
         <>
-          {/* ✎ y 🌐 comparten una casilla */}
+          {/* 🌐 y ✎ comparten una casilla (primero el globo, pedido del autor) */}
           <span className="par-edicion">
-            <button
-              type="button"
-              className="boton-icono"
-              aria-label={`Nombre de la capa ${capaActual.corto}`}
-              title={`Nombre de la capa ${capaActual.corto}`}
-              onClick={() => {
-                setTeclaEditada(null);
-                setAjustesEnEdicion(false);
-                setCapaEnEdicion(true);
-              }}
-            >
-              ✎
-            </button>
             <button
               type="button"
               className="boton-icono"
@@ -528,6 +515,19 @@ export default function App({ tecladoInicial }: Props) {
                 <path d="M3 12h18" />
                 <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" />
               </svg>
+            </button>
+            <button
+              type="button"
+              className="boton-icono"
+              aria-label={`Nombre de la capa ${capaActual.corto}`}
+              title={`Nombre de la capa ${capaActual.corto}`}
+              onClick={() => {
+                setTeclaEditada(null);
+                setAjustesEnEdicion(false);
+                setCapaEnEdicion(true);
+              }}
+            >
+              ✎
             </button>
           </span>
           <button
