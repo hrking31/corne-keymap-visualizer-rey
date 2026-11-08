@@ -88,8 +88,9 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
   });
 
   it("acepta 10 capas y rechaza 11", async () => {
+    // Hasta tener `n` capas en total (el teclado de ejemplo ya trae 3)
     const conCapas = (n: number) => (t: TecladoConfig) => {
-      for (let i = 1; i < n; i++) {
+      for (let i = t.orden.length; i < n; i++) {
         t.orden.push(`c${i}`);
         t.capas[`c${i}`] = { corto: `C${i}`, largo: "", teclas: {} };
       }
