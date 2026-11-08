@@ -5,7 +5,9 @@
 // Una tecla de una capa. Las teclas se guardan por su número de posición en ZMK (0…41),
 // el mismo orden de los bindings del .keymap: el «Key N» del panel.
 export type TeclaConfig = {
-  texto: string; // lo que se ve en la tecla y es el título del panel
+  // La leyenda: lo que se ve en la tecla y es el título del panel. Sale del .keymap y se
+  // puede personalizar en el editor
+  texto: string;
   descripcion: string; // el recuadro naranja del panel
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo

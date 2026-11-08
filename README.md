@@ -99,7 +99,8 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    en qué orden.
 4. En el menú **⚙** (arriba a la derecha; en el móvil, abajo), **Editar**: el nombre del teclado se
    escribe en el propio título («Corne Rey ZMK»), ✎ cambia el nombre largo de la capa, 🌐 el idioma y
-   el sistema, y al tocar una tecla escribes qué hace. **✓** sale de la edición; cada cambio ya se
+   el sistema, y al tocar una tecla escribes qué hace (y, si quieres, cambias su leyenda: el texto
+   que se ve en ella). **✓** sale de la edición; cada cambio ya se
    guardó al hacerlo.
 5. **Actualizar .keymap** (mismo menú): cuando cambias tu firmware, vuelves a cargarlo y ves un resumen
    antes de aplicar nada (capas, teclas y lo que no se reconoció). Las descripciones que ya
@@ -118,7 +119,7 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
      10 mejores de cada grupo.
    - Para terminar: ⚙ → **Salir**.
 7. **Copia de respaldo** explica qué lleva el archivo y lo descarga en un `.json`: lo que escribiste
-   tú (las descripciones, los textos cambiados y los nombres), junto con las capas leídas de tu
+   tú (las descripciones, las leyendas personalizadas y los nombres), junto con las capas leídas de tu
    `.keymap`; sin los récords. **Restaurar respaldo** lo vuelve a poner en tu
    cuenta (antes de reemplazar el actual, descarga una copia de él por si acaso).
 8. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
