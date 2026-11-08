@@ -30,6 +30,7 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
           personalizadas, los nombres de las capas y el nombre del teclado.
         </p>
         <p className="m-0">Al restaurar no necesitas actualizar el .keymap.</p>
+        <p className="m-0 text-xs text-gris">No incluye tus récords de práctica.</p>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
         <div className="flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
