@@ -35,8 +35,7 @@ export default function EditorAjustes({ ajustes: actuales, onKeymap, onCerrar }:
         <PreguntaIdioma ajustes={ajustes} onAjustes={setAjustes} />
         <PreguntaSistema ajustes={ajustes} onAjustes={setAjustes} />
         <p className="m-0 text-xs text-gris">
-          Para aplicarlo, vuelve a cargar tu .keymap: los textos de las teclas salen de él. Tus descripciones se
-          conservan.
+          Para aplicarlo, vuelve a actualizar tu .keymap.
         </p>
         <div className="flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
