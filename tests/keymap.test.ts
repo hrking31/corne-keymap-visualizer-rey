@@ -2,20 +2,20 @@
 // Se prueba con el keymap oficial del Corne de ZMK, con el del autor y con uno inventado
 // que reúne los casos raros.
 import { describe, expect, it } from "vitest";
-import oficial from "./keymaps/zmk-corne.keymap?raw";
+import oficial from "../src/assets/zmk-corne.keymap?raw";
 import rey from "./keymaps/corne-rey.keymap?raw";
-import { crearTeclado } from "../src/teclados/plantillas";
+import { tecladoVacio } from "../src/teclados/basico";
 import { validarTeclado } from "../src/teclados/validar";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
 import { ErrorKeymap, leerKeymap } from "../src/keymap/leer";
 import { importarKeymap } from "../src/keymap/importar";
 import { textoDeCodigo } from "../src/keymap/codigos";
 
-const ingles: Ajustes = { distribucion: "qwerty", idioma: "en-US", so: "windows" };
-const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows" };
+const ingles: Ajustes = { idioma: "en-US", so: "windows" };
+const latino: Ajustes = { idioma: "es-LA", so: "windows" };
 
 const importar = (archivo: string, ajustes: Ajustes, actual?: TecladoConfig) =>
-  importarKeymap(leerKeymap(archivo), actual ?? crearTeclado(ajustes));
+  importarKeymap(leerKeymap(archivo), actual ?? tecladoVacio(ajustes));
 
 const texto = (t: TecladoConfig, capa: number, pos: number) => t.capas[t.orden[capa]].teclas[pos]?.texto ?? "";
 
@@ -148,14 +148,20 @@ describe("casos raros (un keymap inventado)", () => {
 
 describe("volver a importar", () => {
   it("conserva las descripciones escritas a mano y avisa de las capas que sobran", () => {
-    const actual = crearTeclado(ingles);
+    const actual = importar(oficial, ingles).teclado;
     actual.capas.base.teclas[0] = { texto: "X", descripcion: "Mi tabulador" };
-    actual.orden.push("a", "b", "c", "d");
-    for (const id of ["a", "b", "c", "d"]) actual.capas[id] = { corto: id.toUpperCase(), largo: "", teclas: {} };
+    actual.orden.push("c", "d");
+    for (const id of ["c", "d"]) actual.capas[id] = { corto: id.toUpperCase(), largo: "", teclas: {} };
     const { teclado, resumen } = importarKeymap(leerKeymap(oficial), actual);
     expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "TAB", descripcion: "Mi tabulador" });
-    expect(teclado.orden).toEqual(["base", "a", "b"]);
+    expect(teclado.orden).toEqual(actual.orden.slice(0, 3));
     expect(resumen.quitadas).toEqual(["C", "D"]);
+  });
+
+  it("sobre un teclado vacío, la primera capa es siempre «base», con su nombre largo «Base»", () => {
+    const { teclado } = importar(oficial, ingles);
+    expect(teclado.orden[0]).toBe("base");
+    expect(teclado.capas.base).toMatchObject({ corto: "BASE", largo: "Base" });
   });
 });
 

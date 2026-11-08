@@ -10,7 +10,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import { FieldPath, deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
-import { crearTeclado } from "../../src/teclados/plantillas";
+import { tecladoDeEjemplo } from "../../src/teclados/ejemplo";
 import type { TecladoConfig } from "../../src/teclados/tipos";
 
 const hayEmulador = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
@@ -27,7 +27,7 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
   afterAll(() => entorno?.cleanup());
   beforeEach(() => entorno.clearFirestore());
 
-  const nuevo = (): TecladoConfig => crearTeclado({ distribucion: "qwerty", idioma: "es-LA", so: "windows" });
+  const nuevo = (): TecladoConfig => tecladoDeEjemplo({ idioma: "es-LA", so: "windows" });
   const de = (uid: string) => entorno.authenticatedContext(uid).firestore();
   const sinSesion = () => entorno.unauthenticatedContext().firestore();
 

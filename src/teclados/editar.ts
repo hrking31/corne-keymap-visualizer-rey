@@ -1,78 +1,30 @@
-// Operaciones del editor sobre un teclado. Son funciones puras: devuelven un teclado nuevo
-// y no tocan el original, así se pueden probar y deshacer sin Firebase.
-import { LIMITES } from "./validar";
-import type { CapaConfig, TeclaConfig, TecladoConfig } from "./tipos";
+// Lo que se puede cambiar a mano en el editor: solo textos. Las capas, su orden, sus nombres
+// cortos y lo que hace cada tecla los decide el .keymap. Son funciones puras: devuelven un
+// teclado nuevo y no tocan el original, así se pueden probar sin Firebase.
+import type { TeclaConfig, TecladoConfig } from "./tipos";
 
 const copiar = (t: TecladoConfig): TecladoConfig => structuredClone(t);
 
-export const puedeAgregarCapa = (t: TecladoConfig) => t.orden.length < LIMITES.capas;
-
-// Agrega una capa en blanco al final, con un id que no exista y un nombre provisional
-export function agregarCapa(t: TecladoConfig): { teclado: TecladoConfig; id: string } {
-  if (!puedeAgregarCapa(t)) throw new Error(`Máximo ${LIMITES.capas} capas`);
+// El nombre largo de una capa: la primera línea del panel («Navegación»)
+export function renombrarCapa(t: TecladoConfig, id: string, largo: string): TecladoConfig {
   const nuevo = copiar(t);
-  let n = nuevo.orden.length;
-  while (nuevo.capas[`capa${n}`]) n++;
-  const id = `capa${n}`;
-  nuevo.orden.push(id);
-  nuevo.capas[id] = { corto: `CAPA${n}`.slice(0, LIMITES.corto), largo: "", teclas: {} };
-  return { teclado: nuevo, id };
-}
-
-// Base no se borra: es la capa 0 de ZMK
-export function borrarCapa(t: TecladoConfig, id: string): TecladoConfig {
-  if (id === "base") throw new Error("La capa Base no se puede borrar");
-  const nuevo = copiar(t);
-  nuevo.orden = nuevo.orden.filter((c) => c !== id);
-  delete nuevo.capas[id];
-  // Las teclas que llevaban a esa capa ya no llevan a ninguna
-  for (const capa of Object.values(nuevo.capas))
-    for (const tecla of Object.values(capa.teclas)) if (tecla.abre?.capa === id) delete tecla.abre;
-  return nuevo;
-}
-
-// Mueve una capa a la izquierda (-1) o a la derecha (+1). Base se queda siempre primera
-export function moverCapa(t: TecladoConfig, id: string, direccion: -1 | 1): TecladoConfig {
-  const i = t.orden.indexOf(id);
-  const j = i + direccion;
-  if (id === "base" || i < 0 || j < 1 || j >= t.orden.length) return t;
-  const nuevo = copiar(t);
-  [nuevo.orden[i], nuevo.orden[j]] = [nuevo.orden[j], nuevo.orden[i]];
-  return nuevo;
-}
-
-export function renombrarCapa(t: TecladoConfig, id: string, nombres: Pick<CapaConfig, "corto" | "largo">): TecladoConfig {
-  const nuevo = copiar(t);
-  nuevo.capas[id] = { ...nuevo.capas[id], corto: nombres.corto.trim(), largo: nombres.largo.trim() };
+  nuevo.capas[id] = { ...nuevo.capas[id], largo: largo.trim() };
   return nuevo;
 }
 
 const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.trim() && !tecla.abre;
 
-// Cambia una tecla. Si queda vacía se quita (así una capa en blanco no guarda 42 teclas vacías)
+// Cambia el texto y la descripción de una tecla. Si queda vacía se quita
 export function editarTecla(t: TecladoConfig, capa: string, pos: number, tecla: TeclaConfig): TecladoConfig {
   const nuevo = copiar(t);
   const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim() };
-  // Lo que envía una tecla importada y la capa a la que lleva no dependen de cómo se llame
-  // ni de su descripción: se conservan hasta que se vuelva a importar el .keymap
+  // Lo que envía una tecla y la capa a la que lleva no dependen de cómo se llame ni de su
+  // descripción: se conservan hasta que se vuelva a importar el .keymap
   const { envia, abre } = nuevo.capas[capa].teclas[pos] ?? {};
   if (envia) limpia.envia = envia;
   if (abre) limpia.abre = abre;
   if (vacia(limpia)) delete nuevo.capas[capa].teclas[pos];
   else nuevo.capas[capa].teclas[pos] = limpia;
-  return nuevo;
-}
-
-// Intercambia dos teclas de una capa, con todo lo que llevan
-export function intercambiarTeclas(t: TecladoConfig, capa: string, a: number, b: number): TecladoConfig {
-  if (a === b) return t;
-  const nuevo = copiar(t);
-  const teclas = nuevo.capas[capa].teclas;
-  const [ta, tb] = [teclas[a], teclas[b]];
-  delete teclas[a];
-  delete teclas[b];
-  if (tb) teclas[a] = tb;
-  if (ta) teclas[b] = ta;
   return nuevo;
 }
 

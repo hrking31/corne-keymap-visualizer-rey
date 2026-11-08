@@ -2,19 +2,11 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, typ
 import { dividirBloques } from "./teclado";
 import { teclasParaDibujar } from "./teclados/convertir";
 import { caminoDeCapa, marcasDelCamino } from "./teclados/camino";
-import { ajustesDelNavegador, crearTeclado, nombreVisible } from "./teclados/plantillas";
+import { ajustesDelNavegador, nombreVisible, tecladoVacio } from "./teclados/basico";
+import { tecladoDeEjemplo } from "./teclados/ejemplo";
 import type { Ajustes, TeclaDibujo, TecladoConfig } from "./teclados/tipos";
-import {
-  agregarCapa,
-  borrarCapa,
-  cambiarNombre,
-  editarTecla,
-  intercambiarTeclas,
-  moverCapa,
-  puedeAgregarCapa,
-  renombrarCapa,
-} from "./teclados/editar";
-import { LIMITES, validarTeclado } from "./teclados/validar";
+import { cambiarNombre, editarTecla, renombrarCapa } from "./teclados/editar";
+import { validarTeclado } from "./teclados/validar";
 import Bloque from "./components/Bloque";
 import Modal, { type EstadoModal } from "./components/Modal";
 import Ingreso from "./components/Ingreso";
@@ -25,7 +17,8 @@ import TituloEditable from "./components/editor/TituloEditable";
 import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
-import RestaurarCopia, { type Restauracion } from "./components/editor/RestaurarCopia";
+import CargarTeclado, { type Carga } from "./components/editor/CargarTeclado";
+import EditorAjustes from "./components/editor/EditorAjustes";
 import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
 import ConfirmarBorrado from "./components/editor/ConfirmarBorrado";
 import EditorCapa from "./components/editor/EditorCapa";
@@ -36,9 +29,8 @@ import TituloPractica, { letrasDelTitulo } from "./components/practica/TituloPra
 import ElegirPractica from "./components/practica/ElegirPractica";
 import RecordsPractica from "./components/practica/RecordsPractica";
 
-// Sin cuenta se ve una capa Base de ejemplo: QWERTY en el idioma y el sistema del navegador
-const tecladoDeEjemplo = () =>
-  crearTeclado(ajustesDelNavegador(navigator.language, navigator.platform));
+// Sin cuenta (la demo) se ve el Corne de ejemplo de ZMK, en el idioma y el sistema del navegador
+const ejemploDelNavegador = () => tecladoDeEjemplo(ajustesDelNavegador(navigator.language, navigator.platform));
 
 // Móvil vertical: el modal sale arriba o abajo, por CSS. Misma condición que la
 // media query de .modal en style.css; en horizontal se comporta como en el PC.
@@ -98,23 +90,24 @@ export default function App({ tecladoInicial }: Props) {
   // Con datos fijos (la prueba visual) no se usa la cuenta
   const cuenta = useCuenta(!tecladoInicial);
   const apilado = useApilado();
-  const [ejemplo] = useState<TecladoConfig>(tecladoDeEjemplo);
+  const [ejemplo] = useState<TecladoConfig>(ejemploDelNavegador);
   // Sin sesión solo se ve la pantalla de ingreso, hasta que el usuario entra o pide ver
   // la demo (el teclado de ejemplo)
   const [verDemo, setVerDemo] = useState(false);
   const ingreso = !tecladoInicial && cuenta.sesion === "cerrada" && !verDemo;
 
-  // Asistente: el usuario entró y todavía no tiene teclado. Lo que elige se ve en vivo
+  // Asistente: el usuario entró y todavía no tiene teclado. Elige idioma y sistema y carga
+  // su .keymap; mientras tanto, al lado se ve el teclado de ejemplo
   const asistente = !tecladoInicial && Boolean(cuenta.usuario) && cuenta.tecladoCargado && !cuenta.teclado;
   const [ajustesAsistente, setAjustesAsistente] = useState<Ajustes>(() =>
     ajustesDelNavegador(navigator.language, navigator.platform),
   );
   const [nombreAsistente, setNombreAsistente] = useState("");
   const [creando, setCreando] = useState(false);
+  const [errorAsistente, setErrorAsistente] = useState("");
 
-  // El teclado que se ve: el fijo, el del asistente, el de la cuenta o, si no hay, el de ejemplo
-  const teclado =
-    tecladoInicial ?? (asistente ? crearTeclado(ajustesAsistente, nombreAsistente) : cuenta.teclado) ?? ejemplo;
+  // El teclado que se ve: el fijo (la prueba visual), el de la cuenta o, si no hay, el de ejemplo
+  const teclado = tecladoInicial ?? cuenta.teclado ?? ejemplo;
 
   // Modo edición: solo con sesión y un teclado propio
   const [editando, setEditando] = useState(false);
@@ -122,26 +115,14 @@ export default function App({ tecladoInicial }: Props) {
   const modoEdicion = editando && Boolean(mio) && !tecladoInicial;
   const [teclaEditada, setTeclaEditada] = useState<{ pos: number; lado: Lado } | null>(null);
   const [capaEnEdicion, setCapaEnEdicion] = useState(false);
-  const [intercambiando, setIntercambiando] = useState<number | null>(null);
+  // «Idioma y sistema» abierto en el editor
+  const [ajustesEnEdicion, setAjustesEnEdicion] = useState(false);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
-  // Un aviso breve (p. ej. «Máximo 10 capas») justo debajo de lo que se tocó, donde se
-  // está mirando; se va solo a los 3 s
-  const [nota, setNota] = useState<{ texto: string; x: number; y: number; encima: boolean } | null>(null);
   // La fila de botones de capa: al editar con muchas capas se reparte en columnas (abajo)
   const filaCapas = useRef<HTMLDivElement>(null);
-  const notaRef = useRef<HTMLDivElement>(null);
-  const temporizadorNota = useRef<number | undefined>(undefined);
-  const notificar = (texto: string, junto: Element) => {
-    const caja = junto.getBoundingClientRect();
-    // Lo que está abajo de la pantalla (✎ ＋ en el móvil) lo tiene encima
-    const encima = caja.bottom > window.innerHeight / 2;
-    setNota({ texto, x: caja.left + caja.width / 2, y: encima ? caja.top - 8 : caja.bottom + 8, encima });
-    window.clearTimeout(temporizadorNota.current);
-    temporizadorNota.current = window.setTimeout(() => setNota(null), 3000);
-  };
   // Editando con más de 6 capas, si la fila es una cuadrícula (teclado apilado, editor.css):
   // tantas columnas como quepan con los nombres reales, de 6 a 3. Así nombres cortos caben
-  // 6 + 6, y los largos bajan a 5 o 4 sin salirse de la pantalla. En el móvil no: ✎ ＋ y ✓
+  // 6 + 6, y los largos bajan a 5 o 4 sin salirse de la pantalla. En el móvil no: ✎ 🌐 y ✓
   // van abajo y la fila solo lleva las capas, repartida como fuera de la edición (style.css)
   const movil = useMovil();
   const muchasCapas = modoEdicion && !movil && teclado.orden.length > 6;
@@ -165,21 +146,12 @@ export default function App({ tecladoInicial }: Props) {
     };
   }, [muchasCapas, nombresCapas]);
 
-  // Centrado bajo lo tocado, pero sin salirse de la pantalla por los lados
-  useLayoutEffect(() => {
-    const el = notaRef.current;
-    if (!el || !nota) return;
-    const margen = 8;
-    const izquierda = nota.x - el.offsetWidth / 2;
-    el.style.left = Math.min(Math.max(izquierda, margen), window.innerWidth - el.offsetWidth - margen) + "px";
-    el.style.top = (nota.encima ? nota.y - el.offsetHeight : nota.y) + "px";
-  }, [nota]);
   // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
-  // Restaurar una copia de seguridad: el resumen y el teclado leído, hasta aplicar o cancelar
-  const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
-  const [selectorRespaldo, setSelectorRespaldo] = useState<HTMLInputElement | null>(null);
+  // «Cargar teclado desde archivo»: el resumen y el teclado leído, hasta aplicar o cancelar
+  const [carga, setCarga] = useState<Carga | null>(null);
+  const [selectorArchivo, setSelectorArchivo] = useState<HTMLInputElement | null>(null);
   const [aviso, setAviso] = useState("");
   const [capaElegida, setCapa] = useState<string>(teclado.orden[0]);
   // Al entrar o salir cambia el teclado: si la capa elegida no existe en él, Base
@@ -227,35 +199,39 @@ export default function App({ tecladoInicial }: Props) {
     setEditando(false);
     setTeclaEditada(null);
     setCapaEnEdicion(false);
-    setIntercambiando(null);
+    setAjustesEnEdicion(false);
     setAviso("");
   };
 
-  // En edición, tocar una tecla la abre en el editor; si se está intercambiando, la cambia
-  // de lugar con la elegida antes
+  // En edición, tocar una tecla la abre en el editor
   const elegirTecla = (tecla: TeclaDibujo, lado: Lado) => {
     if (!mio) return;
-    if (intercambiando !== null) {
-      guardar(intercambiarTeclas(mio, capa, intercambiando, tecla.pos));
-      setIntercambiando(null);
-      return;
-    }
     setCapaEnEdicion(false);
+    setAjustesEnEdicion(false);
     setTeclaEditada({ pos: tecla.pos, lado });
   };
 
-  const agregar = () => {
-    if (!mio) return;
-    const { teclado: nuevo, id } = agregarCapa(mio);
-    if (guardar(nuevo)) {
-      setCapa(id);
-      setTeclaEditada(null);
-      setCapaEnEdicion(true);
+  // Crea el teclado del asistente con el .keymap elegido. Si no se puede (no es un .keymap,
+  // otro teclado…), el asistente dice por qué
+  const crearConKeymap = async (archivo: File) => {
+    setCreando(true);
+    setErrorAsistente("");
+    try {
+      const { teclado: nuevo } = importarKeymap(
+        leerKeymap(await archivo.text()),
+        tecladoVacio(ajustesAsistente, nombreAsistente.trim()),
+      );
+      const problemas = validarTeclado(nuevo);
+      if (problemas.length) throw new Error(problemas[0]);
+      await cuenta.guardar(nuevo);
+    } catch (e) {
+      setErrorAsistente(e instanceof Error ? e.message : "No se pudo leer el archivo.");
     }
+    setCreando(false);
   };
 
-  // Descarga el teclado como un archivo .json (se genera aquí, sin pasar por ningún servidor)
-  const descargarRespaldo = (actual: TecladoConfig) => {
+  // «Guardar teclado en archivo»: lo descarga como .json (se genera aquí, sin pasar por ningún servidor)
+  const guardarEnArchivo = (actual: TecladoConfig) => {
     const contenido = JSON.stringify(crearRespaldo(actual), null, 2);
     const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
     const enlace = document.createElement("a");
@@ -265,23 +241,24 @@ export default function App({ tecladoInicial }: Props) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // Lee una copia de seguridad y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
-  const leerArchivoRespaldo = async (archivo: File | undefined) => {
+  // «Cargar teclado desde archivo»: lee el .json y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
+  const leerArchivoTeclado = async (archivo: File | undefined) => {
     if (!archivo) return;
     try {
-      const { teclado: copia, fecha } = leerRespaldo(await archivo.text());
-      setRestauracion({ archivo: archivo.name, teclado: copia, fecha });
+      const { teclado: leido, fecha } = leerRespaldo(await archivo.text());
+      setCarga({ archivo: archivo.name, teclado: leido, fecha });
     } catch (e) {
-      setRestauracion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
+      setCarga({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
-  // Lee el .keymap elegido y muestra el resumen. Nada se guarda hasta pulsar «Aplicar»
-  const leerArchivo = async (archivo: File | undefined) => {
+  // Lee el .keymap elegido y muestra el resumen. Nada se guarda hasta pulsar «Aplicar».
+  // Con `ajustes` (desde «Idioma y sistema»), lo lee con ese idioma y ese sistema
+  const leerArchivo = async (archivo: File | undefined, ajustes?: Ajustes) => {
     if (!archivo || !mio) return;
     try {
-      const { teclado: nuevo, resumen } = importarKeymap(leerKeymap(await archivo.text()), mio);
-      setImportacion({ archivo: archivo.name, resumen, teclado: nuevo });
+      const { teclado: nuevo, resumen } = importarKeymap(leerKeymap(await archivo.text()), ajustes ? { ...mio, ajustes } : mio);
+      setImportacion({ archivo: archivo.name, resumen, ajustes, teclado: nuevo });
     } catch (e) {
       setImportacion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
@@ -449,8 +426,8 @@ export default function App({ tecladoInicial }: Props) {
       menu.push(...opcionesPractica);
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
-      menu.push({ texto: "Descargar copia", alElegir: () => descargarRespaldo(mio) });
-      menu.push({ texto: "Restaurar copia", alElegir: () => selectorRespaldo?.click() });
+      menu.push({ texto: "Guardar teclado en archivo", alElegir: () => guardarEnArchivo(mio) });
+      menu.push({ texto: "Cargar teclado desde archivo", alElegir: () => selectorArchivo?.click() });
     }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
@@ -491,14 +468,14 @@ export default function App({ tecladoInicial }: Props) {
     );
   }
 
-  // Los botones de capa; al editar, también editar la capa (✎), agregar una (＋) y «Listo»
-  // (✓: sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
-  // no gastar otra línea. En el móvil el ✓ va abajo a la derecha, donde está el ⚙ (editor.css)
+  // Los botones de capa; al editar, también el nombre largo de la capa (✎), el idioma y el
+  // sistema (🌐) y «Listo» (✓: sale del modo edición; cada cambio ya se guardó al hacerlo),
+  // en la misma fila para no gastar otra línea. En el móvil van abajo a la derecha (editor.css)
   const botonesDeCapa = (
     <div
       ref={filaCapas}
       // Editando con más de 6 capas: dos filas de 6 (editor.css). data-capas cuenta las
-      // casillas: las capas y, fuera del móvil, ✎＋ (una sola) y «Listo»
+      // casillas: las capas y, fuera del móvil, ✎🌐 (una sola) y «Listo»
       className={muchasCapas ? "layer-buttons editando-muchas" : "layer-buttons"}
       data-capas={teclado.orden.length + (modoEdicion && !movil ? 2 : 0)}
     >
@@ -516,34 +493,39 @@ export default function App({ tecladoInicial }: Props) {
       ))}
       {modoEdicion && mio && (
         <>
-          {/* ✎ y ＋ comparten una casilla */}
+          {/* ✎ y 🌐 comparten una casilla */}
           <span className="par-edicion">
-          <button
-            type="button"
-            className="boton-icono"
-            aria-label={`Editar la capa ${capaActual.corto}`}
-            title={`Editar la capa ${capaActual.corto}`}
-            onClick={() => {
-              setTeclaEditada(null);
-              setCapaEnEdicion(true);
-            }}
-          >
-            ✎
-          </button>
-          {/* Con el máximo de capas no desaparece: se apaga y dice por qué */}
-          <button
-            type="button"
-            className="boton-icono"
-            // Apagado pero pulsable: al tocarlo con el máximo, avisa por qué no se puede
-            aria-disabled={!puedeAgregarCapa(mio)}
-            aria-label={puedeAgregarCapa(mio) ? "Agregar una capa" : `Máximo ${LIMITES.capas} capas`}
-            title={puedeAgregarCapa(mio) ? "Agregar una capa" : `Máximo ${LIMITES.capas} capas`}
-            onClick={(e) =>
-              puedeAgregarCapa(mio) ? agregar() : notificar(`Máximo ${LIMITES.capas} capas`, e.currentTarget)
-            }
-          >
-            ＋
-          </button>
+            <button
+              type="button"
+              className="boton-icono"
+              aria-label={`Nombre de la capa ${capaActual.corto}`}
+              title={`Nombre de la capa ${capaActual.corto}`}
+              onClick={() => {
+                setTeclaEditada(null);
+                setAjustesEnEdicion(false);
+                setCapaEnEdicion(true);
+              }}
+            >
+              ✎
+            </button>
+            <button
+              type="button"
+              className="boton-icono"
+              aria-label="Idioma y sistema"
+              title="Idioma y sistema"
+              onClick={() => {
+                setTeclaEditada(null);
+                setCapaEnEdicion(false);
+                setAjustesEnEdicion(true);
+              }}
+            >
+              {/* Un globo: el idioma */}
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18" />
+                <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" />
+              </svg>
+            </button>
           </span>
           <button
             type="button"
@@ -603,8 +585,7 @@ export default function App({ tecladoInicial }: Props) {
           onMostrar={(tecla) => mostrar(tecla, "izquierdo")}
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "izquierdo") : undefined}
-          elegida={teclaEditada?.pos ?? intercambiando}
-          editada={teclaEditada?.pos}
+          elegida={teclaEditada?.pos}
           encendidas={encendidas}
           pantalla={oledIzquierda}
           camino={camino}
@@ -619,8 +600,7 @@ export default function App({ tecladoInicial }: Props) {
           onMostrar={(tecla) => mostrar(tecla, "derecho")}
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "derecho") : undefined}
-          elegida={teclaEditada?.pos ?? intercambiando}
-          editada={teclaEditada?.pos}
+          elegida={teclaEditada?.pos}
           encendidas={encendidas}
           pantalla={oledDerecha}
           camino={camino}
@@ -724,17 +704,14 @@ export default function App({ tecladoInicial }: Props) {
           nombre={nombreAsistente}
           apilado={apilado}
           guardando={creando}
+          error={errorAsistente}
           onAjustes={setAjustesAsistente}
           onNombre={setNombreAsistente}
+          onKeymap={(archivo) => void crearConKeymap(archivo)}
           onCancelar={() => {
             // Sin teclado creado no hay nada que guardar: vuelve a la pantalla de ingreso
             setVerDemo(false);
             void cuenta.salir();
-          }}
-          onCrear={async () => {
-            setCreando(true);
-            await cuenta.guardar(crearTeclado(ajustesAsistente, nombreAsistente.trim()));
-            setCreando(false);
           }}
         />
       )}
@@ -750,10 +727,6 @@ export default function App({ tecladoInicial }: Props) {
           onGuardar={(t) => {
             if (guardar(editarTecla(mio, capa, teclaEditada.pos, t))) setTeclaEditada(null);
           }}
-          onIntercambiar={() => {
-            setIntercambiando(teclaEditada.pos);
-            setTeclaEditada(null);
-          }}
           onCerrar={() => setTeclaEditada(null)}
         />
       )}
@@ -762,44 +735,22 @@ export default function App({ tecladoInicial }: Props) {
         <EditorCapa
           key={capa}
           capa={capaActual}
-          numero={mio.orden.indexOf(capa)}
-          esBase={capa === "base"}
-          puedeIzquierda={mio.orden.indexOf(capa) > 1}
-          puedeDerecha={capa !== "base" && mio.orden.indexOf(capa) < mio.orden.length - 1}
-          onGuardar={(nombres) => {
-            if (guardar(renombrarCapa(mio, capa, nombres))) setCapaEnEdicion(false);
-          }}
-          onMover={(direccion) => guardar(moverCapa(mio, capa, direccion))}
-          onBorrar={() => {
-            if (guardar(borrarCapa(mio, capa))) {
-              setCapa("base");
-              setCapaEnEdicion(false);
-            }
+          onGuardar={(largo) => {
+            if (guardar(renombrarCapa(mio, capa, largo))) setCapaEnEdicion(false);
           }}
           onCerrar={() => setCapaEnEdicion(false)}
         />
       )}
 
-      {modoEdicion && intercambiando !== null && (
-        <div
-          className="fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-md border border-naranja bg-panel px-4 py-2 text-sm text-hueso shadow-xl"
-          role="status"
-        >
-          Toca la tecla con la que quieres intercambiar la Key {intercambiando}
-          <button type="button" className="layer-btn" onClick={() => setIntercambiando(null)}>
-            Cancelar
-          </button>
-        </div>
-      )}
-
-      {nota && (
-        <div
-          ref={notaRef}
-          className="fixed z-50 w-max max-w-[calc(100vw-16px)] rounded-md border border-naranja bg-panel px-4 py-2 text-sm text-hueso shadow-xl"
-          role="status"
-        >
-          {nota.texto}
-        </div>
+      {modoEdicion && mio && ajustesEnEdicion && (
+        <EditorAjustes
+          ajustes={mio.ajustes}
+          onKeymap={(archivo, ajustes) => {
+            setAjustesEnEdicion(false);
+            void leerArchivo(archivo, ajustes);
+          }}
+          onCerrar={() => setAjustesEnEdicion(false)}
+        />
       )}
 
       {/* El selector de archivos del menú «Importar .keymap»: no se ve */}
@@ -817,33 +768,33 @@ export default function App({ tecladoInicial }: Props) {
         />
       )}
 
-      {/* El selector de archivos del menú «Restaurar copia»: no se ve */}
+      {/* El selector de archivos del menú «Cargar teclado desde archivo»: no se ve */}
       {mio && (
         <input
-          ref={setSelectorRespaldo}
+          ref={setSelectorArchivo}
           type="file"
           accept=".json,application/json"
           hidden
           onChange={(e) => {
-            void leerArchivoRespaldo(e.target.files?.[0]);
+            void leerArchivoTeclado(e.target.files?.[0]);
             e.target.value = "";
           }}
         />
       )}
 
-      {restauracion && (
-        <RestaurarCopia
-          restauracion={restauracion}
+      {carga && (
+        <CargarTeclado
+          carga={carga}
           onAplicar={() => {
-            if (!mio || !restauracion.teclado) return;
-            // Por si acaso: antes de reemplazarlo, una copia del teclado actual
-            descargarRespaldo(mio);
-            if (guardar(restauracion.teclado)) {
+            if (!mio || !carga.teclado) return;
+            // Por si acaso: antes de reemplazarlo, el teclado actual se guarda en un archivo
+            guardarEnArchivo(mio);
+            if (guardar(carga.teclado)) {
               setCapa("base");
-              setRestauracion(null);
+              setCarga(null);
             }
           }}
-          onCerrar={() => setRestauracion(null)}
+          onCerrar={() => setCarga(null)}
         />
       )}
 

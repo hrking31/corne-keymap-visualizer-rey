@@ -16,12 +16,13 @@ import oledIzquierda from "../src/assets/oled-izquierda.svg?raw";
 import bienvenida from "../src/assets/bienvenida.svg?raw";
 import { FRASES, PALABRAS } from "../src/practica/textos";
 import { editarTecla } from "../src/teclados/editar";
-import { crearTeclado } from "../src/teclados/plantillas";
+import { tecladoVacio } from "../src/teclados/basico";
+import { tecladoDeEjemplo } from "../src/teclados/ejemplo";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
 import { validarTeclado } from "../src/teclados/validar";
 import type { Ajustes, TeclaConfig, TecladoConfig } from "../src/teclados/tipos";
 
-const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows" };
+const latino: Ajustes = { idioma: "es-LA", so: "windows" };
 
 const pulsar = (key: string, code: string, mods: Partial<Pulsacion> = {}): Pulsacion => ({
   key, code, ctrl: false, shift: false, alt: false, meta: false, altGr: false, ...mods,
@@ -129,21 +130,17 @@ describe("qué teclas se pueden practicar", () => {
     expect(lista.find((o) => o.texto === "Ñ")?.lugares).toEqual([{ capa: "base", pos: 0 }]);
   });
 
-  it("la Base de plantilla se practica por sus caracteres, y sigue lo que el usuario escriba", () => {
-    const plantilla = crearTeclado({ distribucion: "qwerty", idioma: "en-US", so: "windows" });
-    const de = objetivos(plantilla).map((o) => o.texto);
-    expect(de).toEqual(expect.arrayContaining(["Q", "A", ";", "'", "/"]));
-    // Las de varias letras no se sabe qué envían: solo se conocen al importar el .keymap
-    for (const fuera of ["TAB", "CTRL", "SHIFT", "WIN", "ALT", "LOWER", "RAISE"]) expect(de).not.toContain(fuera);
-    expect(de).toHaveLength(31); // 30 del bloque de letras + la comilla
-    // Quien configura a mano cambia la plantilla para que coincida con su teclado
-    const cambiada = editarTecla(plantilla, "base", 1, tecla("Ñ"));
-    expect(objetivos(cambiada).map((o) => o.texto)).toContain("Ñ");
-    expect(objetivos(cambiada).map((o) => o.texto)).not.toContain("Q");
+  it("una tecla sin código (una macro…) se practica por su carácter, si es uno solo", () => {
+    const t = tecladoDeEjemplo({ idioma: "en-US", so: "windows" });
+    t.capas.base.teclas[1] = tecla("Ñ");
+    t.capas.base.teclas[2] = tecla("GIT");
+    const de = objetivos(t);
+    expect(de.find((o) => o.texto === "Ñ")?.espera).toEqual({ tipo: "caracter", caracter: "Ñ" });
+    expect(de.map((o) => o.texto)).not.toContain("GIT");
   });
 
   it("el keymap del autor, recién importado: sus teclas llevan lo que envían", () => {
-    const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+    const { teclado: suyo } = importarKeymap(leerKeymap(rey), tecladoVacio(latino));
     expect(validarTeclado(suyo)).toEqual([]);
     const suyos = objetivos(suyo);
     // &kp SEMI se ve «Ñ» en español y se reconoce por la tecla física, no por la letra
@@ -341,7 +338,7 @@ describe("los grupos", () => {
   });
 
   it("con el keymap del autor: ningún grupo vacío, y «otras» son sus 27 teclas con nombre", () => {
-    const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+    const { teclado: suyo } = importarKeymap(leerKeymap(rey), tecladoVacio(latino));
     expect(gruposDisponibles(suyo)).toEqual([...GRUPOS]);
     const de = (g: GrupoDeTeclas) => objetivosDeGrupo(suyo, g);
     expect(de("otras")).toHaveLength(27);
@@ -433,7 +430,7 @@ describe("la ronda: 30 teclas contra el reloj", () => {
 });
 
 describe("palabras y frases", () => {
-  const { teclado: suyo } = importarKeymap(leerKeymap(rey), crearTeclado(latino));
+  const { teclado: suyo } = importarKeymap(leerKeymap(rey), tecladoVacio(latino));
 
   it("las listas: sin repetidas, palabras en minúscula y frases con mayúscula y punto", () => {
     for (const lengua of ["es", "en"] as const) {
@@ -458,8 +455,8 @@ describe("palabras y frases", () => {
     expect(gruposDisponibles(teclado)).not.toContain("palabras");
   });
 
-  it("en inglés, las listas en inglés; la Base de plantilla basta", () => {
-    const ingles = crearTeclado({ distribucion: "qwerty", idioma: "en-US", so: "windows" });
+  it("en inglés, las listas en inglés; el Corne de ejemplo de ZMK basta", () => {
+    const ingles = tecladoDeEjemplo({ idioma: "en-US", so: "windows" });
     expect(textosDeGrupo(ingles, "frases").length).toBeGreaterThan(0);
     for (const f of textosDeGrupo(ingles, "frases")) expect(FRASES.en).toContain(f);
     expect(gruposDisponibles(ingles)).toContain("palabras");

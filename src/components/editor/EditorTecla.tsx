@@ -10,7 +10,6 @@ type Props = {
   lado: "izquierdo" | "derecho";
   apilado: boolean;
   onGuardar: (t: TeclaConfig) => void;
-  onIntercambiar: () => void;
   onCerrar: () => void;
 };
 
@@ -18,7 +17,7 @@ type Props = {
 // centrada sobre la mitad contraria a la tecla, en el PC y en el móvil, como el recuadro
 // con la descripción (en el PC, al tocar otra tecla pasa a esa).
 export default function EditorTecla(props: Props) {
-  const { nombreCapa, tecla, lado, apilado, onGuardar, onIntercambiar, onCerrar } = props;
+  const { nombreCapa, tecla, lado, apilado, onGuardar, onCerrar } = props;
   // Centrada sobre la mitad contraria a la tecla; tocar fuera la cierra, igual que la ✕ y Escape
   const ventana = useVentanaEditor<HTMLElement>(onCerrar, lado === "izquierdo" ? "right-side" : "left-side");
   const [texto, setTexto] = useState(tecla.texto);
@@ -48,10 +47,7 @@ export default function EditorTecla(props: Props) {
         <textarea className="campo min-h-24 resize-y" value={descripcion} maxLength={LIMITES.descripcion}
           onChange={(e) => setDescripcion(e.target.value)} />
       </label>
-      <div className="flex flex-wrap justify-between gap-2">
-        <button type="button" className="layer-btn" onClick={onIntercambiar}>
-          ⇄ Intercambiar
-        </button>
+      <div className="flex justify-end">
         <button type="submit" className="boton-principal">
           Guardar
         </button>

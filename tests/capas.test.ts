@@ -2,21 +2,21 @@
 // Se prueba con el keymap del autor, el oficial de ZMK y keymaps inventados para los
 // casos que esos dos no tienen (tocar, capas por combinación).
 import { describe, expect, it } from "vitest";
-import oficial from "./keymaps/zmk-corne.keymap?raw";
+import oficial from "../src/assets/zmk-corne.keymap?raw";
 import rey from "./keymaps/corne-rey.keymap?raw";
-import { crearTeclado } from "../src/teclados/plantillas";
+import { tecladoVacio } from "../src/teclados/basico";
 import { validarTeclado } from "../src/teclados/validar";
-import { borrarCapa, editarTecla } from "../src/teclados/editar";
+import { editarTecla } from "../src/teclados/editar";
 import { crearRespaldo, leerRespaldo } from "../src/teclados/respaldo";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
 import { caminoDeCapa, marcasDelCamino, type PasoCamino } from "../src/teclados/camino";
 import { leerKeymap } from "../src/keymap/leer";
 import { importarKeymap } from "../src/keymap/importar";
 
-const ingles: Ajustes = { distribucion: "qwerty", idioma: "en-US", so: "windows" };
-const latino: Ajustes = { distribucion: "dvorak", idioma: "es-LA", so: "windows" };
+const ingles: Ajustes = { idioma: "en-US", so: "windows" };
+const latino: Ajustes = { idioma: "es-LA", so: "windows" };
 
-const importar = (archivo: string, ajustes: Ajustes) => importarKeymap(leerKeymap(archivo), crearTeclado(ajustes)).teclado;
+const importar = (archivo: string, ajustes: Ajustes) => importarKeymap(leerKeymap(archivo), tecladoVacio(ajustes)).teclado;
 
 // La tecla `pos` de la capa número `capa`
 const tecla = (t: TecladoConfig, capa: number, pos: number) => t.capas[t.orden[capa]].teclas[pos];
@@ -206,12 +206,6 @@ describe("el dato se conserva", () => {
   it("al editar el texto o la descripción de una tecla", () => {
     const editado = editarTecla(t, t.orden[1], 40, { texto: "NAVEG", descripcion: "Flechas y ventanas" });
     expect(tecla(editado, 1, 40).abre).toEqual({ capa: nav, modo: "mantener" });
-  });
-
-  it("al borrar una capa, las teclas que llevaban a ella ya no llevan a ninguna", () => {
-    const sin = borrarCapa(t, nav);
-    expect(tecla(sin, 1, 40).abre).toBeUndefined();
-    expect(tecla(sin, 1, 41).abre).toEqual({ capa: t.orden[5], modo: "mantener" });
   });
 
   it("en la copia de seguridad, revisado", () => {

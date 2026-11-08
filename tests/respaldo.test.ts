@@ -1,16 +1,16 @@
-// Copia de seguridad: se descarga y se restaura idéntica; un archivo roto, de otra app o
-// fuera de los límites se rechaza con un mensaje claro, sin tocar nada.
+// El teclado en un archivo: «Guardar teclado en archivo» y «Cargar teclado desde archivo».
+// Se guarda y se carga idéntico; un archivo roto, de otra app o fuera de los límites se
+// rechaza con un mensaje claro, sin tocar nada.
 import { describe, expect, it } from "vitest";
 import { crearRespaldo, ErrorRespaldo, leerRespaldo, nombreDeArchivo } from "../src/teclados/respaldo";
-import { crearTeclado } from "../src/teclados/plantillas";
-import { agregarCapa, editarTecla } from "../src/teclados/editar";
+import { tecladoDeEjemplo } from "../src/teclados/ejemplo";
+import { editarTecla } from "../src/teclados/editar";
 import type { TecladoConfig } from "../src/teclados/tipos";
 
 const fecha = new Date(2026, 9, 13, 10, 30);
 
 function miTeclado(): TecladoConfig {
-  let t = crearTeclado({ distribucion: "dvorak", idioma: "es-LA", so: "windows" }, "Rey");
-  t = agregarCapa(t).teclado;
+  let t = { ...tecladoDeEjemplo({ idioma: "es-LA", so: "windows" }), nombre: "Rey" };
   t = editarTecla(t, "base", 0, { texto: "ESC", descripcion: "Cancela lo que estoy haciendo" });
   t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", sinReconocer: "&kp NOEXISTE" };
   t.capas[t.orden[1]].teclas[3] = { texto: "TAB", descripcion: "", heredada: true };
@@ -19,8 +19,8 @@ function miTeclado(): TecladoConfig {
 
 const archivo = (datos: unknown) => JSON.stringify(datos);
 
-describe("copia de seguridad", () => {
-  it("se descarga y se restaura idéntica, con su fecha", () => {
+describe("teclado en un archivo", () => {
+  it("se guarda y se carga idéntico, con su fecha", () => {
     const t = miTeclado();
     const leida = leerRespaldo(JSON.stringify(crearRespaldo(t, fecha)));
     expect(leida.teclado).toEqual(t);
@@ -34,13 +34,13 @@ describe("copia de seguridad", () => {
     expect(nombreDeArchivo({ ...miTeclado(), nombre: "Árbol Ñ!" }, fecha)).toBe("corne-zmk-arbol-n-2026-10-13.json");
   });
 
-  it("rechaza lo que no es una copia de esta app", () => {
+  it("rechaza lo que no es un archivo de esta app", () => {
     expect(() => leerRespaldo("esto no es json")).toThrow(ErrorRespaldo);
     expect(() => leerRespaldo(archivo({ hola: 1 }))).toThrow(/Corne ZMK Visualizer/);
     expect(() => leerRespaldo(archivo({ ...crearRespaldo(miTeclado()), version: 99 }))).toThrow(/más nueva/);
   });
 
-  it("rechaza una copia dañada o fuera de los límites", () => {
+  it("rechaza un archivo dañado o fuera de los límites", () => {
     const copia = crearRespaldo(miTeclado(), fecha);
     const sinTexto = structuredClone(copia) as unknown as { teclado: { capas: { base: { teclas: Record<string, unknown> } } } };
     sinTexto.teclado.capas.base.teclas[0] = { descripcion: "" };

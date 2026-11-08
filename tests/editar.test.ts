@@ -1,71 +1,36 @@
+// El editor solo cambia textos: el nombre largo de una capa, el texto y la descripción de
+// una tecla y el nombre del teclado. Lo demás lo decide el .keymap.
 import { describe, expect, it } from "vitest";
-import {
-  agregarCapa,
-  borrarCapa,
-  cambiarNombre,
-  editarTecla,
-  intercambiarTeclas,
-  moverCapa,
-  puedeAgregarCapa,
-  renombrarCapa,
-} from "../src/teclados/editar";
-import { crearTeclado } from "../src/teclados/plantillas";
+import { cambiarNombre, editarTecla, renombrarCapa } from "../src/teclados/editar";
+import { tecladoDeEjemplo } from "../src/teclados/ejemplo";
 import type { TecladoConfig } from "../src/teclados/tipos";
-import { validarTeclado } from "../src/teclados/validar";
 
-const nuevo = (): TecladoConfig => crearTeclado({ distribucion: "qwerty", idioma: "es-LA", so: "windows" });
-const conCapas = (n: number) => {
-  let t = nuevo();
-  for (let i = 1; i < n; i++) t = agregarCapa(t).teclado;
-  return t;
-};
+// El Corne de ejemplo de ZMK: BASE, LOWER y RAISE
+const nuevo = (): TecladoConfig => tecladoDeEjemplo({ idioma: "es-LA", so: "windows" });
 
 describe("capas", () => {
-  it("agrega capas en blanco hasta 10 y luego no deja más", () => {
-    const t = conCapas(10);
-    expect(t.orden).toHaveLength(10);
-    expect(new Set(t.orden).size).toBe(10);
-    expect(t.capas[t.orden[9]].teclas).toEqual({});
-    expect(puedeAgregarCapa(t)).toBe(false);
-    expect(() => agregarCapa(t)).toThrow(/Máximo 10/);
-    expect(validarTeclado(t)).toEqual([]);
-  });
-
-  it("no modifica el teclado original", () => {
+  it("cambia el nombre largo, sin espacios sobrantes; el corto viene del .keymap", () => {
     const t = nuevo();
-    agregarCapa(t);
-    expect(t.orden).toEqual(["base"]);
-  });
-
-  it("borra una capa pero nunca Base", () => {
-    const t = conCapas(3);
-    const sin = borrarCapa(t, t.orden[1]);
-    expect(sin.orden).toEqual(["base", t.orden[2]]);
-    expect(sin.capas[t.orden[1]]).toBeUndefined();
-    expect(() => borrarCapa(t, "base")).toThrow(/Base/);
-  });
-
-  it("mueve capas sin sacar a Base del primer lugar", () => {
-    const t = conCapas(3);
-    const [, b, c] = t.orden;
-    expect(moverCapa(t, c, -1).orden).toEqual(["base", c, b]);
-    expect(moverCapa(t, b, -1).orden).toEqual(t.orden); // no puede pasar delante de Base
-    expect(moverCapa(t, c, 1).orden).toEqual(t.orden); // ya es la última
-    expect(moverCapa(t, "base", 1).orden).toEqual(t.orden);
-  });
-
-  it("renombra una capa sin espacios sobrantes", () => {
-    const t = renombrarCapa(conCapas(2), "capa1", { corto: " NAV ", largo: " Navegación " });
-    expect(t.capas.capa1).toMatchObject({ corto: "NAV", largo: "Navegación" });
+    const id = t.orden[1];
+    const renombrado = renombrarCapa(t, id, " Números ");
+    expect(renombrado.capas[id]).toMatchObject({ corto: "LOWER", largo: "Números" });
+    // No modifica el original
+    expect(t.capas[id].largo).toBe("Lower Layer");
   });
 });
 
 describe("teclas", () => {
-  it("edita una tecla y, si queda vacía, la quita", () => {
+  it("edita una tecla y conserva lo que envía; si queda vacía, la quita", () => {
     let t = editarTecla(nuevo(), "base", 0, { texto: " ESC ", descripcion: " Cancela " });
-    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela" });
+    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela", envia: "TAB" });
     t = editarTecla(t, "base", 0, { texto: " ", descripcion: "" });
     expect(t.capas.base.teclas[0]).toBeUndefined();
+  });
+
+  it("una tecla de capa sigue llevando a su capa aunque se le cambie el texto", () => {
+    const t = nuevo();
+    const editado = editarTecla(t, "base", 37, { texto: "NUM", descripcion: "Números" });
+    expect(editado.capas.base.teclas[37].abre).toEqual({ capa: t.orden[1], modo: "mantener" });
   });
 
   it("editar a mano una tecla importada le quita las marcas (gris, sin reconocer)", () => {
@@ -75,20 +40,7 @@ describe("teclas", () => {
     expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B" });
   });
 
-  it("intercambia dos teclas con todo su contenido", () => {
-    const t = intercambiarTeclas(nuevo(), "base", 1, 37);
-    expect(t.capas.base.teclas[1]).toMatchObject({ texto: "LOWER" });
-    expect(t.capas.base.teclas[37]).toMatchObject({ texto: "Q" });
-  });
-
-  it("intercambiar con una tecla vacía la mueve", () => {
-    let t = agregarCapa(nuevo()).teclado;
-    t = editarTecla(t, "capa1", 5, { texto: "F5", descripcion: "" });
-    t = intercambiarTeclas(t, "capa1", 5, 20);
-    expect(t.capas.capa1.teclas).toEqual({ 20: { texto: "F5", descripcion: "" } });
-  });
-
   it("cambia el nombre del teclado", () => {
-    expect(cambiarNombre(nuevo(), "  Corne ZMK Rey ").nombre).toBe("Corne ZMK Rey");
+    expect(cambiarNombre(nuevo(), "  Rey ").nombre).toBe("Rey");
   });
 });

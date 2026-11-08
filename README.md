@@ -34,20 +34,19 @@ que pueda abrirla en el celular mientras escribo en el PC.
 
 Eso es esta app.
 
-Y como no soy el único aprendiendo un Corne, ahora **cualquiera puede configurar el suyo**: entra
-con su cuenta de Google, elige su distribución, su idioma y su sistema operativo, y la app le
-arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué hace cada tecla.
+Y como no soy el único aprendiendo un Corne, ahora **cualquiera puede ver el suyo**: entra con su
+cuenta de Google, carga el `.keymap` de su firmware ZMK y la app dibuja todas sus capas. Después
+escribe, con sus palabras, qué hace cada tecla.
 
 ---
 
 ## ✨ Características
 
-- ✅ **Cada usuario configura su teclado**: entra con Google, un asistente le llena la capa Base
-  (QWERTY, Colemak-DH, Colemak o Dvorak; español de Latinoamérica o de España, o inglés; Windows,
-  macOS o Linux) y después agrega hasta **10 capas** y edita cada tecla: texto y descripción
+- ✅ **Tu teclado sale de tu firmware**: entras con Google, eliges el idioma de tu computador
+  (español de Latinoamérica o de España, o inglés) y tu sistema (Windows, macOS o Linux) y cargas
+  tu **`.keymap` de ZMK**. La app crea tus capas (hasta 10) con el texto de cada tecla; a ti solo te
+  queda escribir qué significa cada una
 - ✅ Su teclado se guarda en la nube y se abre **también sin conexión**, en el PC y en el celular
-- ✅ **Importa el `.keymap` de tu firmware**: la app lee el archivo de ZMK y crea tus capas con el
-  texto de cada tecla; a ti solo te queda escribir qué significa cada una
 - ✅ **Capas animadas**: al mirar una capa, las teclas de capa que hay que mantener para llegar a
   ella se hunden **en el orden del gesto** (la primera baja y se queda, después la segunda). El
   orden sale del `.keymap`, también en las capas que se activan con dos teclas a la vez
@@ -90,20 +89,22 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
 **La forma fácil:** abre la [demo](https://corne-rey.web.app/). En el celular, usa «Añadir a
 pantalla de inicio» y queda instalada como una app que funciona sin conexión.
 
-1. Al abrir ves la pantalla de ingreso. **Ver demo** muestra una capa Base de ejemplo (QWERTY, en
-   el idioma de tu navegador) sin necesidad de cuenta.
-2. **Inicia sesión con Google**. La primera vez, el asistente te pregunta cómo es tu teclado y crea
-   tu capa Base. Las siguientes veces la app abre directo en tu teclado.
-3. En el menú **⚙** (arriba a la derecha; en el móvil, abajo), **Editar**: el nombre del teclado se
-   escribe en el propio título («Corne Rey ZMK»), ＋ agrega una capa, ✎ le cambia el nombre (o la
-   mueve o la borra) y al tocar una tecla escribes qué hace. ⇄ intercambia dos teclas. **✓** sale de
-   la edición; cada cambio ya se guardó al hacerlo.
-4. **Importar .keymap** (mismo menú): eliges el archivo de tu firmware ZMK y ves un resumen antes
-   de aplicar nada (capas, teclas y lo que no se reconoció). Las teclas de dos acciones salen en
-   dos líneas, las transparentes en gris y las que no se reconocen con un «?». Si vuelves a
-   importar, las descripciones que ya escribiste se conservan. Desde entonces, al tocar el botón
-   de una capa, sus teclas de capa se animan: así ves qué pulgares mantener y en qué orden.
-5. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un
+1. Al abrir ves la pantalla de ingreso. **Ver demo** muestra el Corne de ejemplo de ZMK (en el
+   idioma de tu navegador) sin necesidad de cuenta.
+2. **Inicia sesión con Google**. La primera vez, el asistente te pregunta en qué idioma escribe tu
+   computador y qué sistema usas, y te pide tu **`.keymap`** (está en tu repositorio `zmk-config`,
+   en la carpeta `config`). Las teclas de dos acciones salen en dos líneas, las transparentes en
+   gris y las que no se reconocen con un «?». Las siguientes veces la app abre directo en tu teclado.
+3. Al tocar el botón de una capa, sus **teclas de capa se animan**: así ves qué pulgares mantener y
+   en qué orden.
+4. En el menú **⚙** (arriba a la derecha; en el móvil, abajo), **Editar**: el nombre del teclado se
+   escribe en el propio título («Corne Rey ZMK»), ✎ cambia el nombre largo de la capa, 🌐 el idioma y
+   el sistema, y al tocar una tecla escribes qué hace. **✓** sale de la edición; cada cambio ya se
+   guardó al hacerlo.
+5. **Importar .keymap** (mismo menú): cuando cambias tu firmware, vuelves a cargarlo y ves un resumen
+   antes de aplicar nada (capas, teclas y lo que no se reconoció). Las descripciones que ya
+   escribiste se conservan.
+6. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un
    grupo: letras, mayúsculas, números, símbolos, otras teclas (Esc, Tab, Enter, flechas,
    F1–F10…), todo mezclado, palabras o frases. La primera pulsación comprueba el teclado; la
    siguiente empieza la cuenta atrás, y el reloj corre desde el «¡YA!».
@@ -115,11 +116,11 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    - Al terminar ves tu marca: el tiempo o, en palabras y frases, las **palabras por minuto**.
      **Nueva ronda** (o Enter) repite; ↺ corta una ronda a medias. ⚙ → **Récords** muestra tus
      10 mejores de cada grupo.
-   - Las teclas que no son un carácter se conocen al importar el `.keymap`. Para terminar:
-     ⚙ → **Salir**.
-6. **Descargar copia** guarda tu teclado en un archivo `.json` y **Restaurar copia** lo recupera
-   (antes de reemplazar el actual, descarga una copia de él por si acaso).
-7. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
+   - Para terminar: ⚙ → **Salir**.
+7. **Guardar teclado en archivo** descarga tu teclado (con tus descripciones) en un `.json`, y
+   **Cargar teclado desde archivo** lo vuelve a poner en tu cuenta (antes de reemplazar el actual,
+   lo guarda en otro archivo por si acaso).
+8. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
    En la demo, sin cuenta, los récords se guardan en el navegador.
 
 **En local** (necesita Node.js 20.19 o superior):
@@ -153,8 +154,8 @@ src/
     Modal.tsx          # El panel con la descripción de cada tecla
     Ingreso.tsx        # Pantalla de ingreso (sin sesión): entrar con Google o ver la demo
     AvisoVersion.tsx   # «Hay una versión nueva · Actualizar»
-    editor/            # Asistente, barra de edición, editores de capa y de tecla (Tailwind)
-  teclados/            # El modelo: distribuciones, plantillas, validación, edición y copia (lógica pura)
+    editor/            # Asistente, editores de capa, de tecla y de idioma y sistema (Tailwind)
+  teclados/            # El modelo: teclado de ejemplo, camino a cada capa, validación, edición y archivo (lógica pura)
   keymap/              # Lector de .keymap de ZMK: sintaxis, códigos de tecla e importación
   practica/            # Modo práctica: qué se pide, si se acierta y la pantalla con el marcador
   firebase/            # Cuenta con Google y Firestore; se descarga solo al entrar
@@ -250,9 +251,10 @@ para el botón, largo para el panel) y sus teclas, guardadas por su **número de
 (0–41), el mismo orden del `.keymap`. Así, cuando la app lee el firmware, cada texto cae en
 su sitio y las descripciones no se pierden.
 
-Las distribuciones se describen como **lo que envía el teclado**, no como lo que se ve: el
-mismo código `SEMI` se ve `;` en inglés y `Ñ` en español, y la tecla `GUI` se llama
-`WIN`, `CMD` o `SUPER` según el sistema. Una sola tabla sirve para los tres idiomas.
+El `.keymap` dice **lo que envía cada tecla**, no lo que se ve: el mismo código `SEMI` se ve
+`;` en inglés y `Ñ` en español, y la tecla `GUI` se llama `WIN`, `CMD` o `SUPER` según el
+sistema. Por eso el usuario elige el idioma de su computador y su sistema, y si los cambia, la
+app vuelve a leer su `.keymap` con ellos.
 
 La práctica va en **otro documento**, también solo suyo: sus 10 mejores marcas de cada grupo
 (tiempo, fallos y fecha) y, por cada tecla, cuánto tarda y cuánto falla. Va aparte porque el

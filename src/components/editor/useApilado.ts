@@ -17,5 +17,5 @@ function useConsulta(consulta: string): boolean {
 export const useApilado = () => useConsulta("(max-aspect-ratio: 6/5)");
 
 // ¿Es un móvil? Mismo corte que editor.css: el título a la izquierda y los botones de
-// acción (⚙, «Parar», ✎ ＋ y ✓) abajo, fuera de la fila de capas
+// acción (⚙, «Parar», ✎ 🌐 y ✓) abajo, fuera de la fila de capas
 export const useMovil = () => useConsulta("(max-width: 600px)");

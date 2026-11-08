@@ -1,9 +1,12 @@
 import type { ResumenImportacion } from "../../keymap/importar";
+import { IDIOMAS, SISTEMAS } from "../../teclados/basico";
+import type { Ajustes } from "../../teclados/tipos";
 import { useVentanaEditor } from "./useVentanaEditor";
 
+// `ajustes`: viene de «Idioma y sistema», que vuelve a importar con un idioma o sistema nuevo
 export type Importacion =
-  | { archivo: string; resumen: ResumenImportacion; error?: undefined }
-  | { archivo: string; error: string; resumen?: undefined };
+  | { archivo: string; resumen: ResumenImportacion; ajustes?: Ajustes; error?: undefined }
+  | { archivo: string; error: string; resumen?: undefined; ajustes?: undefined };
 
 type Props = {
   importacion: Importacion;
@@ -45,6 +48,13 @@ export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Pro
               <br />
               <strong className="text-hueso">{resumen.teclas} teclas</strong> con función.
             </p>
+
+            {importacion.ajustes && (
+              <p className="m-0">
+                <strong className="text-hueso">Con:</strong> {IDIOMAS[importacion.ajustes.idioma]} ·{" "}
+                {SISTEMAS[importacion.ajustes.so]}
+              </p>
+            )}
 
             {resumen.propios.length > 0 && (
               <p className="m-0">

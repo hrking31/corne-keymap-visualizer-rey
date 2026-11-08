@@ -36,7 +36,7 @@
   border-color: var(--color-naranja);
 }
 
-/* Opciones grandes para elegir (distribución, idioma, sistema) */
+/* Opciones grandes para elegir (idioma y sistema) */
 .opcion {
   box-sizing: border-box;
   width: 100%;
@@ -268,7 +268,7 @@ body:has(.parar-ronda):has(.menu-ajustes) h1 {
   }
 }
 
-/* La tecla que se está editando o intercambiando, resaltada en naranja */
+/* La tecla que se está editando, resaltada en naranja */
 .key[data-elegida] {
   border-color: var(--color-naranja);
   box-shadow: 0 0 0 2px var(--color-naranja);
@@ -292,27 +292,6 @@ body.con-panel {
 
 .compacto legend {
   margin-bottom: 4px;
-}
-
-/* Vista previa del asistente en el móvil: la mitad izquierda real del teclado. La tecla
-   sale del ancho disponible (la mitad con su placa mide ~7,45 teclas), y la mitad se
-   centra contando lo que la placa sobresale hacia dentro (pulgares y pantalla) */
-.vista-mitad {
-  container-type: inline-size;
-  display: flex;
-  justify-content: center;
-}
-
-.vista-mitad .split {
-  --key-size: min(calc((100cqw - 5 * var(--key-gap) - 8px) / 7.45), 52px);
-  margin: calc(var(--key-size) * 0.14 + 24px) 0 calc(var(--key-size) * 0.48 + 8px);
-  top: 0;
-}
-
-.vista-mitad .split.left {
-  transform: translateX(calc(var(--key-size) * -0.61)) scaleX(-1);
-  margin-bottom: calc(var(--key-size) * 0.48 + 8px);
-  order: 0;
 }
 
 /* ===== MENÚ DE AJUSTES (2026-10-09, pedido por el autor) =====
@@ -467,7 +446,7 @@ body:has(.menu-ajustes) h1 {
   }
 }
 
-/* Editar la capa (✎) y agregar una (＋) en la fila de capas: solo el ícono, sin recuadro */
+/* El nombre de la capa (✎) e idioma y sistema (🌐) en la fila de capas: solo el ícono, sin recuadro */
 .boton-icono {
   display: inline-flex;
   align-items: center;
@@ -490,41 +469,10 @@ body:has(.menu-ajustes) h1 {
   color: var(--color-naranja-claro);
 }
 
-/* Mover una capa: un solo recuadro con «Mover» en el centro; las flechas son los botones */
-.mover {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--color-borde);
-  border-radius: 4px;
-  background: var(--color-boton);
-  color: var(--color-gris);
-  font: bold 12px var(--font-mono);
-  text-transform: uppercase;
-}
-
-.mover-flecha {
-  padding: 6px 16px;
-  border: 0;
-  background: none;
-  color: var(--color-gris);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s;
-}
-
-.mover-flecha:hover:not(:disabled),
-.mover-flecha:focus-visible,
-.mover-flecha:active:not(:disabled) {
-  color: var(--color-naranja-claro);
-}
-
-.mover-flecha:disabled {
-  opacity: 0.3;
-  cursor: default;
+/* Los íconos dibujados (🌐), del tamaño de la letra, como ✎ */
+.boton-icono svg {
+  width: 1em;
+  height: 1em;
 }
 
 /* Botón principal más pequeño, para avisos de una línea («Hay una versión nueva») */
@@ -539,7 +487,7 @@ body:has(.menu-ajustes) h1 {
   color: var(--color-gris);
 }
 
-/* ✎ y ＋ en una sola casilla de la fila de capas */
+/* ✎ y 🌐 en una sola casilla de la fila de capas */
 .par-edicion {
   display: inline-flex;
   align-items: center;
@@ -548,7 +496,7 @@ body:has(.menu-ajustes) h1 {
 }
 
 /* Editando con más de 6 capas, con el teclado apilado (la misma condición que apila las
-   mitades en style.css): dos filas de 6. Arriba seis capas; abajo el resto, ✎＋ y «Listo»
+   mitades en style.css): dos filas de 6. Arriba seis capas; abajo el resto, ✎🌐 y «Listo»
    (pedido del autor). Va después de style.css, así que manda sobre sus filas de 4 o 5
    para 7–10 casillas, que no contaban con las 11 o 12 de la edición. Seis por fila miden
    unos 550px (medido con 10 capas): desde 560px */
@@ -578,15 +526,7 @@ body:has(.menu-ajustes) h1 {
   }
 }
 
-/* ＋ con el máximo de capas: apagado, sin el naranja al pasar por encima (sigue siendo
-   pulsable para avisar por qué no agrega) */
-.boton-icono[aria-disabled="true"] {
-  opacity: 0.35;
-  cursor: default;
-  color: var(--color-gris);
-}
-
-/* «Listo» al editar: un ✓ del tamaño de ✎ y ＋ */
+/* «Listo» al editar: un ✓ del tamaño de ✎ y 🌐 */
 .listo-edicion svg {
   width: 1.1em;
   height: 1.1em;
@@ -619,7 +559,7 @@ body:has(.menu-ajustes) h1 {
 
 /* ===== MÓVIL: BOTONES ABAJO (2026-10-14, pedido del autor) =====
    El título ocupa todo el ancho: centrado el nombre del teclado y, practicando, a la
-   izquierda lo que se pide. El ⚙, «Parar», ✎ ＋ y ✓ bajan a las esquinas de abajo, en una
+   izquierda lo que se pide. El ⚙, «Parar», ✎ 🌐 y ✓ bajan a las esquinas de abajo, en una
    franja que se reserva encima del texto de la firma (8 + 36 px). El menú se abre hacia arriba */
 @media (max-width: 600px) {
   body:has(.menu-ajustes) h1,
@@ -637,7 +577,7 @@ body:has(.menu-ajustes) h1 {
     padding-top: 44px;
   }
 
-  /* Al editar, ✎ y ＋ abajo a la derecha, junto al ✓ (12px entre ellos) y sin recuadro,
+  /* Al editar, ✎ y 🌐 abajo a la derecha, junto al ✓ (12px entre ellos) y sin recuadro,
      como el ⚙: la fila de arriba queda solo con las capas (hasta 10) */
   .layer-buttons .par-edicion {
     position: fixed;

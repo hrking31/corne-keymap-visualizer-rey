@@ -15,11 +15,9 @@ type Props = {
   onOcultar: () => void;
   // Modo edición: tocar una tecla la elige (no se muestra el panel de información)
   alElegir?: (tecla: TeclaDibujo) => void;
-  // La tecla que se está editando o intercambiando, resaltada
-  elegida?: number | null;
-  // La tecla abierta en el editor: se ve con su texto, como quedará al guardarla (deja de
-  // ser heredada o sin reconocer)
-  editada?: number;
+  // La tecla abierta en el editor: resaltada, y con su texto, como quedará al guardarla
+  // (deja de ser heredada o sin reconocer)
+  elegida?: number;
   // Práctica: las teclas encendidas (la que se acaba de acertar, o la correcta tras un fallo)
   encendidas?: number[];
   // Práctica: lo que muestra la pantalla OLED de esta mitad (una imagen para el CSS, con el
@@ -38,7 +36,7 @@ const clasesDelCamino = (m: MarcaCamino) =>
 // Una mitad del teclado. Las teclas tienen que ser hijas directas de .split:
 // el escalonado y el abanico del CSS usan nth-child.
 export default function Bloque(props: Props) {
-  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, editada, encendidas, pantalla, camino } = props;
+  const { id, lado, capa, nombreCapa, teclas, espejo, onMostrar, onOcultar, alElegir, elegida, encendidas, pantalla, camino } = props;
   const editando = Boolean(alElegir);
   const filas = dividirFilas(teclas, espejo);
 
@@ -50,7 +48,7 @@ export default function Bloque(props: Props) {
         // capa, como la versión vanilla. Si las reutilizara, el borde y el color
         // harían la transición de 0.2s del CSS (p. ej. al volverse naranja).
         const key = `${capa}-${i}`;
-        const vistaPrevia = editada === tecla.pos;
+        const vistaPrevia = elegida === tecla.pos;
         // Importada de un &trans: hace lo de la capa de abajo, con el texto en gris. Importada
         // con algo que no se reconoció: borde punteado y «?»
         const claseHeredada =

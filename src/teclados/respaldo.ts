@@ -1,7 +1,7 @@
-// Copia de seguridad del teclado: un archivo .json que el usuario descarga y puede
-// restaurar después. Al leerlo se revisa todo y solo se conservan los campos conocidos:
+// El teclado en un archivo .json: «Guardar teclado en archivo» lo descarga y «Cargar
+// teclado desde archivo» lo vuelve a poner en la cuenta. Al leerlo se revisa todo y solo se conservan los campos conocidos:
 // un archivo editado a mano o de otra app no puede meter datos raros en la cuenta.
-import { DISTRIBUCIONES, IDIOMAS, SISTEMAS } from "./distribuciones";
+import { IDIOMAS, SISTEMAS } from "./basico";
 import { LIMITES, MODOS_CAPA, validarTeclado } from "./validar";
 import type { CapaConfig, ModoCapa, TeclaConfig, TecladoConfig } from "./tipos";
 
@@ -68,28 +68,24 @@ function leerCapa(v: unknown, id: string): CapaConfig {
   return { corto: texto(v.corto, `el nombre de la capa «${id}»`), largo: texto(v.largo, `el nombre largo de «${id}»`), teclas };
 }
 
-// Lee un archivo de copia. Lanza ErrorRespaldo, con un mensaje claro, si no lo es o no es válido
+// Lee un archivo de teclado. Lanza ErrorRespaldo, con un mensaje claro, si no lo es o no es válido
 export function leerRespaldo(contenido: string): { teclado: TecladoConfig; fecha: Date | null } {
   let datos: unknown;
   try {
     datos = JSON.parse(contenido);
   } catch {
-    throw new ErrorRespaldo("No es una copia de seguridad: el archivo no se puede leer.");
+    throw new ErrorRespaldo("No es un archivo de teclado: no se puede leer.");
   }
   if (!esObjeto(datos) || datos.formato !== FORMATO || !esObjeto(datos.teclado)) {
-    throw new ErrorRespaldo("No es una copia de seguridad de Corne ZMK Visualizer.");
+    throw new ErrorRespaldo("No es un archivo de teclado de Corne ZMK Visualizer.");
   }
   if (typeof datos.version !== "number" || datos.version > VERSION) {
-    throw new ErrorRespaldo("La copia es de una versión más nueva de la app: actualízala e inténtalo otra vez.");
+    throw new ErrorRespaldo("El archivo es de una versión más nueva de la app: actualízala e inténtalo otra vez.");
   }
 
   const t = datos.teclado;
   const ajustes = esObjeto(t.ajustes) ? t.ajustes : {};
-  if (
-    !(String(ajustes.distribucion) in DISTRIBUCIONES) ||
-    !(String(ajustes.idioma) in IDIOMAS) ||
-    !(String(ajustes.so) in SISTEMAS)
-  ) {
+  if (!(String(ajustes.idioma) in IDIOMAS) || !(String(ajustes.so) in SISTEMAS)) {
     throw new ErrorRespaldo("El archivo está dañado: los ajustes del teclado no son válidos.");
   }
   if (!Array.isArray(t.orden) || !t.orden.every((id) => typeof id === "string") || !esObjeto(t.capas)) {
@@ -101,7 +97,6 @@ export function leerRespaldo(contenido: string): { teclado: TecladoConfig; fecha
   const teclado: TecladoConfig = {
     nombre: texto(t.nombre, "el nombre del teclado"),
     ajustes: {
-      distribucion: ajustes.distribucion as TecladoConfig["ajustes"]["distribucion"],
       idioma: ajustes.idioma as TecladoConfig["ajustes"]["idioma"],
       so: ajustes.so as TecladoConfig["ajustes"]["so"],
     },
@@ -110,7 +105,7 @@ export function leerRespaldo(contenido: string): { teclado: TecladoConfig; fecha
   };
 
   const problemas = validarTeclado(teclado);
-  if (problemas.length) throw new ErrorRespaldo(`La copia no es válida: ${problemas[0]}.`);
+  if (problemas.length) throw new ErrorRespaldo(`El archivo no es válido: ${problemas[0]}.`);
 
   const fecha = typeof datos.fecha === "string" ? new Date(datos.fecha) : null;
   return { teclado, fecha: fecha && !Number.isNaN(fecha.getTime()) ? fecha : null };

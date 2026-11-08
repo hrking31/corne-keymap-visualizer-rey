@@ -6,14 +6,14 @@ import { createRoot } from "react-dom/client";
 import App from "../../src/App";
 import { importarKeymap } from "../../src/keymap/importar";
 import { leerKeymap } from "../../src/keymap/leer";
-import { crearTeclado } from "../../src/teclados/plantillas";
+import { tecladoVacio } from "../../src/teclados/basico";
 import type { TecladoConfig } from "../../src/teclados/tipos";
 import keymap from "../keymaps/corne-rey.keymap?raw";
 import "../../src/style.css";
 
 const { teclado: importado } = importarKeymap(
   leerKeymap(keymap),
-  crearTeclado({ distribucion: "dvorak", idioma: "es-LA", so: "windows" }),
+  tecladoVacio({ idioma: "es-LA", so: "windows" }),
 );
 
 // Una de cada tres teclas lleva descripción, de una línea a varias

@@ -70,8 +70,8 @@ service cloud.firestore {
 
     function ajustesValidos(a) {
       return a is map
-        && a.keys().hasOnly(['distribucion', 'idioma', 'so'])
-        && a.distribucion in ['qwerty', 'colemak-dh', 'colemak', 'dvorak']
+        && a.keys().hasAll(['idioma', 'so'])
+        && a.keys().hasOnly(['idioma', 'so'])
         && a.idioma in ['es-LA', 'es-ES', 'en-US']
         && a.so in ['windows', 'macos', 'linux'];
     }

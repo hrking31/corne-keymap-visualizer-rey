@@ -216,10 +216,10 @@ export function importarKeymap(
   const cortos = leido.capas.map((c, i) => nombreCorto(c.nombre, i, usados));
   const ctx: Contexto = { idioma: actual.ajustes.idioma, so: actual.ajustes.so, capas: cortos, propios: leido.propios };
 
-  // Se reutilizan los ids de las capas que ya existían, en orden (Base primero)
+  // Se reutilizan los ids de las capas que ya existían, en orden. La primera es siempre «base»
   const orden: string[] = [];
   for (let i = 0; i < leido.capas.length; i++) {
-    let id = actual.orden[i];
+    let id = i === 0 ? "base" : actual.orden[i];
     if (!id) {
       let n = i;
       while (actual.capas[`capa${n}`] || orden.includes(`capa${n}`)) n++;
@@ -262,7 +262,7 @@ export function importarKeymap(
 
     capas[id] = {
       corto: cortos[i],
-      largo: anterior ? anterior.largo : i === 0 ? "" : nombreLargo(c.nombre, cortos[i]),
+      largo: anterior ? anterior.largo : i === 0 ? "Base" : nombreLargo(c.nombre, cortos[i]),
       teclas,
     };
   });
@@ -270,7 +270,8 @@ export function importarKeymap(
   ponerCombinaciones(leido, filas, orden, capas, actual);
 
   resumen.quitadas = actual.orden.slice(leido.capas.length).map((id) => actual.capas[id]?.corto ?? id);
-  return { teclado: { ...actual, orden, capas }, resumen };
+  // Los ajustes, solo con lo que existe hoy (idioma y sistema): el teclado se guarda entero
+  return { teclado: { ...actual, ajustes: { idioma: ctx.idioma, so: ctx.so }, orden, capas }, resumen };
 }
 
 // Las capas por combinación (conditional_layers: LOWER + RAISE → ADJUST). En ZMK, con LOWER
