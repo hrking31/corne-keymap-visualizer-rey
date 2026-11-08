@@ -12,10 +12,10 @@ type Props = {
   onCerrar: () => void;
 };
 
-// «Restaurar respaldo»: antes de reemplazar el teclado de la cuenta, de qué teclado es el
+// «Restaurar copia»: antes de reemplazar el teclado de la cuenta, de qué teclado es el
 // respaldo, sus capas y de cuándo es. Nada cambia hasta pulsar «Aplicar», y antes se
 // descarga una copia de respaldo del teclado actual.
-export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }: Props) {
+export default function RestaurarCopia({ restauracion, onAplicar, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
   const { archivo, teclado, fecha, error } = restauracion;
 
@@ -23,7 +23,7 @@ export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }:
     <aside
       ref={ventana}
       className="fixed left-1/2 z-40 box-border w-[min(360px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left text-sm text-texto shadow-xl"
-      aria-label="Restaurar respaldo"
+      aria-label="Restaurar copia"
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >
       <button type="button" className="absolute top-2 right-2 cursor-pointer border-0 bg-transparent text-gris"
@@ -31,7 +31,7 @@ export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }:
         ✕
       </button>
       <div className="flex flex-col gap-3">
-        <h2 className="m-0 text-base text-naranja-claro uppercase">Restaurar respaldo</h2>
+        <h2 className="m-0 text-base text-naranja-claro uppercase">Restaurar copia</h2>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
 
         {!teclado ? (
@@ -40,7 +40,7 @@ export default function RestaurarRespaldo({ restauracion, onAplicar, onCerrar }:
           <>
             <p className="m-0">
               <strong className="text-hueso">{nombreVisible(teclado)}</strong>
-              {fecha && <> · respaldo del {fecha.toLocaleDateString("es")}</>}
+              {fecha && <> · copia del {fecha.toLocaleDateString("es")}</>}
               <br />
               <strong className="text-hueso">{teclado.orden.length} capas:</strong>{" "}
               {teclado.orden.map((id) => teclado.capas[id].corto).join(" · ")}

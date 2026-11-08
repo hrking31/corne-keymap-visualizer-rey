@@ -17,7 +17,7 @@ import TituloEditable from "./components/editor/TituloEditable";
 import ActualizarKeymap, { type Actualizacion } from "./components/editor/ActualizarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
-import RestaurarRespaldo, { type Restauracion } from "./components/editor/RestaurarRespaldo";
+import RestaurarCopia, { type Restauracion } from "./components/editor/RestaurarCopia";
 import CopiaRespaldo from "./components/editor/CopiaRespaldo";
 import EditorAjustes from "./components/editor/EditorAjustes";
 import { crearRespaldo, leerRespaldo, nombreDeArchivo } from "./teclados/respaldo";
@@ -150,7 +150,7 @@ export default function App({ tecladoInicial }: Props) {
   // «Actualizar .keymap»: el resumen y el teclado resultante, hasta que se aplique o cancele
   const [actualizacion, setActualizacion] = useState<(Actualizacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
-  // «Restaurar respaldo»: el resumen y el teclado leído, hasta aplicar o cancelar
+  // «Restaurar copia»: el resumen y el teclado leído, hasta aplicar o cancelar
   const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
   // «Copia de respaldo»: la ventana que explica qué lleva antes de descargarla
   const [copiaAbierta, setCopiaAbierta] = useState(false);
@@ -244,7 +244,7 @@ export default function App({ tecladoInicial }: Props) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // «Restaurar respaldo»: lee el .json y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
+  // «Restaurar copia»: lee el .json y muestra su resumen. Nada cambia hasta pulsar «Aplicar»
   const leerRespaldoElegido = async (archivo: File | undefined) => {
     if (!archivo) return;
     try {
@@ -430,7 +430,7 @@ export default function App({ tecladoInicial }: Props) {
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
       menu.push({ texto: "Actualizar .keymap", alElegir: () => selectorKeymap?.click() });
       menu.push({ texto: "Copia de respaldo", alElegir: () => setCopiaAbierta(true) });
-      menu.push({ texto: "Restaurar respaldo", alElegir: () => selectorRespaldo?.click() });
+      menu.push({ texto: "Restaurar copia", alElegir: () => selectorRespaldo?.click() });
     }
     menu.push(
       { texto: "Borrar mi cuenta", peligro: true, alElegir: () => setConfirmarBorrado(true) },
@@ -771,7 +771,7 @@ export default function App({ tecladoInicial }: Props) {
         />
       )}
 
-      {/* El selector de archivos del menú «Restaurar respaldo»: no se ve */}
+      {/* El selector de archivos del menú «Restaurar copia»: no se ve */}
       {mio && (
         <input
           ref={setSelectorRespaldo}
@@ -794,11 +794,11 @@ export default function App({ tecladoInicial }: Props) {
       )}
 
       {restauracion && (
-        <RestaurarRespaldo
+        <RestaurarCopia
           restauracion={restauracion}
           onAplicar={() => {
             if (!mio || !restauracion.teclado) return;
-            // Por si acaso: antes de reemplazarlo, un respaldo del teclado actual
+            // Por si acaso: antes de reemplazarlo, una copia de respaldo del teclado actual
             hacerRespaldo(mio);
             if (guardar(restauracion.teclado)) {
               setCapa("base");

@@ -1,4 +1,4 @@
-// El respaldo: «Copia de respaldo» y «Restaurar respaldo». Se restaura idéntico; un archivo
+// El respaldo: «Copia de respaldo» y «Restaurar copia». Se restaura idéntico; un archivo
 // roto, de otra app o fuera de los límites se rechaza con un mensaje claro, sin tocar nada.
 import { describe, expect, it } from "vitest";
 import { crearRespaldo, ErrorRespaldo, leerRespaldo, nombreDeArchivo } from "../src/teclados/respaldo";
