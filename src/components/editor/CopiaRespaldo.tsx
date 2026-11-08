@@ -29,6 +29,7 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
           Crea un archivo con las <strong className="text-hueso">descripciones de las teclas</strong>, las leyendas
           personalizadas, los nombres de las capas y el nombre del teclado.
         </p>
+        <p className="m-0">Al restaurar no necesitas cargar el .keymap.</p>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
         <div className="flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
