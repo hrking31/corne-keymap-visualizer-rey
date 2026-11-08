@@ -45,6 +45,7 @@ function leerTecla(v: unknown, donde: string): TeclaConfig {
     texto: texto(v.texto, `el texto de ${donde}`),
     descripcion: texto(v.descripcion, `la descripción de ${donde}`),
   };
+  if (typeof v.leyendaKeymap === "string" && v.leyendaKeymap.length <= LIMITES.texto) tecla.leyendaKeymap = v.leyendaKeymap;
   if (v.heredada === true) tecla.heredada = true;
   if (typeof v.sinReconocer === "string") tecla.sinReconocer = v.sinReconocer;
   if (typeof v.envia === "string" && v.envia && v.envia.length <= LIMITES.envia) tecla.envia = v.envia;

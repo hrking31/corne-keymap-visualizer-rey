@@ -103,8 +103,8 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    que se ve en ella). **✓** sale de la edición; cada cambio ya se
    guardó al hacerlo.
 5. **Actualizar .keymap** (mismo menú): cuando cambias tu firmware, vuelves a cargarlo y ves un resumen
-   antes de aplicar nada (capas, teclas y lo que no se reconoció). Las descripciones que ya
-   escribiste se conservan.
+   antes de aplicar nada (capas, teclas y lo que no se reconoció). Tus descripciones se conservan,
+   y tus leyendas personalizadas también, mientras la tecla siga haciendo lo mismo.
 6. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un
    grupo: letras, mayúsculas, números, símbolos, otras teclas (Esc, Tab, Enter, flechas,
    F1–F10…), todo mezclado, palabras o frases. La primera pulsación comprueba el teclado; la

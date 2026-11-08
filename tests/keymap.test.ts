@@ -6,6 +6,7 @@ import oficial from "../src/assets/zmk-corne.keymap?raw";
 import rey from "./keymaps/corne-rey.keymap?raw";
 import { tecladoVacio } from "../src/teclados/basico";
 import { validarTeclado } from "../src/teclados/validar";
+import { editarTecla } from "../src/teclados/editar";
 import type { Ajustes, TecladoConfig } from "../src/teclados/tipos";
 import { ErrorKeymap, leerKeymap } from "../src/keymap/leer";
 import { importarKeymap } from "../src/keymap/importar";
@@ -156,6 +157,16 @@ describe("volver a importar", () => {
     expect(teclado.capas.base.teclas[0]).toMatchObject({ texto: "TAB", descripcion: "Mi tabulador" });
     expect(teclado.orden).toEqual(actual.orden.slice(0, 3));
     expect(resumen.quitadas).toEqual(["C", "D"]);
+  });
+
+  it("conserva las leyendas personalizadas mientras la tecla siga haciendo lo mismo", () => {
+    const actual = editarTecla(importar(oficial, ingles).teclado, "base", 0, { texto: "TABULA", descripcion: "" });
+    // Mismo .keymap: la tecla 0 sigue siendo &kp TAB, se queda la personalizada
+    const mismo = importarKeymap(leerKeymap(oficial), actual).teclado;
+    expect(mismo.capas.base.teclas[0]).toMatchObject({ texto: "TABULA", leyendaKeymap: "TAB", envia: "TAB" });
+    // En el firmware la tecla 0 pasa a ser ESC: manda la leyenda nueva del archivo
+    const cambiado = importarKeymap(leerKeymap(oficial.replace("&kp TAB", "&kp ESC")), actual).teclado;
+    expect(cambiado.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "", envia: "ESC" });
   });
 
   it("sobre un teclado vacío, la primera capa es siempre «base», con su nombre largo «Base»", () => {

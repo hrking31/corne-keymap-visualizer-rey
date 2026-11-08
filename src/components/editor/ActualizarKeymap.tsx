@@ -84,7 +84,7 @@ export default function ActualizarKeymap({ actualizacion, onAplicar, onCerrar }:
               </p>
             )}
 
-            <p className="m-0 text-xs text-gris">Las descripciones que ya escribiste se conservan.</p>
+            <p className="m-0 text-xs text-gris">Tus descripciones y tus leyendas personalizadas se conservan.</p>
           </>
         )}
 

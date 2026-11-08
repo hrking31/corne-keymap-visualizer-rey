@@ -672,6 +672,7 @@ describe("lo que envía una tecla se conserva", () => {
       texto: "INICIO",
       descripcion: "Va al principio de la línea",
       envia: "HOME",
+      leyendaKeymap: "INIT",
     });
   });
 

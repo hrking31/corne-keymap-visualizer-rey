@@ -20,11 +20,28 @@ describe("capas", () => {
 });
 
 describe("teclas", () => {
-  it("edita una tecla y conserva lo que envía; si queda vacía, la quita", () => {
+  it("una leyenda personalizada recuerda la del .keymap y conserva lo que envía", () => {
     let t = editarTecla(nuevo(), "base", 0, { texto: " ESC ", descripcion: " Cancela " });
-    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela", envia: "TAB" });
-    t = editarTecla(t, "base", 0, { texto: " ", descripcion: "" });
-    expect(t.capas.base.teclas[0]).toBeUndefined();
+    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela", envia: "TAB", leyendaKeymap: "TAB" });
+    // Otra vez personalizada: sigue recordando la del .keymap, no la anterior
+    t = editarTecla(t, "base", 0, { texto: "SALIR", descripcion: "Cancela" });
+    expect(t.capas.base.teclas[0].leyendaKeymap).toBe("TAB");
+    // Con la del .keymap otra vez, deja de ser personalizada
+    t = editarTecla(t, "base", 0, { texto: "TAB", descripcion: "Cancela" });
+    expect(t.capas.base.teclas[0]).toEqual({ texto: "TAB", descripcion: "Cancela", envia: "TAB" });
+  });
+
+  it("solo cambiar la descripción no personaliza la leyenda", () => {
+    const t = editarTecla(nuevo(), "base", 0, { texto: "TAB", descripcion: "Tabulador" });
+    expect(t.capas.base.teclas[0].leyendaKeymap).toBeUndefined();
+  });
+
+  it("una tecla vacía se quita; una leyenda vaciada a propósito se recuerda", () => {
+    const t = nuevo();
+    t.capas.base.teclas[5] = { texto: "", descripcion: "Algo" };
+    expect(editarTecla(t, "base", 5, { texto: "", descripcion: "" }).capas.base.teclas[5]).toBeUndefined();
+    const sinLeyenda = editarTecla(t, "base", 0, { texto: "", descripcion: "" });
+    expect(sinLeyenda.capas.base.teclas[0]).toMatchObject({ texto: "", leyendaKeymap: "TAB" });
   });
 
   it("una tecla de capa sigue llevando a su capa aunque se le cambie el texto", () => {
@@ -37,7 +54,7 @@ describe("teclas", () => {
     const t = nuevo();
     t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", heredada: true, sinReconocer: "&kp NOEXISTE" };
     const editado = editarTecla(t, "base", 8, { texto: "B", descripcion: "Mi B" });
-    expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B" });
+    expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B", leyendaKeymap: "NOEXISTE" });
   });
 
   it("cambia el nombre del teclado", () => {

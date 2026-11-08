@@ -44,6 +44,7 @@ export function validarTeclado(t: TecladoConfig): string[] {
       const n = Number(pos);
       if (!Number.isInteger(n) || n < 0 || n > 41) problemas.push(`Capa ${capa.corto}: posición ${pos} no existe`);
       largo(tecla.texto, LIMITES.texto, `Capa ${capa.corto}, tecla ${pos}, texto`);
+      if (tecla.leyendaKeymap) largo(tecla.leyendaKeymap, LIMITES.texto, `Capa ${capa.corto}, tecla ${pos}, leyenda del .keymap`);
       largo(tecla.descripcion, LIMITES.descripcion, `Capa ${capa.corto}, tecla ${pos}, descripción`);
       if (tecla.envia) largo(tecla.envia, LIMITES.envia, `Capa ${capa.corto}, tecla ${pos}, código`);
       // Puede apuntar a una capa que ya no existe: no es un error, solo no cuenta para el camino

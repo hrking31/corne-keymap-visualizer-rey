@@ -5,7 +5,8 @@
 //   otro archivo; se muestra con su nombre («GIT») y el usuario escribe qué hace. Lo que
 //   está mal escrito (un código de tecla que no existe) se muestra tal cual y se avisa:
 //   nunca se inventa.
-// - Las descripciones que el usuario ya escribió se conservan, tecla por tecla.
+// - Las descripciones que el usuario ya escribió se conservan, tecla por tecla, y también sus
+//   leyendas personalizadas mientras la tecla siga haciendo lo mismo.
 // - &trans muestra el texto de la capa desde la que se llega a esa (la que tiene el &mo,
 //   &lt… que la activa; si no hay, Base), marcado como heredado (gris). Es lo que hace
 //   ZMK: la tecla transparente deja pasar la de la capa activa de abajo.
@@ -247,8 +248,15 @@ export function importarKeymap(
       if (t.desconocido) resumen.desconocidos.push({ capa: cortos[i], pos, original: c.bindings[pos].original });
       if (t.propio && !resumen.propios.includes(t.propio)) resumen.propios.push(t.propio);
 
-      const descripcion = anterior?.teclas[pos]?.descripcion ?? "";
-      const tecla: TeclaConfig = { texto: recortar(texto), descripcion };
+      const previa = anterior?.teclas[pos];
+      const leyenda = recortar(texto);
+      const tecla: TeclaConfig = { texto: leyenda, descripcion: previa?.descripcion ?? "" };
+      // Una leyenda personalizada se queda mientras el .keymap dé la misma de antes en esa
+      // tecla; si da otra, la tecla ya hace otra cosa y manda la del archivo
+      if (previa?.leyendaKeymap !== undefined && previa.leyendaKeymap === leyenda) {
+        tecla.texto = previa.texto;
+        tecla.leyendaKeymap = leyenda;
+      }
       if (t.heredada) tecla.heredada = true;
       // Queda marcada en el teclado hasta que se corrija el .keymap o se edite a mano
       if (t.desconocido) tecla.sinReconocer = c.bindings[pos].original;

@@ -12,17 +12,22 @@ export function renombrarCapa(t: TecladoConfig, id: string, largo: string): Tecl
   return nuevo;
 }
 
-const vacia = (tecla: TeclaConfig) => !tecla.texto.trim() && !tecla.descripcion.trim() && !tecla.abre;
+// Una leyenda vaciada a propósito (la del .keymap era otra) no cuenta como vacía: se recuerda
+const vacia = (tecla: TeclaConfig) =>
+  !tecla.texto.trim() && !tecla.descripcion.trim() && !tecla.abre && tecla.leyendaKeymap === undefined;
 
-// Cambia el texto y la descripción de una tecla. Si queda vacía se quita
+// Cambia la leyenda y la descripción de una tecla. Si queda vacía se quita
 export function editarTecla(t: TecladoConfig, capa: string, pos: number, tecla: TeclaConfig): TecladoConfig {
   const nuevo = copiar(t);
   const limpia: TeclaConfig = { texto: tecla.texto.trim(), descripcion: tecla.descripcion.trim() };
+  const actual = nuevo.capas[capa].teclas[pos];
   // Lo que envía una tecla y la capa a la que lleva no dependen de cómo se llame ni de su
   // descripción: se conservan hasta que se vuelva a importar el .keymap
-  const { envia, abre } = nuevo.capas[capa].teclas[pos] ?? {};
-  if (envia) limpia.envia = envia;
-  if (abre) limpia.abre = abre;
+  if (actual?.envia) limpia.envia = actual.envia;
+  if (actual?.abre) limpia.abre = actual.abre;
+  // Leyenda personalizada: se recuerda la del .keymap. Si se vuelve a escribir esa, deja de serlo
+  const deKeymap = actual?.leyendaKeymap ?? actual?.texto ?? "";
+  if (limpia.texto !== deKeymap) limpia.leyendaKeymap = deKeymap;
   if (vacia(limpia)) delete nuevo.capas[capa].teclas[pos];
   else nuevo.capas[capa].teclas[pos] = limpia;
   return nuevo;

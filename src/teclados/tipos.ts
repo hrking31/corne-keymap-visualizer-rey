@@ -8,6 +8,9 @@ export type TeclaConfig = {
   // La leyenda: lo que se ve en la tecla y es el título del panel. Sale del .keymap y se
   // puede personalizar en el editor
   texto: string;
+  // Solo en una leyenda personalizada: la que daba el .keymap. Al actualizar el .keymap, si
+  // da la misma, se queda la personalizada; si da otra (la tecla ya hace otra cosa), la nueva
+  leyendaKeymap?: string;
   descripcion: string; // el recuadro naranja del panel
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo
