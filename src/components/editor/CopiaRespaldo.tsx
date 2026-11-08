@@ -29,11 +29,8 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
           Crea un archivo con las <strong className="text-hueso">descripciones de las teclas</strong>, las leyendas
           personalizadas, los nombres de las capas y el nombre del teclado.
         </p>
-        <p className="m-0 text-xs text-gris">
-          Lo demás (las capas y lo que hace cada tecla) sale de tu .keymap. El archivo también lo lleva, para que
-          al restaurarlo no tengas que volver a cargarlo.
-        </p>
-        <p className="m-0 text-xs text-gris">No incluye tus récords de práctica.</p>
+        <p className="m-0">Al restaurarla, tu teclado se ve completo sin volver a cargar el .keymap.</p>
+        <p className="m-0 text-xs text-gris">No es una copia de tu archivo .keymap y no incluye tus récords de práctica.</p>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
         <div className="flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
