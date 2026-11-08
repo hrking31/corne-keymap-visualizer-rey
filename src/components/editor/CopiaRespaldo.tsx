@@ -26,8 +26,8 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
       <div className="flex flex-col gap-3">
         <h2 className="m-0 text-base text-naranja-claro uppercase">Copia de respaldo</h2>
         <p className="m-0">
-          Crea un archivo con las <strong className="text-hueso">descripciones de las teclas</strong>, las leyendas
-          personalizadas, los nombres de las capas y el nombre del teclado.
+          Crea un archivo con las descripciones de las teclas, las leyendas personalizadas, los nombres de las
+          capas y el nombre del teclado.
         </p>
         <p className="m-0">Al restaurar no necesitas actualizar el .keymap.</p>
         <p className="m-0 text-xs text-gris">No incluye tus récords de práctica.</p>
