@@ -14,7 +14,7 @@ import MenuAjustes, { type OpcionMenu } from "./components/MenuAjustes";
 import { useCuenta } from "./firebase/useCuenta";
 import Asistente from "./components/editor/Asistente";
 import TituloEditable from "./components/editor/TituloEditable";
-import ImportarKeymap, { type Importacion } from "./components/editor/ImportarKeymap";
+import ActualizarKeymap, { type Actualizacion } from "./components/editor/ActualizarKeymap";
 import { leerKeymap } from "./keymap/leer";
 import { importarKeymap } from "./keymap/importar";
 import RestaurarRespaldo, { type Restauracion } from "./components/editor/RestaurarRespaldo";
@@ -146,8 +146,8 @@ export default function App({ tecladoInicial }: Props) {
     };
   }, [muchasCapas, nombresCapas]);
 
-  // Importar un .keymap: el resumen y el teclado resultante, hasta que se aplique o cancele
-  const [importacion, setImportacion] = useState<(Importacion & { teclado?: TecladoConfig }) | null>(null);
+  // «Actualizar .keymap»: el resumen y el teclado resultante, hasta que se aplique o cancele
+  const [actualizacion, setActualizacion] = useState<(Actualizacion & { teclado?: TecladoConfig }) | null>(null);
   const [selectorKeymap, setSelectorKeymap] = useState<HTMLInputElement | null>(null);
   // «Restaurar respaldo»: el resumen y el teclado leído, hasta aplicar o cancelar
   const [restauracion, setRestauracion] = useState<Restauracion | null>(null);
@@ -258,9 +258,9 @@ export default function App({ tecladoInicial }: Props) {
     if (!archivo || !mio) return;
     try {
       const { teclado: nuevo, resumen } = importarKeymap(leerKeymap(await archivo.text()), ajustes ? { ...mio, ajustes } : mio);
-      setImportacion({ archivo: archivo.name, resumen, ajustes, teclado: nuevo });
+      setActualizacion({ archivo: archivo.name, resumen, ajustes, teclado: nuevo });
     } catch (e) {
-      setImportacion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
+      setActualizacion({ archivo: archivo.name, error: e instanceof Error ? e.message : "No se pudo leer el archivo." });
     }
   };
 
@@ -425,7 +425,7 @@ export default function App({ tecladoInicial }: Props) {
       menu.push({ texto: "Editar", alElegir: () => setEditando(true) });
       menu.push(...opcionesPractica);
       // Abre el selector de archivos (en el mismo clic: los navegadores lo exigen)
-      menu.push({ texto: "Importar .keymap", alElegir: () => selectorKeymap?.click() });
+      menu.push({ texto: "Actualizar .keymap", alElegir: () => selectorKeymap?.click() });
       menu.push({ texto: "Hacer respaldo", alElegir: () => hacerRespaldo(mio) });
       menu.push({ texto: "Restaurar respaldo", alElegir: () => selectorRespaldo?.click() });
     }
@@ -753,7 +753,7 @@ export default function App({ tecladoInicial }: Props) {
         />
       )}
 
-      {/* El selector de archivos del menú «Importar .keymap»: no se ve */}
+      {/* El selector de archivos del menú «Actualizar .keymap»: no se ve */}
       {mio && (
         <input
           ref={setSelectorKeymap}
@@ -798,16 +798,16 @@ export default function App({ tecladoInicial }: Props) {
         />
       )}
 
-      {importacion && (
-        <ImportarKeymap
-          importacion={importacion}
+      {actualizacion && (
+        <ActualizarKeymap
+          actualizacion={actualizacion}
           onAplicar={() => {
-            if (importacion.teclado && guardar(importacion.teclado)) {
+            if (actualizacion.teclado && guardar(actualizacion.teclado)) {
               setCapa("base");
-              setImportacion(null);
+              setActualizacion(null);
             }
           }}
-          onCerrar={() => setImportacion(null)}
+          onCerrar={() => setActualizacion(null)}
         />
       )}
 

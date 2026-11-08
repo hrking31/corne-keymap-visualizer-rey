@@ -6,7 +6,7 @@ import type { Ajustes } from "../../teclados/tipos";
 type Props = {
   ajustes: Ajustes;
   // El .keymap elegido y los ajustes nuevos: se vuelve a importar con ellos (antes de aplicar
-  // se ve el resumen, como en «Importar .keymap»)
+  // se ve el resumen, como en «Actualizar .keymap»)
   onKeymap: (archivo: File, ajustes: Ajustes) => void;
   onCerrar: () => void;
 };

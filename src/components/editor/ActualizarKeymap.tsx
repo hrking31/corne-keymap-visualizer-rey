@@ -4,12 +4,12 @@ import type { Ajustes } from "../../teclados/tipos";
 import { useVentanaEditor } from "./useVentanaEditor";
 
 // `ajustes`: viene de «Idioma y sistema», que vuelve a importar con un idioma o sistema nuevo
-export type Importacion =
+export type Actualizacion =
   | { archivo: string; resumen: ResumenImportacion; ajustes?: Ajustes; error?: undefined }
   | { archivo: string; error: string; resumen?: undefined; ajustes?: undefined };
 
 type Props = {
-  importacion: Importacion;
+  actualizacion: Actualizacion;
   onAplicar: () => void;
   onCerrar: () => void;
 };
@@ -18,17 +18,17 @@ type Props = {
 // comportamientos propios (macros…) hay que describir, qué no se reconoció y qué capas se
 // quitarían. Nada cambia
 // hasta pulsar «Aplicar». Si el archivo no se pudo leer, explica por qué.
-export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Props) {
+export default function ActualizarKeymap({ actualizacion, onAplicar, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
-  const { archivo, error } = importacion;
-  const resumen = importacion.error === undefined ? importacion.resumen : null;
+  const { archivo, error } = actualizacion;
+  const resumen = actualizacion.error === undefined ? actualizacion.resumen : null;
   const sinPrefijo = (macro: string) => macro.replace(/^(mcr|macro|m)_/i, "");
 
   return (
     <aside
       ref={ventana}
       className="fixed left-1/2 z-40 box-border w-[min(360px,calc(100vw-32px))] -translate-x-1/2 overflow-y-auto rounded-md border border-borde bg-panel p-4 text-left text-sm text-texto shadow-xl"
-      aria-label="Importar keymap"
+      aria-label="Actualizar keymap"
       onKeyDown={(e) => e.key === "Escape" && onCerrar()}
     >
       <button type="button" className="absolute top-2 right-2 cursor-pointer border-0 bg-transparent text-gris"
@@ -36,7 +36,7 @@ export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Pro
         ✕
       </button>
       <div className="flex flex-col gap-3">
-        <h2 className="m-0 text-base text-naranja-claro uppercase">Importar keymap</h2>
+        <h2 className="m-0 text-base text-naranja-claro uppercase">Actualizar .keymap</h2>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
 
         {!resumen ? (
@@ -49,10 +49,10 @@ export default function ImportarKeymap({ importacion, onAplicar, onCerrar }: Pro
               <strong className="text-hueso">{resumen.teclas} teclas</strong> con función.
             </p>
 
-            {importacion.ajustes && (
+            {actualizacion.ajustes && (
               <p className="m-0">
-                <strong className="text-hueso">Con:</strong> {IDIOMAS[importacion.ajustes.idioma]} ·{" "}
-                {SISTEMAS[importacion.ajustes.so]}
+                <strong className="text-hueso">Con:</strong> {IDIOMAS[actualizacion.ajustes.idioma]} ·{" "}
+                {SISTEMAS[actualizacion.ajustes.so]}
               </p>
             )}
 

@@ -101,7 +101,7 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
    escribe en el propio título («Corne Rey ZMK»), ✎ cambia el nombre largo de la capa, 🌐 el idioma y
    el sistema, y al tocar una tecla escribes qué hace. **✓** sale de la edición; cada cambio ya se
    guardó al hacerlo.
-5. **Importar .keymap** (mismo menú): cuando cambias tu firmware, vuelves a cargarlo y ves un resumen
+5. **Actualizar .keymap** (mismo menú): cuando cambias tu firmware, vuelves a cargarlo y ves un resumen
    antes de aplicar nada (capas, teclas y lo que no se reconoció). Las descripciones que ya
    escribiste se conservan.
 6. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un

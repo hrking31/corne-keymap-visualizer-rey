@@ -1,5 +1,5 @@
 // Monta la app con el teclado de la prueba visual: el keymap del autor importado como lo
-// hace la app («Importar .keymap»), con descripciones de prueba de largos distintos para
+// hace la app («Actualizar .keymap»), con descripciones de prueba de largos distintos para
 // medir el panel. Trae teclas de todo tipo: de dos acciones, heredadas (&trans), de capa,
 // sin reconocer y vacías.
 import { createRoot } from "react-dom/client";
