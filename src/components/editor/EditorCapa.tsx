@@ -40,7 +40,7 @@ export default function EditorCapa({ capa, onGuardar, onCerrar }: Props) {
           <input className="campo" value={largo} maxLength={LIMITES.largo} placeholder="Navegación" autoFocus
             onChange={(e) => setLargo(e.target.value)} />
         </label>
-        <div className="botones-ventana flex justify-between gap-2">
+        <div className="flex justify-between gap-2">
           <button type="button" className="layer-btn" onClick={onCerrar}>
             Cancelar
           </button>
