@@ -26,11 +26,16 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
       <div className="flex flex-col gap-3">
         <h2 className="m-0 text-base text-naranja-claro uppercase">Copia de respaldo</h2>
         <p className="m-0">
-          Descarga un archivo con tu teclado tal como está ahora: sus capas, el texto y la{" "}
-          <strong className="text-hueso">descripción de cada tecla</strong>, su nombre, el idioma y el sistema.
+          Guarda en un archivo lo que escribiste tú: las{" "}
+          <strong className="text-hueso">descripciones de las teclas</strong>, los textos que cambiaste y los
+          nombres de las capas y del teclado.
+        </p>
+        <p className="m-0 text-xs text-gris">
+          Lo demás (las capas y lo que hace cada tecla) sale de tu .keymap. El archivo también lo lleva, para que
+          al restaurarlo no tengas que volver a cargarlo.
         </p>
         <p className="m-0">
-          Guárdalo donde quieras. Si borras algo sin querer, o tu cuenta, lo recuperas con{" "}
+          Si borras algo sin querer, o tu cuenta, lo recuperas con{" "}
           <strong className="text-hueso">Restaurar respaldo</strong>.
         </p>
         <p className="m-0 text-xs text-gris">No incluye tus récords de práctica.</p>

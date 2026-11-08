@@ -117,8 +117,9 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
      **Nueva ronda** (o Enter) repite; ↺ corta una ronda a medias. ⚙ → **Récords** muestra tus
      10 mejores de cada grupo.
    - Para terminar: ⚙ → **Salir**.
-7. **Copia de respaldo** explica qué lleva el archivo y lo descarga: tu teclado con tus
-   descripciones, en un `.json` (sin los récords). **Restaurar respaldo** lo vuelve a poner en tu
+7. **Copia de respaldo** explica qué lleva el archivo y lo descarga en un `.json`: lo que escribiste
+   tú (las descripciones, los textos cambiados y los nombres), junto con las capas leídas de tu
+   `.keymap`; sin los récords. **Restaurar respaldo** lo vuelve a poner en tu
    cuenta (antes de reemplazar el actual, descarga una copia de él por si acaso).
 8. En el mismo menú puedes **salir** o **borrar tu cuenta** y todos tus datos (teclado y récords).
    En la demo, sin cuenta, los récords se guardan en el navegador.
