@@ -44,11 +44,13 @@ arma la capa Base. Después agrega sus capas y escribe, con sus palabras, qué h
 
 - ✅ **Cada usuario configura su teclado**: entra con Google, un asistente le llena la capa Base
   (QWERTY, Colemak-DH, Colemak o Dvorak; español de Latinoamérica o de España, o inglés; Windows,
-  macOS o Linux) y después agrega hasta **10 capas** y edita cada tecla: texto, descripción y si
-  cambia de capa
+  macOS o Linux) y después agrega hasta **10 capas** y edita cada tecla: texto y descripción
 - ✅ Su teclado se guarda en la nube y se abre **también sin conexión**, en el PC y en el celular
 - ✅ **Importa el `.keymap` de tu firmware**: la app lee el archivo de ZMK y crea tus capas con el
   texto de cada tecla; a ti solo te queda escribir qué significa cada una
+- ✅ **Capas animadas**: al mirar una capa, las teclas de capa que hay que mantener para llegar a
+  ella se hunden **en el orden del gesto** (la primera baja y se queda, después la segunda). El
+  orden sale del `.keymap`, también en las capas que se activan con dos teclas a la vez
 - ✅ **Modo práctica** para la memoria muscular: rondas contra el reloj por grupos (letras,
   mayúsculas, números, símbolos, otras teclas, todo) o escribiendo **palabras y frases**. La pulsas
   en tu teclado sin mirarlo, las pantallas del Corne llevan el tiempo y la puntuación, las teclas
@@ -99,7 +101,8 @@ pantalla de inicio» y queda instalada como una app que funciona sin conexión.
 4. **Importar .keymap** (mismo menú): eliges el archivo de tu firmware ZMK y ves un resumen antes
    de aplicar nada (capas, teclas y lo que no se reconoció). Las teclas de dos acciones salen en
    dos líneas, las transparentes en gris y las que no se reconocen con un «?». Si vuelves a
-   importar, las descripciones que ya escribiste se conservan.
+   importar, las descripciones que ya escribiste se conservan. Desde entonces, al tocar el botón
+   de una capa, sus teclas de capa se animan: así ves qué pulgares mantener y en qué orden.
 5. **Practicar**: conecta tu teclado (por cable o Bluetooth) y elige en ⚙ → **Qué practicar** un
    grupo: letras, mayúsculas, números, símbolos, otras teclas (Esc, Tab, Enter, flechas,
    F1–F10…), todo mezclado, palabras o frases. La primera pulsación comprueba el teclado; la
@@ -266,6 +269,13 @@ El lector de `.keymap` va **dentro de la app** y entiende la sintaxis estándar 
 mi teclado: comentarios, `#define` (también las plantillas con parámetros que se usan para
 escribir macros), capas y comportamientos propios. Un `&algo` que no es de ZMK se trata como una
 macro del usuario y se muestra con su nombre; lo que está mal escrito se marca, nunca se inventa.
+
+Cada tecla de capa guarda **a qué capa lleva**, y con eso la app calcula el camino a cada capa
+(`caminoDeCapa`, una búsqueda por anchura desde Base). El orden no se adivina: en mi teclado,
+`&mo NAV` está escrito **dentro** del bloque de NUM, así que para NAV primero se mantiene la tecla
+de NUM (que está en Base) y después la de NAV. LED usa los mismos dos pulgares al revés, porque su
+`&mo` está dentro de SYM. Las capas por combinación (`conditional_layers`, el «tri-layer») se
+animan con las dos teclas a la vez.
 
 La práctica reconoce **la tecla física, no la letra**. Un teclado no envía letras sino
 posiciones, y el sistema decide qué letra es: `SEMI` escribe `;` en inglés y `Ñ` en español. Por

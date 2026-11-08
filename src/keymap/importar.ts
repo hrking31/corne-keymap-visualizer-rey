@@ -10,7 +10,7 @@
 //   &lt… que la activa; si no hay, Base), marcado como heredado (gris). Es lo que hace
 //   ZMK: la tecla transparente deja pasar la de la capa activa de abajo.
 import { LIMITES } from "../teclados/validar";
-import type { CapaConfig, TeclaConfig, TecladoConfig } from "../teclados/tipos";
+import type { CapaConfig, ModoCapa, TeclaConfig, TecladoConfig } from "../teclados/tipos";
 import { textoDeCodigo } from "./codigos";
 import { ErrorKeymap, type Binding, type KeymapLeido } from "./leer";
 
@@ -19,11 +19,11 @@ const TECLAS_POR_CAPA = 42;
 
 type Traducida = {
   texto: string;
-  deCapa: boolean;
   heredada?: boolean;
   desconocido?: boolean;
   propio?: string;
   envia?: string; // el código de ZMK que envía al tocarla, si es una tecla (&kp, o el tocar de &mt, &lt…)
+  abre?: { capa: number; modo: ModoCapa }; // la capa a la que lleva (su número en el archivo)
 };
 
 export type ResumenImportacion = {
@@ -54,15 +54,21 @@ const dosLineas = (tocar: string, mantener: string) => `${tocar}\n${mantener}`;
 
 // Una tecla: el código con sus modificadores, traducido al idioma y sistema del usuario
 function tecla(codigo: string | undefined, ctx: Contexto): Traducida {
-  if (!codigo) return { texto: "", deCapa: false, desconocido: true };
+  if (!codigo) return { texto: "", desconocido: true };
   const { texto, conocido } = textoDeCodigo(codigo, ctx.idioma, ctx.so);
   const envia = codigo.replace(/\s+/g, "");
-  return { texto, deCapa: false, desconocido: !conocido, envia: conocido && envia.length <= LIMITES.envia ? envia : undefined };
+  return { texto, desconocido: !conocido, envia: conocido && envia.length <= LIMITES.envia ? envia : undefined };
 }
 
 const capa = (parametro: string | undefined, ctx: Contexto) => {
   const n = Number(parametro);
   return Number.isInteger(n) && ctx.capas[n] !== undefined ? ctx.capas[n] : `CAPA${parametro ?? "?"}`;
+};
+
+// A qué capa lleva, si el número es el de una capa del archivo
+const abre = (parametro: string | undefined, modo: ModoCapa, ctx: Contexto): Traducida["abre"] => {
+  const n = Number(parametro);
+  return Number.isInteger(n) && ctx.capas[n] !== undefined ? { capa: n, modo } : undefined;
 };
 
 // Las opciones de los comportamientos estándar de ZMK que no son teclas
@@ -96,23 +102,28 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
     case "&kp":
       return tecla(p1, ctx);
     case "&none":
-      return { texto: "", deCapa: false };
+      return { texto: "" };
     case "&trans":
-      return { texto: "", deCapa: false, heredada: true };
+      return { texto: "", heredada: true };
     case "&mo":
+      return { texto: capa(p1, ctx), abre: abre(p1, "mantener", ctx) };
     case "&to":
     case "&tog":
     case "&sl":
-      return { texto: capa(p1, ctx), deCapa: true };
+      return { texto: capa(p1, ctx), abre: abre(p1, "tocar", ctx) };
     case "&lt": {
       const tocar = tecla(p2, ctx);
-      return { texto: dosLineas(tocar.texto, capa(p1, ctx)), deCapa: true, desconocido: tocar.desconocido, envia: tocar.envia };
+      return {
+        texto: dosLineas(tocar.texto, capa(p1, ctx)),
+        desconocido: tocar.desconocido,
+        envia: tocar.envia,
+        abre: abre(p1, "mantener", ctx),
+      };
     }
     case "&mt": {
       const [tocar, mantener] = [tecla(p2, ctx), tecla(p1, ctx)];
       return {
         texto: dosLineas(tocar.texto, mantener.texto),
-        deCapa: false,
         desconocido: tocar.desconocido || mantener.desconocido,
         envia: tocar.envia,
       };
@@ -120,20 +131,20 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
     case "&sk":
     case "&kt": {
       const t = tecla(p1, ctx);
-      return { texto: `${b.comportamiento === "&sk" ? "SK" : "TOG"} ${t.texto}`, deCapa: false, desconocido: t.desconocido };
+      return { texto: `${b.comportamiento === "&sk" ? "SK" : "TOG"} ${t.texto}`, desconocido: t.desconocido };
     }
     case "&bt": {
       const n = Number(p2);
-      if (p1 === "BT_SEL") return { texto: `BT${n + 1}`, deCapa: false };
-      if (p1 === "BT_DISC") return { texto: `BT${n + 1} OFF`, deCapa: false };
+      if (p1 === "BT_SEL") return { texto: `BT${n + 1}` };
+      if (p1 === "BT_DISC") return { texto: `BT${n + 1} OFF` };
       const bt: Record<string, string> = { BT_CLR: "BT CLR", BT_CLR_ALL: "BT CLR ALL", BT_NXT: "BT >", BT_PRV: "BT <" };
-      if (p1 && bt[p1]) return { texto: bt[p1], deCapa: false };
+      if (p1 && bt[p1]) return { texto: bt[p1] };
       break;
     }
   }
-  if (SIMPLES[b.comportamiento]) return { texto: SIMPLES[b.comportamiento], deCapa: false };
+  if (SIMPLES[b.comportamiento]) return { texto: SIMPLES[b.comportamiento] };
   const opcion = OPCIONES[b.comportamiento]?.[p1 ?? ""];
-  if (opcion) return { texto: opcion, deCapa: false };
+  if (opcion) return { texto: opcion };
 
   // Comportamientos que el .keymap define dentro (tocar/mantener…) y que se pueden traducir
   const nombre = b.comportamiento.replace(/^&/, "");
@@ -145,28 +156,29 @@ function traducir(b: Binding, ctx: Contexto, profundidad = 0): Traducida {
       const tocar = traducir({ ...propio.bindings[1], parametros: [p2 ?? ""] }, ctx, profundidad + 1);
       return {
         texto: dosLineas(tocar.texto, mantener.texto),
-        deCapa: mantener.deCapa || tocar.deCapa,
         desconocido: tocar.desconocido || mantener.desconocido,
         envia: tocar.envia,
+        // Mantenida, un &mo dentro lleva a su capa (si va en el tocar, se toca: &tog, &to…)
+        abre: mantener.abre ? { ...mantener.abre, modo: "mantener" } : tocar.abre,
       };
     }
     if ((propio.tipo === "mod-morph" || propio.tipo === "tap-dance") && propio.bindings.length) {
       const opciones = propio.bindings.slice(0, 2).map((x) => traducir(x, ctx, profundidad + 1));
       return {
         texto: opciones.map((o) => o.texto).join("/"),
-        deCapa: opciones.some((o) => o.deCapa),
         desconocido: opciones.some((o) => o.desconocido),
+        abre: opciones.find((o) => o.abre)?.abre,
       };
     }
   }
   // Uno de ZMK con una opción que no se conoce (mal escrita, o de una versión nueva): tal cual
   if (DE_ZMK.has(b.comportamiento) || SIMPLES[b.comportamiento] || OPCIONES[b.comportamiento]) {
-    return { texto: b.original.replace(/^&/, ""), deCapa: false, desconocido: true };
+    return { texto: b.original.replace(/^&/, ""), desconocido: true };
   }
   // Uno propio del usuario (una macro, casi siempre): su nombre sin el prefijo habitual,
   // «mcr_git» → «GIT», con sus parámetros si los lleva. Qué hace, lo escribe el usuario
   const visible = [nombre.replace(/^(mcr|macro|m)_/i, "").toUpperCase(), ...b.parametros].join(" ");
-  return { texto: visible, deCapa: false, propio: nombre };
+  return { texto: visible, propio: nombre };
 }
 
 // El nombre corto de una capa: la primera es siempre BASE; las demás, su nombre del archivo
@@ -220,11 +232,12 @@ export function importarKeymap(
   // El texto final de cada tecla, ya resuelto, para que &trans lo copie de la capa de abajo
   const textos: string[][] = [];
   const capas: Record<string, CapaConfig> = {};
+  const filas = leido.capas.map((c) => c.bindings.map((b) => traducir(b, ctx)));
 
   leido.capas.forEach((c, i) => {
     const id = orden[i];
     const anterior = actual.capas[id];
-    const fila = c.bindings.map((b) => traducir(b, ctx));
+    const fila = filas[i];
     const abajo = capaDeAbajo(leido, i);
     textos.push(fila.map((t, pos) => (t.heredada && abajo !== null ? textos[abajo][pos] : t.texto)));
 
@@ -235,12 +248,14 @@ export function importarKeymap(
       if (t.propio && !resumen.propios.includes(t.propio)) resumen.propios.push(t.propio);
 
       const descripcion = anterior?.teclas[pos]?.descripcion ?? "";
-      const tecla: TeclaConfig = { texto: recortar(texto), descripcion, deCapa: t.deCapa };
+      const tecla: TeclaConfig = { texto: recortar(texto), descripcion };
       if (t.heredada) tecla.heredada = true;
       // Queda marcada en el teclado hasta que se corrija el .keymap o se edite a mano
       if (t.desconocido) tecla.sinReconocer = c.bindings[pos].original;
       else if (t.envia) tecla.envia = t.envia;
-      if (!tecla.texto && !tecla.descripcion && !tecla.deCapa) return;
+      // Una tecla que lleva a su propia capa no sirve para llegar a ella
+      if (t.abre && t.abre.capa !== i) tecla.abre = { capa: orden[t.abre.capa], modo: t.abre.modo };
+      if (!tecla.texto && !tecla.descripcion && !tecla.abre) return;
       if (tecla.texto) resumen.teclas++;
       teclas[pos] = tecla;
     });
@@ -252,8 +267,41 @@ export function importarKeymap(
     };
   });
 
+  ponerCombinaciones(leido, filas, orden, capas, actual);
+
   resumen.quitadas = actual.orden.slice(leido.capas.length).map((id) => actual.capas[id]?.corto ?? id);
   return { teclado: { ...actual, orden, capas }, resumen };
+}
+
+// Las capas por combinación (conditional_layers: LOWER + RAISE → ADJUST). En ZMK, con LOWER
+// mantenida, la tecla de RAISE (casi siempre un &trans en LOWER, que deja pasar el &mo de
+// abajo) activa RAISE, y con las dos activas se enciende ADJUST. Se anota en esa tecla de
+// LOWER, y en la de LOWER dentro de RAISE, que lleva a ADJUST manteniendo las dos juntas.
+// Solo combinaciones de dos capas, la forma estándar; las de más se ignoran.
+function ponerCombinaciones(
+  leido: KeymapLeido,
+  filas: Traducida[][],
+  orden: string[],
+  capas: Record<string, CapaConfig>,
+  actual: TecladoConfig,
+) {
+  for (const { si, entonces } of leido.combinaciones) {
+    if (si.length !== 2 || si[0] === si[1] || !orden[entonces] || si.some((n) => !orden[n])) continue;
+    for (const [desde, otra] of [si, [si[1], si[0]]]) {
+      if (desde === entonces) continue;
+      // Las posiciones donde alguna capa tiene una tecla que lleva a `otra`
+      const posiciones = new Set<number>();
+      filas.forEach((fila) => fila.forEach((t, pos) => t.abre?.capa === otra && posiciones.add(pos)));
+      for (const pos of posiciones) {
+        const t = filas[desde][pos];
+        // En `desde`, esa tecla tiene que dejar pasar la de abajo o llevar también a `otra`
+        if (!t.heredada && t.abre?.capa !== otra) continue;
+        const id = orden[desde];
+        const tecla = capas[id].teclas[pos] ?? { texto: "", descripcion: actual.capas[id]?.teclas[pos]?.descripcion ?? "" };
+        capas[id].teclas[pos] = { ...tecla, abre: { capa: orden[entonces], modo: "juntas" } };
+      }
+    }
+  }
 }
 
 // La capa desde la que se activa la capa `i` (la de menor número que la nombra en un &mo,

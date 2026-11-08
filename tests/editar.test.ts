@@ -62,30 +62,30 @@ describe("capas", () => {
 
 describe("teclas", () => {
   it("edita una tecla y, si queda vacía, la quita", () => {
-    let t = editarTecla(nuevo(), "base", 0, { texto: " ESC ", descripcion: " Cancela ", deCapa: false });
-    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela", deCapa: false });
-    t = editarTecla(t, "base", 0, { texto: " ", descripcion: "", deCapa: false });
+    let t = editarTecla(nuevo(), "base", 0, { texto: " ESC ", descripcion: " Cancela " });
+    expect(t.capas.base.teclas[0]).toEqual({ texto: "ESC", descripcion: "Cancela" });
+    t = editarTecla(t, "base", 0, { texto: " ", descripcion: "" });
     expect(t.capas.base.teclas[0]).toBeUndefined();
   });
 
   it("editar a mano una tecla importada le quita las marcas (gris, sin reconocer)", () => {
     const t = nuevo();
-    t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", deCapa: false, heredada: true, sinReconocer: "&kp NOEXISTE" };
-    const editado = editarTecla(t, "base", 8, { texto: "B", descripcion: "Mi B", deCapa: false });
-    expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B", deCapa: false });
+    t.capas.base.teclas[8] = { texto: "NOEXISTE", descripcion: "", heredada: true, sinReconocer: "&kp NOEXISTE" };
+    const editado = editarTecla(t, "base", 8, { texto: "B", descripcion: "Mi B" });
+    expect(editado.capas.base.teclas[8]).toEqual({ texto: "B", descripcion: "Mi B" });
   });
 
   it("intercambia dos teclas con todo su contenido", () => {
     const t = intercambiarTeclas(nuevo(), "base", 1, 37);
-    expect(t.capas.base.teclas[1]).toMatchObject({ texto: "LOWER", deCapa: true });
-    expect(t.capas.base.teclas[37]).toMatchObject({ texto: "Q", deCapa: false });
+    expect(t.capas.base.teclas[1]).toMatchObject({ texto: "LOWER" });
+    expect(t.capas.base.teclas[37]).toMatchObject({ texto: "Q" });
   });
 
   it("intercambiar con una tecla vacía la mueve", () => {
     let t = agregarCapa(nuevo()).teclado;
-    t = editarTecla(t, "capa1", 5, { texto: "F5", descripcion: "", deCapa: false });
+    t = editarTecla(t, "capa1", 5, { texto: "F5", descripcion: "" });
     t = intercambiarTeclas(t, "capa1", 5, 20);
-    expect(t.capas.capa1.teclas).toEqual({ 20: { texto: "F5", descripcion: "", deCapa: false } });
+    expect(t.capas.capa1.teclas).toEqual({ 20: { texto: "F5", descripcion: "" } });
   });
 
   it("cambia el nombre del teclado", () => {

@@ -77,7 +77,7 @@ export function objetivos(teclado: TecladoConfig): Objetivo[] {
         const modificador = modificadorDeCodigo(tecla.envia);
         if (envio && sePractica(envio)) espera = { tipo: "tecla", envio };
         else if (modificador) espera = { tipo: "modificador", code: modificador };
-      } else if (!tecla.deCapa && [...tecla.texto.trim()].length === 1 && !MUERTAS[teclado.ajustes.idioma].includes(texto)) {
+      } else if (!tecla.abre && [...tecla.texto.trim()].length === 1 && !MUERTAS[teclado.ajustes.idioma].includes(texto)) {
         espera = { tipo: "caracter", caracter: texto.toLocaleUpperCase() };
       }
       if (!espera) continue;
@@ -186,7 +186,7 @@ function mapaDeCaracteres(teclado: TecladoConfig): Map<string, Objetivo["lugares
       const texto = tecla.texto.split("\n")[0].trim();
       const caracter = tecla.envia === "SPACE" || NOMBRES_ESPACIO.has(texto.toUpperCase()) ? " " : texto.toLocaleLowerCase();
       // Una tecla de capa solo cuenta si al tocarla escribe algo (tocar A, mantener NAV)
-      if ([...caracter].length !== 1 || (tecla.deCapa && !tecla.envia)) continue;
+      if ([...caracter].length !== 1 || (tecla.abre && !tecla.envia)) continue;
       mapa.set(caracter, [...(mapa.get(caracter) ?? []), { capa, pos: Number(pos) }]);
     }
   }

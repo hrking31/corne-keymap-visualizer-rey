@@ -51,7 +51,7 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
       updateDoc(
         ref,
         new FieldPath("capas", "base", "teclas", "0"),
-        { texto: "ESC", descripcion: "Salir", deCapa: false },
+        { texto: "ESC", descripcion: "Salir" },
         "actualizado",
         serverTimestamp(),
       ),

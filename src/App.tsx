@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { dividirBloques } from "./teclado";
 import { teclasParaDibujar } from "./teclados/convertir";
+import { caminoDeCapa, marcasDelCamino } from "./teclados/camino";
 import { ajustesDelNavegador, crearTeclado, nombreVisible } from "./teclados/plantillas";
 import type { Ajustes, TeclaDibujo, TecladoConfig } from "./teclados/tipos";
 import {
@@ -120,8 +121,6 @@ export default function App({ tecladoInicial }: Props) {
   const mio = cuenta.usuario ? cuenta.teclado : null;
   const modoEdicion = editando && Boolean(mio) && !tecladoInicial;
   const [teclaEditada, setTeclaEditada] = useState<{ pos: number; lado: Lado } | null>(null);
-  // «Tecla de capa» marcada o no en el editor, aún sin guardar (null: la de la tecla)
-  const [vistaDeCapa, setVistaDeCapa] = useState<boolean | null>(null);
   const [capaEnEdicion, setCapaEnEdicion] = useState(false);
   const [intercambiando, setIntercambiando] = useState<number | null>(null);
   const [confirmarBorrado, setConfirmarBorrado] = useState(false);
@@ -208,6 +207,9 @@ export default function App({ tecladoInicial }: Props) {
   // En el panel: «Capa» y el nombre largo («Capa Navegación»)
   const nombreCapa = `Capa ${capaActual.largo || capaActual.corto}`;
   const { izquierdo, derecho } = dividirBloques(teclasParaDibujar(capaActual));
+  // Capas animadas: las teclas que hay que usar, y en qué orden, para llegar a esta capa.
+  // Solo en la vista normal: al editar el movimiento estorba, y al practicar sería una pista
+  const camino = editando || practica.activa ? undefined : marcasDelCamino(caminoDeCapa(teclado, capa));
 
   // Guarda un cambio del editor si el teclado sigue siendo válido; si no, avisa por qué
   const guardar = (nuevo: TecladoConfig) => {
@@ -239,7 +241,6 @@ export default function App({ tecladoInicial }: Props) {
       return;
     }
     setCapaEnEdicion(false);
-    setVistaDeCapa(null);
     setTeclaEditada({ pos: tecla.pos, lado });
   };
 
@@ -490,11 +491,6 @@ export default function App({ tecladoInicial }: Props) {
     );
   }
 
-  // La tecla en edición: toda naranja si está marcada como de capa, sin naranja si no
-  const deCapaElegida = teclaEditada
-    ? (vistaDeCapa ?? teclasParaDibujar(capaActual).find((t) => t.pos === teclaEditada.pos)?.deCapa)
-    : undefined;
-
   // Los botones de capa; al editar, también editar la capa (✎), agregar una (＋) y «Listo»
   // (✓: sale del modo edición; cada cambio ya se guardó al hacerlo), en la misma fila para
   // no gastar otra línea. En el móvil el ✓ va abajo a la derecha, donde está el ⚙ (editor.css)
@@ -608,9 +604,10 @@ export default function App({ tecladoInicial }: Props) {
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "izquierdo") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
-          deCapaElegida={deCapaElegida}
+          editada={teclaEditada?.pos}
           encendidas={encendidas}
           pantalla={oledIzquierda}
+          camino={camino}
         />
         <Bloque
           id="right-side"
@@ -623,9 +620,10 @@ export default function App({ tecladoInicial }: Props) {
           onOcultar={ocultar}
           alElegir={modoEdicion ? (tecla) => elegirTecla(tecla, "derecho") : undefined}
           elegida={teclaEditada?.pos ?? intercambiando}
-          deCapaElegida={deCapaElegida}
+          editada={teclaEditada?.pos}
           encendidas={encendidas}
           pantalla={oledDerecha}
+          camino={camino}
         />
         {/* Solo se ve con las mitades apiladas: en el hueco entre las dos (style.css) */}
         <button
@@ -752,7 +750,6 @@ export default function App({ tecladoInicial }: Props) {
           onGuardar={(t) => {
             if (guardar(editarTecla(mio, capa, teclaEditada.pos, t))) setTeclaEditada(null);
           }}
-          onDeCapa={setVistaDeCapa}
           onIntercambiar={() => {
             setIntercambiando(teclaEditada.pos);
             setTeclaEditada(null);

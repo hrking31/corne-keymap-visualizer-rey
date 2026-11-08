@@ -7,7 +7,6 @@
 export type TeclaConfig = {
   texto: string; // lo que se ve en la tecla y es el título del panel
   descripcion: string; // el recuadro naranja del panel
-  deCapa: boolean; // tecla que cambia de capa: se pinta en naranja
   // Importada de un &trans del .keymap: hace lo mismo que en la capa de abajo, y muestra
   // su texto en gris. Al editarla a mano deja de serlo
   heredada?: boolean;
@@ -19,7 +18,21 @@ export type TeclaConfig = {
   // sigue enviando HOME), solo al volver a importar. Las teclas de plantilla y las escritas
   // a mano no lo llevan: se reconocen por su texto, si es un carácter
   envia?: string;
+  // Importada de un .keymap: la capa a la que lleva una tecla de capa. Con eso la app sabe
+  // qué teclas mantener, y en qué orden, para llegar a cada capa (caminoDeCapa). Es lo único
+  // que marca una tecla de capa: no se pintan de naranja, solo se colorean al animarse
+  abre?: AbreCapa;
 };
+
+// Cómo se usa una tecla de capa:
+// - mantener: &mo, el mantener de &lt y de un tocar/mantener propio;
+// - tocar: &tog, &to y &sl (se pulsa una vez y se suelta);
+// - juntas: una capa por combinación (conditional_layers, p. ej. LOWER + RAISE → ADJUST):
+//   esta tecla y la que abrió la capa en la que está se mantienen a la vez, en cualquier orden
+export type ModoCapa = "mantener" | "tocar" | "juntas";
+
+// El id de la capa (no su número): así cambiar el orden o el nombre de las capas no lo rompe
+export type AbreCapa = { capa: string; modo: ModoCapa };
 
 export type CapaConfig = {
   corto: string; // el botón de capa, máximo 6 letras («NAV»)

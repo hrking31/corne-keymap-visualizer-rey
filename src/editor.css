@@ -490,20 +490,6 @@ body:has(.menu-ajustes) h1 {
   color: var(--color-naranja-claro);
 }
 
-/* Mientras se edita una tecla marcada como «Tecla de capa»: toda naranja, para que se
-   distinga. Al guardar queda como las demás de capa (solo borde, .key-naranja) */
-.key.key-capa-editando {
-  border-color: var(--color-naranja) !important;
-  background: var(--color-naranja) !important;
-  color: #1a1915 !important;
-}
-
-/* Casillas en naranja, como el resto de la app (el navegador las pinta en azul) */
-input[type="checkbox"],
-input[type="radio"] {
-  accent-color: var(--color-naranja);
-}
-
 /* Mover una capa: un solo recuadro con «Mover» en el centro; las flechas son los botones */
 .mover {
   display: flex;
@@ -709,5 +695,105 @@ input[type="radio"] {
      pasar del tamaño de siempre ni bajar de 16px: una frase larga ocupa dos líneas */
   h1.titulo-practica {
     font-size: clamp(16px, calc((100vw - 36px) / (var(--letras) * 0.6)), 2em);
+  }
+}
+
+/* ---------- Capas animadas («Secuencia», maqueta aprobada por el autor) ----------
+   Al mirar una capa se animan las teclas de capa que hay que usar para llegar a ella, en
+   el orden del gesto: la primera baja y se queda abajo (la mantienes), después baja la
+   siguiente, y suben juntas. La primera nunca sube sola: así el orden no se confunde.
+   Bloque.tsx pone camino-<momentos>-<momento>; camino.ts decide cuál toca a cada tecla.
+   Va en `translate` y no en `transform`, que es el del escalonado y el abanico. */
+
+/* En reposo: la primera, con borde y letra naranjas; las demás, con el aspecto de :hover */
+.key.paso-primero {
+  border-color: var(--color-naranja);
+  color: var(--color-naranja-claro);
+}
+
+.key.paso-despues {
+  background: var(--color-borde);
+  border-color: var(--color-naranja);
+  color: #fff;
+}
+
+.key.camino-1-1 { animation: camino-1-1 2.4s ease-in-out infinite; }
+.key.camino-2-1 { animation: camino-2-1 2.4s ease-in-out infinite; }
+.key.camino-2-2 { animation: camino-2-2 2.4s ease-in-out infinite; }
+.key.camino-3-1 { animation: camino-3-1 2.4s ease-in-out infinite; }
+.key.camino-3-2 { animation: camino-3-2 2.4s ease-in-out infinite; }
+.key.camino-3-3 { animation: camino-3-3 2.4s ease-in-out infinite; }
+
+/* Una sola tecla (NUM, SYM): baja, espera y sube */
+@keyframes camino-1-1 {
+  0%, 6% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+  14%, 60% { translate: 0 3px; border-bottom-width: 1px; background: var(--color-borde); color: #fff; }
+  70%, 100% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+}
+
+/* Dos teclas (NAV, LED, FUN del autor): la primera baja y se queda; la segunda baja cuando
+   la primera ya está abajo; suben juntas */
+@keyframes camino-2-1 {
+  0%, 6% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+  14%, 74% { translate: 0 3px; border-bottom-width: 1px; background: var(--color-borde); color: #fff; }
+  84%, 100% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+}
+
+@keyframes camino-2-2 {
+  0%, 30% { translate: 0 0; border-bottom-width: 4px; }
+  38%, 74% { translate: 0 3px; border-bottom-width: 1px; }
+  84%, 100% { translate: 0 0; border-bottom-width: 4px; }
+}
+
+/* Tres teclas (casi nunca en un Corne): lo mismo, con un momento más */
+@keyframes camino-3-1 {
+  0%, 6% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+  14%, 74% { translate: 0 3px; border-bottom-width: 1px; background: var(--color-borde); color: #fff; }
+  84%, 100% { translate: 0 0; border-bottom-width: 4px; background: #2d2b26; }
+}
+
+@keyframes camino-3-2 {
+  0%, 26% { translate: 0 0; border-bottom-width: 4px; }
+  34%, 74% { translate: 0 3px; border-bottom-width: 1px; }
+  84%, 100% { translate: 0 0; border-bottom-width: 4px; }
+}
+
+@keyframes camino-3-3 {
+  0%, 46% { translate: 0 0; border-bottom-width: 4px; }
+  54%, 74% { translate: 0 3px; border-bottom-width: 1px; }
+  84%, 100% { translate: 0 0; border-bottom-width: 4px; }
+}
+
+/* Una tecla que se toca (&tog, &to, &sl): baja y sube sola en su momento. Es la misma
+   vuelta de 2,4 s, retrasada hasta el momento en que baja */
+.key.camino-tocar { animation-name: camino-toque; }
+.key.camino-tocar.camino-2-2 { animation-delay: 0.72s; }
+.key.camino-tocar.camino-3-2 { animation-delay: 0.62s; }
+.key.camino-tocar.camino-3-3 { animation-delay: 1.1s; }
+
+@keyframes camino-toque {
+  0%, 6% { translate: 0 0; border-bottom-width: 4px; }
+  14%, 20% { translate: 0 3px; border-bottom-width: 1px; }
+  28%, 100% { translate: 0 0; border-bottom-width: 4px; }
+}
+
+/* Con «reducir movimiento», quietas: las que se mantienen antes, hundidas; la última,
+   encendida y arriba. El orden se sigue viendo */
+@media (prefers-reduced-motion: reduce) {
+  .key.key-camino {
+    animation: none;
+  }
+
+  .key.key-camino:not(.camino-tocar) {
+    translate: 0 3px;
+    border-bottom-width: 1px;
+    background: var(--color-borde);
+    color: #fff;
+  }
+
+  .key.key-camino.camino-2-2,
+  .key.key-camino.camino-3-3 {
+    translate: none;
+    border-bottom-width: 4px;
   }
 }

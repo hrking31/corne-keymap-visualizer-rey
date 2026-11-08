@@ -55,10 +55,9 @@ describe("crearBase", () => {
     expect([texto(linux, 36), texto(linux, 41)]).toEqual(["SUPER", "ALT"]);
   });
 
-  it("solo LOWER y RAISE son teclas de capa", () => {
+  it("LOWER y RAISE en los pulgares, como el ejemplo de ZMK", () => {
     const base = crearBase({ distribucion: "colemak-dh", idioma: "es-LA", so: "linux" });
-    const deCapa = Object.entries(base.teclas).filter(([, t]) => t.deCapa).map(([p]) => Number(p));
-    expect(deCapa).toEqual([37, 40]);
+    expect([base.teclas[37].texto, base.teclas[40].texto]).toEqual(["LOWER", "RAISE"]);
   });
 
   it("Dvorak en español: SEMI y SQT se ven como en el sistema", () => {
@@ -82,10 +81,10 @@ describe("ajustesDelNavegador", () => {
 
 describe("teclasParaDibujar", () => {
   it("devuelve 42 teclas en el orden de dibujo, con las vacías incluidas", () => {
-    const vacia: CapaConfig = { corto: "NUM", largo: "Números", teclas: { 13: { texto: "1", descripcion: "", deCapa: false } } };
+    const vacia: CapaConfig = { corto: "NUM", largo: "Números", teclas: { 13: { texto: "1", descripcion: "" } } };
     const teclas = teclasParaDibujar(vacia);
     expect(teclas.map((t) => t.pos)).toEqual([...ORDEN_DIBUJO]);
-    expect(teclas.filter((t) => t.texto)).toEqual([{ texto: "1", descripcion: "", deCapa: false, pos: 13 }]);
+    expect(teclas.filter((t) => t.texto)).toEqual([{ texto: "1", descripcion: "", pos: 13 }]);
   });
 });
 

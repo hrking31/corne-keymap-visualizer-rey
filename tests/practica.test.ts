@@ -30,7 +30,7 @@ const pulsar = (key: string, code: string, mods: Partial<Pulsacion> = {}): Pulsa
 // Una ronda ya arrancada, como tras el «¡YA!» de la cuenta atrás
 const ya = (p: Practica | null, ahora = 0) => arrancar(p!, ahora);
 
-const tecla = (texto: string, extra: Partial<TeclaConfig> = {}): TeclaConfig => ({ texto, descripcion: "", deCapa: false, ...extra });
+const tecla = (texto: string, extra: Partial<TeclaConfig> = {}): TeclaConfig => ({ texto, descripcion: "", ...extra });
 
 // Un teclado pequeño con una tecla de cada caso
 const teclado: TecladoConfig = {
@@ -47,8 +47,8 @@ const teclado: TecladoConfig = {
         2: tecla("WIN+E", { envia: "LG(E)" }), // un atajo con la tecla Windows
         3: tecla("CTRL+C", { envia: "LC(C)" }), // un atajo: se practican teclas, no atajos
         4: tecla("SHIFT", { envia: "LSHFT" }), // un modificador solo: también se practica
-        5: tecla("NAV", { deCapa: true }),
-        6: tecla("A\nNAV", { deCapa: true, envia: "A" }), // tocar A, mantener capa NAV
+        5: tecla("NAV", { abre: { capa: "nav", modo: "mantener" } }),
+        6: tecla("A\nNAV", { envia: "A", abre: { capa: "nav", modo: "mantener" } }), // tocar A, mantener capa NAV
         7: tecla("GIT"), // una macro: la app no sabe qué envía
         8: tecla("x"), // escrita a mano: un carácter
         9: tecla("´"), // escrita a mano: acento que espera a la vocal
@@ -674,7 +674,6 @@ describe("lo que envía una tecla se conserva", () => {
     expect(editado.capas.capa1.teclas[1]).toEqual({
       texto: "INICIO",
       descripcion: "Va al principio de la línea",
-      deCapa: false,
       envia: "HOME",
     });
   });

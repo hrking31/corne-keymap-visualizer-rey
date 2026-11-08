@@ -144,12 +144,6 @@ button.key {
   color: #fff;
 }
 
-/* Color naranja para teclas de capas */
-.key-naranja {
-  border-color: #d97706 !important;
-  color: #ff9d2e !important;
-}
-
 /* Modal de información */
 .modal {
   position: fixed;
