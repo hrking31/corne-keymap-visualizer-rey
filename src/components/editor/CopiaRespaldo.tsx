@@ -33,10 +33,6 @@ export default function CopiaRespaldo({ archivo, onDescargar, onCerrar }: Props)
           Lo demás (las capas y lo que hace cada tecla) sale de tu .keymap. El archivo también lo lleva, para que
           al restaurarlo no tengas que volver a cargarlo.
         </p>
-        <p className="m-0">
-          Si borras algo sin querer, o tu cuenta, lo recuperas con{" "}
-          <strong className="text-hueso">Restaurar respaldo</strong>.
-        </p>
         <p className="m-0 text-xs text-gris">No incluye tus récords de práctica.</p>
         <p className="m-0 text-xs break-all text-gris">{archivo}</p>
         <div className="flex justify-between gap-2">
