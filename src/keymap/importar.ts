@@ -317,12 +317,13 @@ function ponerCombinaciones(
 // &lt, &to, &tog, &sl o un tocar/mantener); si ninguna lo hace, Base. null para Base.
 function capaDeAbajo(leido: KeymapLeido, i: number): number | null {
   if (i === 0) return null;
-  const deCapa = new Set(["&mo", "&lt", "&to", "&tog", "&sl"]);
+  // Los comportamientos de ZMK que cambian de capa
+  const cambianCapa = new Set(["&mo", "&lt", "&to", "&tog", "&sl"]);
   for (let j = 0; j < i; j++) {
     const activa = leido.capas[j].bindings.some((b) => {
-      if (deCapa.has(b.comportamiento)) return Number(b.parametros[0]) === i;
+      if (cambianCapa.has(b.comportamiento)) return Number(b.parametros[0]) === i;
       const propio = leido.propios[b.comportamiento.replace(/^&/, "")];
-      return propio?.tipo === "hold-tap" && deCapa.has(propio.bindings[0]?.comportamiento) && Number(b.parametros[0]) === i;
+      return propio?.tipo === "hold-tap" && cambianCapa.has(propio.bindings[0]?.comportamiento) && Number(b.parametros[0]) === i;
     });
     if (activa) return j;
   }

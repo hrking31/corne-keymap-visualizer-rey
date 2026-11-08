@@ -46,7 +46,8 @@ describe.skipIf(!hayEmulador)("reglas de Firestore", () => {
     const ref = doc(de("ana"), "teclados/ana");
     await assertSucceeds(setDoc(ref, { ...nuevo(), actualizado: serverTimestamp() }));
     await assertSucceeds(getDoc(ref));
-    // Como lo hace la app (guardarTecla): una tecla y la fecha del servidor
+    // Cambiar una sola tecla y la fecha del servidor (la app guarda el teclado entero, pero
+    // las reglas también lo permiten)
     await assertSucceeds(
       updateDoc(
         ref,

@@ -1,6 +1,14 @@
 import { useMemo } from "react";
 import type { TecladoConfig } from "../../teclados/tipos";
-import { GRUPOS, NOMBRE_GRUPO, esDeTexto, objetivosDeGrupo, textosDeGrupo, type Grupo } from "../../practica/practica";
+import {
+  GRUPOS,
+  NOMBRE_GRUPO,
+  esDeTexto,
+  gruposDisponibles,
+  objetivosDeGrupo,
+  textosDeGrupo,
+  type Grupo,
+} from "../../practica/practica";
 import { formatoMarca, mejorMarca, type Records } from "../../practica/records";
 import { useVentanaEditor } from "../editor/useVentanaEditor";
 
@@ -17,16 +25,15 @@ type Props = {
 // este teclado y su mejor marca. Un grupo sin nada que practicar sale apagado.
 export default function ElegirPractica({ teclado, grupo, records, onElegir, onCerrar }: Props) {
   const ventana = useVentanaEditor<HTMLElement>(onCerrar);
-  const grupos = useMemo(
-    () =>
-      GRUPOS.map((g) => {
-        const cuantos = esDeTexto(g) ? textosDeGrupo(teclado, g).length : objetivosDeGrupo(teclado, g).length;
-        const minimo = g === "palabras" ? 6 : 1;
-        const unidad = g === "palabras" ? "palabras" : g === "frases" ? "frases" : "teclas";
-        return { g, cuantos, disponible: cuantos >= minimo, unidad };
-      }),
-    [teclado],
-  );
+  const grupos = useMemo(() => {
+    // Qué grupos tienen algo que practicar: la regla está en practica.ts, con sus pruebas
+    const disponibles = gruposDisponibles(teclado);
+    return GRUPOS.map((g) => {
+      const cuantos = esDeTexto(g) ? textosDeGrupo(teclado, g).length : objetivosDeGrupo(teclado, g).length;
+      const unidad = g === "palabras" ? "palabras" : g === "frases" ? "frases" : "teclas";
+      return { g, cuantos, disponible: disponibles.includes(g), unidad };
+    });
+  }, [teclado]);
 
   return (
     <aside

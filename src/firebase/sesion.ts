@@ -12,7 +12,6 @@ import {
   type User,
 } from "firebase/auth";
 import {
-  FieldPath,
   deleteDoc,
   doc,
   initializeFirestore,
@@ -21,10 +20,9 @@ import {
   persistentMultipleTabManager,
   serverTimestamp,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import type { DatosPractica } from "../practica/records";
-import type { TeclaConfig, TecladoConfig } from "../teclados/tipos";
+import type { TecladoConfig } from "../teclados/tipos";
 import { firebaseConfig } from "./config";
 
 const app = initializeApp(firebaseConfig);
@@ -75,13 +73,9 @@ export function escucharTeclado(uid: string, cambio: (t: TecladoConfig | null) =
   );
 }
 
-// Guarda el teclado entero (al crearlo o al cambiar capas)
+// Guarda el teclado entero: al crearlo, al editarlo, al actualizar el .keymap o al restaurar
 export const guardarTeclado = (uid: string, teclado: TecladoConfig) =>
   setDoc(tecladoDe(uid), { ...teclado, actualizado: serverTimestamp() });
-
-// Guarda solo una tecla: no se reescribe el resto del teclado
-export const guardarTecla = (uid: string, capa: string, pos: number, tecla: TeclaConfig) =>
-  updateDoc(tecladoDe(uid), new FieldPath("capas", capa, "teclas", String(pos)), tecla, "actualizado", serverTimestamp());
 
 // Avisa cada vez que la práctica cambia. null: aún no ha terminado ninguna ronda con la
 // cuenta. `deCache`: viene de la copia del dispositivo, sin confirmar con el servidor. Lo que
